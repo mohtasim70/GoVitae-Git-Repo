@@ -1,3 +1,4 @@
+// This file is for syntax testing and syntax cheat sheet only
 package main
 
 import (
@@ -5,5 +6,8 @@ import (
 )
 
 func main() {
-	fmt.Println("Hello, playground")
+	var i float32
+	i = 47
+	fmt.Printf("Hello, playground\n")
+	fmt.Printf("%v, %T\n" ,i,i)
 }

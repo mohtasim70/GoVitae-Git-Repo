@@ -13,9 +13,12 @@ func main() {
 	fmt.Printf("%v, %T\n", i, i)
 	fmt.Printf("%v\n", j)
 
-	var numbers = make([]int, 3, 5)
+	var numbers = make([]int, 3, 5) // second par is length and capacity is 5
 	printSlice(numbers)
 
+	a := []int{}
+	a = append(a, 3)
+	fmt.Println(a)
 	var fruitArr [2]string
 	arr2 := [3]string{"App", "aaa", "Graaape"}
 	fruitArr[0] = "Apple"
@@ -38,6 +41,9 @@ func main() {
 	for k, v := range emails {
 		fmt.Printf("%s: %s\n", k, v)
 	}
+
+	//Pointers
+
 }
 func printSlice(x []int) {
 	//	fmt.Printf("len=%d cap=%d slice=%v\n", len(x), cap(x), x)

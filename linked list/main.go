@@ -3,14 +3,12 @@ package main
 import "fmt"
 
 type Node struct {
-	prev *Node
 	next *Node
 	key  interface{}
 }
 
 type List struct {
 	head *Node
-	tail *Node
 }
 
 func (L *List) Insert(key interface{}) {
@@ -18,16 +16,33 @@ func (L *List) Insert(key interface{}) {
 		next: L.head,
 		key:  key,
 	}
-	if L.head != nil {
-		L.head.prev = list
+	if L.head == nil {
+		L.head = list
+		return
 	}
-	L.head = list
+	list.next = nil
 
 	l := L.head
 	for l.next != nil {
 		l = l.next
 	}
-	L.tail = l
+	l.next = list
+
+}
+func (L *List) Append(key interface{}) {
+	list := &Node{
+		next: L.head,
+		key:  key,
+	}
+	if L.head == nil {
+		L.head = list
+	}
+
+	l := L.head
+	for l.next != nil {
+		l = l.next
+	}
+	l.next = L.head
 }
 
 func (l *List) Display() {
@@ -48,17 +63,17 @@ func Display(list *Node) {
 }
 
 func ShowBackwards(list *Node) {
-	for list != nil {
-		fmt.Printf("%v <-", list.key)
-		list = list.prev
-	}
-	fmt.Println()
+	// for list != nil {
+	// 	fmt.Printf("%v <-", list.key)
+	// 	list = list.prev
+	// }
+	// fmt.Println()
 }
 
 func (l *List) Reverse() {
 	curr := l.head
 	var prev *Node
-	l.tail = l.head
+	//	l.tail = l.head
 
 	for curr != nil {
 		next := curr.next
@@ -72,6 +87,12 @@ func (l *List) Reverse() {
 
 func main() {
 	link := List{}
+	// link.Append(5)
+	// link.Append(9)
+	// link.Append(13)
+	// link.Append(22)
+	// link.Append(28)
+	// link.Append(36)
 	link.Insert(5)
 	link.Insert(9)
 	link.Insert(13)
@@ -81,11 +102,11 @@ func main() {
 
 	fmt.Println("==============================")
 	fmt.Printf("Head: %v\n", link.head.key)
-	fmt.Printf("Tail: %v\n", link.tail.key)
+
 	link.Display()
 	fmt.Println("==============================")
 	fmt.Printf("head: %v\n", link.head.key)
-	fmt.Printf("tail: %v\n", link.tail.key)
-	link.Reverse()
+
+	//link.Reverse()
 	fmt.Println("==============================")
 }

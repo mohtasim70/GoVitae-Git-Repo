@@ -72,6 +72,10 @@ func (l *List) Reverse() {
 
 func main() {
 	link := List{}
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 	link.Insert(5)
 	link.Insert(9)
 	link.Insert(13)

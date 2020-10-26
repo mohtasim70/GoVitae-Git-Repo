@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
+
+	"github.com/go-chi/chi"
 )
 
 type Skill struct {
@@ -196,6 +199,32 @@ func sendBlockchain(c net.Conn, chainHead *Block) {
 
 }
 
+// Chi HTTP Services //
+
+type Handler func(w http.ResponseWriter, r *http.Request) error
+
+func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if err := h(w, r); err != nil {
+		// handle returned error here.
+		w.WriteHeader(503)
+		w.Write([]byte("bad"))
+	}
+}
+
+func defaultHandler(w http.ResponseWriter, r *http.Request) error {
+	fmt.Fprintf(w, "Hi there, This is defult page%s!", r.URL.Path[1:])
+	return nil
+}
+
+func runWebServer() {
+	r := chi.NewRouter()
+	r.Method("GET", "/", Handler(defaultHandler))
+
+	http.ListenAndServe(":8080", r)
+}
+
+// ---- //
+
 func main() {
 	firstCourse := Course{code: "CS50", name: "AI", creditHours: 3, grade: "A+"}
 	secondCourse := Course{code: "CS99", name: "DIP", creditHours: 3, grade: "B-"}
@@ -211,6 +240,7 @@ func main() {
 		log.Fatal(err)
 
 	}
+	go runWebServer()
 	for {
 		conn, err := ln.Accept()
 		if err != nil {

@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"encoding/hex"
 	"fmt"
+	"html/template"
 	"log"
 	"net"
 	"net/http"
@@ -184,6 +185,7 @@ func VerifyChain(chainHead *Block) { //What to do?
 	}
 	fmt.Println("Blockchain Verified")
 }
+
 func sendBlockchain(c net.Conn, chainHead *Block) {
 
 	log.Println("A client has connected",
@@ -212,7 +214,19 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func defaultHandler(w http.ResponseWriter, r *http.Request) error {
-	fmt.Fprintf(w, "Hi there, This is defult page%s!", r.URL.Path[1:])
+	MyBlock := Block{
+		PrevHash: "DSASDADSSDADSSADDASAD",
+	}
+
+	t, err := template.ParseFiles("../Website/blockchain.html") //parse the html file homepage.html
+	if err != nil {                                             // if there is an error
+		log.Print("template parsing error: ", err) // log it
+	}
+
+	err = t.Execute(w, MyBlock) //execute the template and pass it the HomePageVars struct to fill in the gaps
+	if err != nil {             // if there is an error
+		log.Print("template executing error: ", err) //log it
+	}
 	return nil
 }
 

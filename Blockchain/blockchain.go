@@ -13,13 +13,15 @@ import (
 	"github.com/go-chi/chi"
 )
 
+var chainHead *Block
+
 type Skill struct {
 }
 type Course struct {
-	code        string
-	name        string
-	creditHours int
-	grade       string
+	Code        string
+	Name        string
+	CreditHours int
+	Grade       string
 }
 type Project struct {
 	name     string
@@ -28,7 +30,7 @@ type Project struct {
 }
 
 type Block struct {
-	course      Course
+	Course      Course
 	project     Project
 	PrevPointer *Block
 	PrevHash    string
@@ -39,7 +41,7 @@ type Block struct {
 func CalculateHash(inputBlock *Block) string {
 
 	var temp string
-	temp = inputBlock.course.code + inputBlock.project.name
+	temp = inputBlock.Course.Code + inputBlock.project.name
 	h := sha256.New()
 	h.Write([]byte(temp))
 	sum := hex.EncodeToString(h.Sum(nil))
@@ -51,7 +53,7 @@ func CalculateHash(inputBlock *Block) string {
 func InsertBlock(course Course, project Project, chainHead *Block) *Block {
 	newBlock := &Block{
 		//Hash here
-		course:  course,
+		Course:  course,
 		project: project,
 	}
 	newBlock.CurrentHash = CalculateHash(newBlock)
@@ -90,7 +92,7 @@ func InsertProject(project Project, chainHead *Block) *Block {
 func InsertCourse(course Course, chainHead *Block) *Block {
 	newBlock := &Block{
 		//Hash here
-		course: course,
+		Course: course,
 	}
 	newBlock.CurrentHash = CalculateHash(newBlock)
 
@@ -110,8 +112,8 @@ func InsertCourse(course Course, chainHead *Block) *Block {
 func ChangeCourse(oldCourse Course, newCourse Course, chainHead *Block) {
 	present := false
 	for chainHead != nil {
-		if chainHead.course == oldCourse {
-			chainHead.course = newCourse
+		if chainHead.Course == oldCourse {
+			chainHead.Course = newCourse
 			present = true
 			break
 		}
@@ -162,7 +164,7 @@ func ListBlocks(chainHead *Block) {
 			fmt.Print(" Previous Hash: ", chainHead.PrevHash)
 		}
 
-		fmt.Print(" Course: ", chainHead.course.name)
+		fmt.Print(" Course: ", chainHead.Course.Name)
 		fmt.Print(" Project: ", chainHead.project.name)
 		fmt.Print(" -> ")
 		chainHead = chainHead.PrevPointer
@@ -213,13 +215,39 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func defaultHandler(w http.ResponseWriter, r *http.Request) error {
-	MyBlock := Block{
-		PrevHash: "DSASDADSSDADSSADDASAD",
+func setHandler(w http.ResponseWriter, r *http.Request) error {
+	t, err := template.ParseFiles("../Website/Blockchain.html") //parse the html file homepage.html
+	if err != nil {                                             // if there is an error
+		log.Print("template parsing error: ", err) // log it
 	}
 
-	t, err := template.ParseFiles("../Website/blockchain.html") //parse the html file homepage.html
-	if err != nil {                                             // if there is an error
+	err = t.Execute(w, nil) //execute the template and pass it the HomePageVars struct to fill in the gaps
+	if err != nil {         // if there is an error
+		log.Print("template executing error: ", err) //log it
+	}
+	return nil
+}
+
+func getHandler(w http.ResponseWriter, r *http.Request) error {
+	r.ParseForm()
+	cCode := r.Form.Get("courseCode")
+	cName := r.Form.Get("courseName")
+	cGrade := r.Form.Get("courseGrade")
+
+	AddCourse := Course{
+		Code:        cCode,
+		Name:        cName,
+		CreditHours: 3,
+		Grade:       cGrade,
+	}
+
+	MyBlock := Block{
+		Course: AddCourse,
+	}
+
+	// generate page by passing page variables into template
+	t, err := template.ParseFiles("../Website/viewBlock.html") //parse the html file homepage.html
+	if err != nil {                                            // if there is an error
 		log.Print("template parsing error: ", err) // log it
 	}
 
@@ -232,16 +260,17 @@ func defaultHandler(w http.ResponseWriter, r *http.Request) error {
 
 func runWebServer() {
 	r := chi.NewRouter()
-	r.Method("GET", "/", Handler(defaultHandler))
+	r.Method("GET", "/", Handler(setHandler))
+	r.Method("POST", "/blockInsert", Handler(getHandler))
 
-	http.ListenAndServe(":8080", r)
+	http.ListenAndServe(":3333", r)
 }
 
 // ---- //
 
 func main() {
-	firstCourse := Course{code: "CS50", name: "AI", creditHours: 3, grade: "A+"}
-	secondCourse := Course{code: "CS99", name: "DIP", creditHours: 3, grade: "B-"}
+	firstCourse := Course{Code: "CS50", Name: "AI", CreditHours: 3, Grade: "A+"}
+	secondCourse := Course{Code: "CS99", Name: "DIP", CreditHours: 3, Grade: "B-"}
 	firstProject := Project{name: "TigerKing", document: "//Hello.cpp", course: secondCourse}
 	var chainHead *Block
 	chainHead = InsertBlock(secondCourse, firstProject, chainHead)

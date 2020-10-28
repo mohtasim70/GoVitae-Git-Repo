@@ -9,6 +9,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi"
 )
@@ -24,24 +25,32 @@ type Course struct {
 	Grade       string
 }
 type Project struct {
-	name     string
-	document string
-	course   Course
+	Name     string
+	Document string
+	Course   Course
 }
 
 type Block struct {
 	Course      Course
-	project     Project
+	Project     Project
 	PrevPointer *Block
 	PrevHash    string
 	CurrentHash string
+}
+
+type ListTheBlock struct {
+	Course      []Course
+	Project     []Project
+	PrevPointer []*Block
+	PrevHash    []string
+	CurrentHash []string
 }
 
 //256bit
 func CalculateHash(inputBlock *Block) string {
 
 	var temp string
-	temp = inputBlock.Course.Code + inputBlock.project.name
+	temp = inputBlock.Course.Code + inputBlock.Project.Name
 	h := sha256.New()
 	h.Write([]byte(temp))
 	sum := hex.EncodeToString(h.Sum(nil))
@@ -54,7 +63,7 @@ func InsertBlock(course Course, project Project, chainHead *Block) *Block {
 	newBlock := &Block{
 		//Hash here
 		Course:  course,
-		project: project,
+		Project: project,
 	}
 	newBlock.CurrentHash = CalculateHash(newBlock)
 
@@ -73,7 +82,7 @@ func InsertBlock(course Course, project Project, chainHead *Block) *Block {
 func InsertProject(project Project, chainHead *Block) *Block {
 	newBlock := &Block{
 		//Hash here
-		project: project,
+		Project: project,
 	}
 	newBlock.CurrentHash = CalculateHash(newBlock)
 
@@ -89,23 +98,22 @@ func InsertProject(project Project, chainHead *Block) *Block {
 	return newBlock
 
 }
-func InsertCourse(course Course, chainHead *Block) *Block {
-	newBlock := &Block{
-		//Hash here
-		Course: course,
-	}
-	newBlock.CurrentHash = CalculateHash(newBlock)
+
+// Changing InsertCourse Code //
+func InsertCourse(myBlock Block) *Block {
+
+	myBlock.CurrentHash = CalculateHash(&myBlock)
 
 	if chainHead == nil {
-		chainHead = newBlock
+		chainHead = &myBlock
 		fmt.Println("Block Inserted")
 		return chainHead
 	}
-	newBlock.PrevPointer = chainHead
-	newBlock.PrevHash = chainHead.CurrentHash
+	myBlock.PrevPointer = chainHead
+	myBlock.PrevHash = chainHead.CurrentHash
 
 	fmt.Println("Project Block Inserted")
-	return newBlock
+	return &myBlock
 
 }
 
@@ -134,8 +142,8 @@ func ChangeCourse(oldCourse Course, newCourse Course, chainHead *Block) {
 func ChangeProject(oldProject Project, newProject Project, chainHead *Block) {
 	present := false
 	for chainHead != nil {
-		if chainHead.project == oldProject {
-			chainHead.project = newProject
+		if chainHead.Project == oldProject {
+			chainHead.Project = newProject
 			present = true
 			break
 		}
@@ -165,7 +173,7 @@ func ListBlocks(chainHead *Block) {
 		}
 
 		fmt.Print(" Course: ", chainHead.Course.Name)
-		fmt.Print(" Project: ", chainHead.project.name)
+		fmt.Print(" Project: ", chainHead.Project.Name)
 		fmt.Print(" -> ")
 		chainHead = chainHead.PrevPointer
 
@@ -234,10 +242,15 @@ func getHandler(w http.ResponseWriter, r *http.Request) error {
 	cName := r.Form.Get("courseName")
 	cGrade := r.Form.Get("courseGrade")
 
+	a, err := strconv.Atoi(r.FormValue("courseCHrs"))
+	if err != nil {
+	}
+	cCHrs := a
+
 	AddCourse := Course{
 		Code:        cCode,
 		Name:        cName,
-		CreditHours: 3,
+		CreditHours: cCHrs,
 		Grade:       cGrade,
 	}
 
@@ -245,14 +258,28 @@ func getHandler(w http.ResponseWriter, r *http.Request) error {
 		Course: AddCourse,
 	}
 
+	chainHead = InsertCourse(MyBlock)
+	ListBlocks(chainHead)
+
+	tempHead := chainHead
+	viewTheBlock := new(ListTheBlock)
+	tempCourse := []Course{}
+	for tempHead != nil {
+		tempCourse = append(tempCourse, tempHead.Course)
+		viewTheBlock = &ListTheBlock{
+			Course: tempCourse,
+		}
+		tempHead = tempHead.PrevPointer
+		fmt.Println(viewTheBlock.Course)
+	}
 	// generate page by passing page variables into template
 	t, err := template.ParseFiles("../Website/viewBlock.html") //parse the html file homepage.html
 	if err != nil {                                            // if there is an error
 		log.Print("template parsing error: ", err) // log it
 	}
 
-	err = t.Execute(w, MyBlock) //execute the template and pass it the HomePageVars struct to fill in the gaps
-	if err != nil {             // if there is an error
+	err = t.Execute(w, viewTheBlock) //execute the template and pass it the HomePageVars struct to fill in the gaps
+	if err != nil {                  // if there is an error
 		log.Print("template executing error: ", err) //log it
 	}
 	return nil
@@ -269,14 +296,6 @@ func runWebServer() {
 // ---- //
 
 func main() {
-	firstCourse := Course{Code: "CS50", Name: "AI", CreditHours: 3, Grade: "A+"}
-	secondCourse := Course{Code: "CS99", Name: "DIP", CreditHours: 3, Grade: "B-"}
-	firstProject := Project{name: "TigerKing", document: "//Hello.cpp", course: secondCourse}
-	var chainHead *Block
-	chainHead = InsertBlock(secondCourse, firstProject, chainHead)
-	chainHead = InsertCourse(firstCourse, chainHead)
-	ListBlocks(chainHead)
-
 	ln, err := net.Listen("tcp", ":6003")
 	if err != nil {
 

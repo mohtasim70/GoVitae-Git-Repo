@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"sync"
 )
 
@@ -24,16 +25,14 @@ type Project struct {
 	course   Course
 }
 type Peer struct {
-	listeningAddress string
-	email            string
-	name             string
-	role             bool //1 for user 0 for miner
-	conn             net.Conn
+	ListeningAddress string
+	Role             string //1 for user 0 for miner
+	Conn             net.Conn
 }
 type Data struct {
-	minerList []Peer
-	userList  []Peer
-	chainHead *Block
+	minerList    []Peer
+	clientsSlice []Peer
+	chainHead    *Block
 }
 
 type Block struct {
@@ -44,6 +43,7 @@ type Block struct {
 	CurrentHash string
 }
 
+//var chainHead *Block
 var globalData Data
 var mutex = &sync.Mutex{}
 
@@ -227,32 +227,7 @@ func sendBlockchain(c net.Conn, chainHead *Block) {
 }
 
 //Read
-func handleVerifier(conn net.Conn, addchan chan Verifier) {
-	//chainhead := &Block{}
 
-	// gobEncoder := gob.NewEncoder(conn)
-	// err1 := gobEncoder.Encode(firstCourse)
-	// if err1 != nil {
-	// 	//	log.Println(err)
-	// }
-
-	newClient := Verifier{
-		conn: conn,
-	}
-	var listeningAddress string
-	//Block or Blockchain from Verifier?
-	dec := gob.NewDecoder(conn)
-	err := dec.Decode(&listeningAddress)
-	if err != nil {
-		//handle error
-	}
-
-	newClient.listeningAddress = listeningAddress
-	fmt.Println("Yoo:", listeningAddress)
-	addchan <- newClient
-	// Blockchan <- chainhead
-
-}
 func WriteData(conn net.Conn, blockchan chan *Block) {
 
 	firstCourse := Course{code: "CS50", name: "AI", creditHours: 3, grade: "A+"}
@@ -269,20 +244,60 @@ func WriteData(conn net.Conn, blockchan chan *Block) {
 
 }
 
-var clientsSlice []Verifier
+var addchan = make(chan Peer)
+
+//var clientsSlice []Verifier
+func broadcastAdminData() {
+
+	<-addchan
+	for i := 0; i < len(globalData.clientsSlice); i++ {
+		gobEncoder := gob.NewEncoder(globalData.clientsSlice[i].Conn)
+		err1 := gobEncoder.Encode(globalData)
+		fmt.Println("Broadcasting:: ")
+		if err1 != nil {
+			//	log.Println(err)
+		}
+	}
+
+}
+
+func StoreClient(conn net.Conn) {
+
+	log.Println("A client has connected",
+		conn.RemoteAddr())
+
+	newClient := Peer{}
+	//Block or Blockchain from Verifier?
+	dec := gob.NewDecoder(conn)
+	err := dec.Decode(&newClient)
+	if err != nil {
+		//handle error
+		log.Println(err)
+	}
+
+	fmt.Printf("Received : %+v", newClient)
+
+	newClient.Conn = conn
+	globalData.clientsSlice = append(globalData.clientsSlice, newClient)
+	addchan <- newClient
+	// dec := gob.NewDecoder(conn)
+	// p := P{}
+	// dec.Decode(&p)
+
+}
 
 //For User and Miner
 func StartListening(listeningAddress string, node string) {
 
-	if node == "user" {
+	if node == "server" {
 		ln, err := net.Listen("tcp", ":"+listeningAddress)
 		if err != nil {
 			log.Fatal(err)
 			fmt.Println("Faital")
 		}
-		clientsSlice = make([]Verifier, 10)
-		addchan := make(chan Verifier)
-		blockchan := make(chan *Block)
+		//	clientsSlice = make([]Verifier, 10)
+
+		//blockchan := make(chan *Block)
 
 		for {
 			conn, err := ln.Accept()
@@ -293,10 +308,12 @@ func StartListening(listeningAddress string, node string) {
 			// go broadcastBlockchaintoPeer(conn)
 			// go receiveBlockchainfromPeer(conn)
 
-			go handleVerifier(conn, addchan)
-			go WriteData(conn, blockchan)
-			clientsSlice = append(clientsSlice, <-addchan)
-			<-blockchan
+			go StoreClient(conn)
+			go broadcastAdminData()
+			//	go WriteData(conn, blockchan)
+
+			//	fmt.Println("Slice:", globalData.clientsSlice[0].ListeningAddress)
+			//	<-blockchan
 			//	chainHead = <-Blockchan
 		}
 
@@ -304,6 +321,29 @@ func StartListening(listeningAddress string, node string) {
 		ln, err := net.Listen("tcp", listeningAddress)
 		if err != nil {
 			log.Fatal(err, ln)
+		}
+		clientsSlice := make([]Peer, 10)
+		//	addchan := make(chan Peer)
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			newClient := Peer{
+				Conn: conn,
+			}
+			clientsSlice = append(clientsSlice, newClient)
+			// go broadcastBlockchaintoPeer(conn)
+			// go receiveBlockchainfromPeer(conn)
+
+			go MinerverifyBlock(conn)
+			//	go broadcastAdminData()
+			//	go WriteData(conn, blockchan)
+
+			//	fmt.Println("Slice:", globalData.clientsSlice[0].ListeningAddress)
+			//	<-blockchan
+			//	chainHead = <-Blockchan
 		}
 
 	}
@@ -332,14 +372,14 @@ func MinerverifyBlock(conn net.Conn) {
 	if err2 != nil {
 		//handle error
 	} else {
-		InsertOnlyBlock(recvdBlock, chainHead)
+		InsertOnlyBlock(recvdBlock, globalData.chainHead)
 	}
 }
 
 func broadcastBlockchaintoPeer(conn net.Conn) {
 	//channel
 	gobEncoder := gob.NewEncoder(conn)
-	err1 := gobEncoder.Encode(chainHead)
+	err1 := gobEncoder.Encode(globalData.chainHead)
 	if err1 != nil {
 		//	log.Println(err)
 	}
@@ -355,9 +395,22 @@ func receiveBlockchainfromPeer(conn net.Conn) {
 	}
 
 }
-
-func readData() {
-
+func WriteString(conn net.Conn, details *Peer) {
+	gobEncoder := gob.NewEncoder(conn)
+	err := gobEncoder.Encode(details)
+	if err != nil {
+		//	log.Println(err)
+	}
+}
+func readAdminData(conn net.Conn) {
+	var globe Data
+	gobEncoder := gob.NewDecoder(conn)
+	err1 := gobEncoder.Decode(&globe)
+	if err1 != nil {
+		//	log.Println(err)
+	}
+	fmt.Println("In read admin data:")
+	globalData = globe
 }
 
 func main() {
@@ -371,7 +424,8 @@ func main() {
 
 	//The function below launches the server, uses different second argument
 	//It then starts a routine for each connection request received
-	go StartListening("1403", "user")
+	satoshiAddress := os.Args[1]
+	go StartListening(satoshiAddress, "server")
 	//log.Println("Sending my course to Verifier")
 
 	// firstCourse := Course{code: "CS50", name: "AI", creditHours: 3, grade: "A+"}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"sync"
 )
 
@@ -23,6 +24,16 @@ type Project struct {
 	document string
 	course   Course
 }
+type Peer struct {
+	ListeningAddress string
+	Role             string //1 for user 0 for miner
+	Conn             net.Conn
+}
+type Data struct {
+	minerList    []Peer
+	clientsSlice []Peer
+	chainHead    *Block
+}
 
 type Block struct {
 	course      Course
@@ -32,8 +43,11 @@ type Block struct {
 	CurrentHash string
 }
 
-var chainHead *Block
+//var chainHead *Block
+var globalData Data
 var mutex = &sync.Mutex{}
+
+//var globalData Data
 
 func CalculateHash(inputBlock *Block) string {
 
@@ -65,9 +79,9 @@ func InsertOnlyBlock(newBlock *Block, chainHead *Block) *Block {
 
 func StartListening(listeningAddress string, node string) {
 	//var chainHead *Block
-	if node == "user" {
+	if node == "admin" {
 
-	} else if node == "miner" {
+	} else if node == "user" {
 		ln, err := net.Listen("tcp", listeningAddress)
 		if err != nil {
 			log.Fatal(err, ln)
@@ -84,26 +98,64 @@ func MinerverifyBlock(conn net.Conn) {
 		//handle error
 	} else {
 		fmt.Println("Block Verified")
-		InsertOnlyBlock(recvdBlock, chainHead)
+		InsertOnlyBlock(recvdBlock, globalData.chainHead)
 	}
 }
+func WriteString(conn net.Conn, details Peer) {
+	fmt.Println("Peer: ", details)
+	gobEncoder := gob.NewEncoder(conn)
+	err := gobEncoder.Encode(details)
+
+	if err != nil {
+		//	log.Println(err)
+	}
+}
+
+func readAdminData(conn net.Conn) {
+	var globe Data
+	gobEncoder := gob.NewDecoder(conn)
+	err1 := gobEncoder.Decode(&globe)
+	if err1 != nil {
+		//	log.Println(err)
+	}
+	fmt.Println("In read admin data:")
+	globalData = globe
+}
+
 func main() {
 
-	conn, err := net.Dial("tcp", "localhost:1403")
-	if err != nil {
-		//handle error
-	}
+	satoshiAddress := os.Args[1]
+	myListeningAddress := os.Args[2]
+	log.Println(satoshiAddress, myListeningAddress)
 
-	address := "2000"
-	fmt.Println("Coursecc")
-	dec := gob.NewEncoder(conn)
-	err = dec.Encode(&address)
+	conn, err := net.Dial("tcp", ":"+satoshiAddress)
 	if err != nil {
-		//handle error
+		log.Fatal(err)
 	}
+	//The function below launches the server, uses different second argument
+	//It then starts a routine for each connection request received
+	//	role := "user"
+
+	myPeer := Peer{
+		ListeningAddress: string(myListeningAddress),
+		Role:             "user",
+	}
+	//go StartListening(myListeningAddress, "user")
+
+	WriteString(conn, myPeer)
+	log.Println("Sending my listening address to Admin")
+
+	go readAdminData(conn)
+	//Satoshi is there waiting for our address, it stores it somehow
+	// encoder := gob.NewEncoder(conn)
+	// p := P{
+	// 	Appleeeee: myListeningAddress,
+	// 	Cursorrrr: "userr",
+	// }
+	// encoder.Encode(p)
 
 	//Decode
-	MinerverifyBlock(conn)
+	//MinerverifyBlock(conn)
 	// var recvdBlock Block
 	// fmt.Println("block: ", recvdBlock.course.name)
 	// dec2 := gob.NewDecoder(conn)

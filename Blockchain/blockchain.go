@@ -27,12 +27,15 @@ type Project struct {
 type Peer struct {
 	ListeningAddress string
 	Role             string //1 for user 0 for miner
-	Conn             net.Conn
+	//	Conn             net.Conn
+}
+type Connected struct {
+	Conn net.Conn
 }
 type Data struct {
-	minerList    []Peer
-	clientsSlice []Peer
-	chainHead    *Block
+	MinerList    []Peer
+	ClientsSlice []Peer
+	ChainHead    *Block
 }
 
 type Block struct {
@@ -44,6 +47,7 @@ type Block struct {
 }
 
 //var chainHead *Block
+var localData []Connected
 var globalData Data
 var mutex = &sync.Mutex{}
 
@@ -245,19 +249,27 @@ func WriteData(conn net.Conn, blockchan chan *Block) {
 }
 
 var addchan = make(chan Peer)
+var globe Data
 
 //var clientsSlice []Verifier
 func broadcastAdminData() {
-
+	// gobEncoder := gob.NewEncoder(localData[0].Conn)
+	// //fmt.Println("BroadCheck: ", globalData.clientsSlice[i])
+	// //	globe = Data{}
+	// err1 := gobEncoder.Encode(globalData)
+	// if err1 != nil {
+	// 	log.Println(err1)
+	// }
 	//<-addchan
-	for i := 0; i < len(globalData.clientsSlice); i++ {
-		gobEncoder := gob.NewEncoder(globalData.clientsSlice[i].Conn)
-		fmt.Println("BroadCheck: ", globalData.clientsSlice[i])
+	for i := 0; i < len(localData); i++ {
+		gobEncoder := gob.NewEncoder(localData[i].Conn)
+		//fmt.Println("BroadCheck: ", localData[i])
 		err1 := gobEncoder.Encode(globalData)
 		fmt.Println("Broadcasting:: ")
 		if err1 != nil {
 			//	log.Println(err)
 		}
+
 	}
 
 }
@@ -278,10 +290,11 @@ func StoreClient(conn net.Conn) {
 
 	fmt.Printf("Received : %+v", newClient)
 
-	newClient.Conn = conn
+	//	newClient.Conn = conn
 
 	//	fmt.Println("Slice:", globalData.clientsSlice[0].ListeningAddress)
 	addchan <- newClient
+
 	// dec := gob.NewDecoder(conn)
 	// p := P{}
 	// dec.Decode(&p)
@@ -300,6 +313,8 @@ func StartListening(listeningAddress string, node string) {
 		//	clientsSlice = make([]Verifier, 10)
 
 		//blockchan := make(chan *Block)
+		newBlock := &Block{}
+		InsertOnlyBlock(newBlock, globalData.ChainHead)
 
 		for {
 			conn, err := ln.Accept()
@@ -307,12 +322,16 @@ func StartListening(listeningAddress string, node string) {
 				log.Println(err)
 				continue
 			}
+			conns := Connected{
+				Conn: conn,
+			}
 			// go broadcastBlockchaintoPeer(conn)
 			// go receiveBlockchainfromPeer(conn)
 
 			go StoreClient(conn)
 
-			globalData.clientsSlice = append(globalData.clientsSlice, <-addchan)
+			globalData.ClientsSlice = append(globalData.ClientsSlice, <-addchan)
+			localData = append(localData, conns)
 			broadcastAdminData()
 
 			//	go WriteData(conn, blockchan)
@@ -336,7 +355,7 @@ func StartListening(listeningAddress string, node string) {
 				continue
 			}
 			newClient := Peer{
-				Conn: conn,
+				// Conn: conn,
 			}
 			clientsSlice = append(clientsSlice, newClient)
 			// go broadcastBlockchaintoPeer(conn)
@@ -371,16 +390,16 @@ func MinerverifyBlock(conn net.Conn) {
 	if err2 != nil {
 		//handle error
 	} else {
-		InsertOnlyBlock(recvdBlock, globalData.chainHead)
+		InsertOnlyBlock(recvdBlock, globalData.ChainHead)
 	}
 }
 
 func broadcastBlockchaintoPeer(conn net.Conn) {
 	//channel
 	gobEncoder := gob.NewEncoder(conn)
-	err1 := gobEncoder.Encode(globalData.chainHead)
+	err1 := gobEncoder.Encode(globalData.ChainHead)
 	if err1 != nil {
-		//	log.Println(err)
+		log.Println(err1)
 	}
 
 }
@@ -405,7 +424,7 @@ func readAdminData(conn net.Conn) {
 	var globe Data
 	gobEncoder := gob.NewDecoder(conn)
 	err1 := gobEncoder.Decode(&globe)
-	fmt.Println("In Admindata: ", globe.clientsSlice[0])
+	fmt.Println("In Admindata: ", globe.ClientsSlice[0])
 	if err1 != nil {
 		//	log.Println(err)
 	}
@@ -414,10 +433,10 @@ func readAdminData(conn net.Conn) {
 }
 
 func ViewMinerData() {
-	for i := 0; i < len(globalData.clientsSlice); i++ {
-		if globalData.clientsSlice[i].Role == "miner" {
+	for i := 0; i < len(globalData.ClientsSlice); i++ {
+		if globalData.ClientsSlice[i].Role == "miner" {
 			fmt.Println("Miners connected to system:")
-			fmt.Print(" Their address: ", globalData.clientsSlice[i].ListeningAddress)
+			fmt.Print(" Their address: ", globalData.ClientsSlice[i].ListeningAddress)
 		}
 	}
 }

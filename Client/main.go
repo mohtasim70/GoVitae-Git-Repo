@@ -27,12 +27,11 @@ type Project struct {
 type Peer struct {
 	ListeningAddress string
 	Role             string //1 for user 0 for miner
-	Conn             net.Conn
 }
 type Data struct {
-	minerList    []Peer
-	clientsSlice []Peer
-	chainHead    *Block
+	MinerList    []Peer
+	ClientsSlice []Peer
+	ChainHead    *Block
 }
 
 type Block struct {
@@ -98,7 +97,7 @@ func MinerverifyBlock(conn net.Conn) {
 		//handle error
 	} else {
 		fmt.Println("Block Verified")
-		InsertOnlyBlock(recvdBlock, globalData.chainHead)
+		InsertOnlyBlock(recvdBlock, globalData.ChainHead)
 	}
 }
 func WriteString(conn net.Conn, details Peer) {
@@ -112,28 +111,45 @@ func WriteString(conn net.Conn, details Peer) {
 }
 
 func readAdminData(conn net.Conn) {
-	var globe Data
-
-	gobEncoder := gob.NewDecoder(conn)
-	//Stuck
-	err1 := gobEncoder.Decode(&globe)
-	//Stuck
-	fmt.Println("In Admindata: ", globe)
-	if err1 != nil {
-		//	log.Println(err)
+	for {
+		//var globe Data
+		var globe Data
+		gobEncoder := gob.NewDecoder(conn)
+		//Stuck
+		err1 := gobEncoder.Decode(&globe)
+		//Stuck
+		fmt.Println("In Admindata: ", globe)
+		if err1 != nil {
+			log.Println(err1)
+		}
+		fmt.Println("In read admin data:")
+		//	globalData = globe
 	}
-	fmt.Println("In read admin data:")
-	globalData = globe
 }
+
 func ViewMinerData() {
-	for i := 0; i < len(globalData.clientsSlice); i++ {
-		if globalData.clientsSlice[i].Role == "miner" {
+	for i := 0; i < len(globalData.ClientsSlice); i++ {
+		if globalData.ClientsSlice[i].Role == "miner" {
 			fmt.Println("Miners connected to system:")
-			fmt.Print(" Their address: ", globalData.clientsSlice[i].ListeningAddress)
+			fmt.Print(" Their address: ", globalData.ClientsSlice[i].ListeningAddress)
 		}
 	}
 }
+func UserSendBlock(minerAddress string, block *Block) {
+	//Input from me
 
+	//Dialing Miner
+	conn, errs := net.Dial("tcp", ":"+minerAddress)
+	if errs != nil {
+		log.Fatal(errs)
+	}
+	fmt.Println("Sending to miner")
+	gobEncoder := gob.NewEncoder(conn)
+	err := gobEncoder.Encode(block)
+	if err != nil {
+		//	log.Println(err)
+	}
+}
 func main() {
 
 	satoshiAddress := os.Args[1]
@@ -157,9 +173,13 @@ func main() {
 	WriteString(conn, myPeer)
 	log.Println("Sending my listening address to Admin")
 
-	readAdminData(conn)
+	go readAdminData(conn)
 
 	ViewMinerData()
+	// minerAddress := "1200"
+	// block := &Block{}
+
+	//UserSendBlock(minerAddress, block)
 
 	//DIaling
 

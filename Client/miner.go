@@ -27,12 +27,11 @@ type Project struct {
 type Peer struct {
 	ListeningAddress string
 	Role             string //1 for user 0 for miner
-	Conn             net.Conn
 }
 type Data struct {
-	minerList    []Peer
-	clientsSlice []Peer
-	chainHead    *Block
+	MinerList    []Peer
+	ClientsSlice []Peer
+	ChainHead    *Block
 }
 
 type Block struct {
@@ -86,7 +85,7 @@ func StartListening(listeningAddress string, node string) {
 		if err != nil {
 			log.Fatal(err, ln)
 		}
-		clientsSlice := make([]Peer, 10)
+		//	clientsSlice := make([]Peer, 10)
 		//	addchan := make(chan Peer)
 		for {
 			conn, err := ln.Accept()
@@ -94,11 +93,12 @@ func StartListening(listeningAddress string, node string) {
 				log.Println(err)
 				continue
 			}
-			newClient := Peer{
-				Conn: conn,
-			}
-			clientsSlice = append(clientsSlice, newClient)
+			// newClient := Peer{
+			// 	Conn: conn,
+			// }
+			// clientsSlice = append(clientsSlice, newClient)
 			// go broadcastBlockchaintoPeer(conn)
+
 			// go receiveBlockchainfromPeer(conn)
 
 			go MinerverifyBlock(conn)
@@ -113,9 +113,10 @@ func MinerverifyBlock(conn net.Conn) {
 	err2 := dec2.Decode(&recvdBlock)
 	if err2 != nil {
 		//handle error
+		fmt.Println("err")
 	} else {
 		fmt.Println("Block Verified")
-		InsertOnlyBlock(recvdBlock, globalData.chainHead)
+		InsertOnlyBlock(recvdBlock, globalData.ChainHead)
 	}
 }
 func WriteString(conn net.Conn, details Peer) {
@@ -129,14 +130,20 @@ func WriteString(conn net.Conn, details Peer) {
 }
 
 func readAdminData(conn net.Conn) {
-	var globe Data
-	gobEncoder := gob.NewDecoder(conn)
-	err1 := gobEncoder.Decode(&globe)
-	if err1 != nil {
-		//	log.Println(err)
+	for {
+		//var globe Data
+		var globe Data
+		gobEncoder := gob.NewDecoder(conn)
+		//Stuck
+		err1 := gobEncoder.Decode(&globe)
+		//Stuck
+		fmt.Println("In Admindata: ", globe)
+		if err1 != nil {
+			log.Println(err1)
+		}
+		fmt.Println("In read admin data:")
+		//	globalData = globe
 	}
-	fmt.Println("In read admin data:")
-	globalData = globe
 }
 func ViewMinerData() {
 	for i := 0; i < len(globalData.clientsSlice); i++ {

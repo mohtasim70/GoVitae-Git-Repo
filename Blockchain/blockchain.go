@@ -249,9 +249,10 @@ var addchan = make(chan Peer)
 //var clientsSlice []Verifier
 func broadcastAdminData() {
 
-	<-addchan
+	//<-addchan
 	for i := 0; i < len(globalData.clientsSlice); i++ {
 		gobEncoder := gob.NewEncoder(globalData.clientsSlice[i].Conn)
+		fmt.Println("BroadCheck: ", globalData.clientsSlice[i])
 		err1 := gobEncoder.Encode(globalData)
 		fmt.Println("Broadcasting:: ")
 		if err1 != nil {
@@ -278,7 +279,8 @@ func StoreClient(conn net.Conn) {
 	fmt.Printf("Received : %+v", newClient)
 
 	newClient.Conn = conn
-	globalData.clientsSlice = append(globalData.clientsSlice, newClient)
+
+	//	fmt.Println("Slice:", globalData.clientsSlice[0].ListeningAddress)
 	addchan <- newClient
 	// dec := gob.NewDecoder(conn)
 	// p := P{}
@@ -309,7 +311,10 @@ func StartListening(listeningAddress string, node string) {
 			// go receiveBlockchainfromPeer(conn)
 
 			go StoreClient(conn)
-			go broadcastAdminData()
+
+			globalData.clientsSlice = append(globalData.clientsSlice, <-addchan)
+			broadcastAdminData()
+
 			//	go WriteData(conn, blockchan)
 
 			//	fmt.Println("Slice:", globalData.clientsSlice[0].ListeningAddress)
@@ -338,19 +343,13 @@ func StartListening(listeningAddress string, node string) {
 			// go receiveBlockchainfromPeer(conn)
 
 			go MinerverifyBlock(conn)
-			//	go broadcastAdminData()
-			//	go WriteData(conn, blockchan)
-
-			//	fmt.Println("Slice:", globalData.clientsSlice[0].ListeningAddress)
-			//	<-blockchan
-			//	chainHead = <-Blockchan
 		}
 
 	}
 }
 
 //Sending course to be verified
-func SendCourseV(minerAddress string, course Course) {
+func UserSendBlock(minerAddress string, block *Block) {
 	//Input from me
 
 	//Dialing Miner
@@ -359,7 +358,7 @@ func SendCourseV(minerAddress string, course Course) {
 		log.Fatal(errs)
 	}
 	gobEncoder := gob.NewEncoder(conn)
-	err := gobEncoder.Encode(course)
+	err := gobEncoder.Encode(block)
 	if err != nil {
 		//	log.Println(err)
 	}
@@ -406,11 +405,21 @@ func readAdminData(conn net.Conn) {
 	var globe Data
 	gobEncoder := gob.NewDecoder(conn)
 	err1 := gobEncoder.Decode(&globe)
+	fmt.Println("In Admindata: ", globe.clientsSlice[0])
 	if err1 != nil {
 		//	log.Println(err)
 	}
 	fmt.Println("In read admin data:")
 	globalData = globe
+}
+
+func ViewMinerData() {
+	for i := 0; i < len(globalData.clientsSlice); i++ {
+		if globalData.clientsSlice[i].Role == "miner" {
+			fmt.Println("Miners connected to system:")
+			fmt.Print(" Their address: ", globalData.clientsSlice[i].ListeningAddress)
+		}
+	}
 }
 
 func main() {

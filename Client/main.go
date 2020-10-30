@@ -113,13 +113,25 @@ func WriteString(conn net.Conn, details Peer) {
 
 func readAdminData(conn net.Conn) {
 	var globe Data
+
 	gobEncoder := gob.NewDecoder(conn)
+	//Stuck
 	err1 := gobEncoder.Decode(&globe)
+	//Stuck
+	fmt.Println("In Admindata: ", globe)
 	if err1 != nil {
 		//	log.Println(err)
 	}
 	fmt.Println("In read admin data:")
 	globalData = globe
+}
+func ViewMinerData() {
+	for i := 0; i < len(globalData.clientsSlice); i++ {
+		if globalData.clientsSlice[i].Role == "miner" {
+			fmt.Println("Miners connected to system:")
+			fmt.Print(" Their address: ", globalData.clientsSlice[i].ListeningAddress)
+		}
+	}
 }
 
 func main() {
@@ -145,7 +157,12 @@ func main() {
 	WriteString(conn, myPeer)
 	log.Println("Sending my listening address to Admin")
 
-	go readAdminData(conn)
+	readAdminData(conn)
+
+	ViewMinerData()
+
+	//DIaling
+
 	//Satoshi is there waiting for our address, it stores it somehow
 	// encoder := gob.NewEncoder(conn)
 	// p := P{

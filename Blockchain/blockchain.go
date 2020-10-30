@@ -69,13 +69,13 @@ func InsertOnlyBlock(newBlock *Block, chainHead *Block) *Block {
 
 	if chainHead == nil {
 		chainHead = newBlock
-		fmt.Println("Block Inserted")
+		fmt.Println("Genesis Block Inserted")
 		return chainHead
 	}
 	newBlock.PrevPointer = chainHead
 	newBlock.PrevHash = chainHead.CurrentHash
 
-	fmt.Println("Block Course and Project Inserted")
+	fmt.Println("Later Block  Inserted")
 	return newBlock
 
 }
@@ -192,14 +192,28 @@ func ListBlocks(chainHead *Block) {
 		} else {
 			fmt.Print(" Previous Hash: ", chainHead.PrevHash)
 		}
+		if (chainHead.course != Course{}) {
+			fmt.Print(" Course: ", chainHead.course.name)
+		}
+		if (chainHead.project != Project{}) {
+			fmt.Print(" Project: ", chainHead.project.name)
+		}
 
-		fmt.Print(" Course: ", chainHead.course.name)
-		fmt.Print(" Project: ", chainHead.project.name)
 		fmt.Print(" -> ")
 		chainHead = chainHead.PrevPointer
 
 	}
 	fmt.Println()
+
+}
+func Length(chainHead *Block) int {
+	sum := 0
+	for chainHead != nil {
+
+		chainHead = chainHead.PrevPointer
+		sum++
+	}
+	return sum
 
 }
 
@@ -314,8 +328,7 @@ func StartListening(listeningAddress string, node string) {
 
 		//blockchan := make(chan *Block)
 		newBlock := &Block{}
-		InsertOnlyBlock(newBlock, globalData.ChainHead)
-
+		globalData.ChainHead = InsertOnlyBlock(newBlock, globalData.ChainHead)
 		for {
 			conn, err := ln.Accept()
 			if err != nil {

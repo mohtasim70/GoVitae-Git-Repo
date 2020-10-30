@@ -75,6 +75,40 @@ func InsertOnlyBlock(newBlock *Block, chainHead *Block) *Block {
 	return newBlock
 
 }
+func ListBlocks(chainHead *Block) {
+
+	for chainHead != nil {
+		fmt.Print("Block-- ")
+		fmt.Print(" Current Hash: ", chainHead.CurrentHash)
+		if chainHead.PrevHash == "" {
+			fmt.Print(" Previous Hash: ", "Null")
+		} else {
+			fmt.Print(" Previous Hash: ", chainHead.PrevHash)
+		}
+		if (chainHead.course != Course{}) {
+			fmt.Print(" Course: ", chainHead.course.name)
+		}
+		if (chainHead.project != Project{}) {
+			fmt.Print(" Project: ", chainHead.project.name)
+		}
+
+		fmt.Print(" -> ")
+		chainHead = chainHead.PrevPointer
+
+	}
+	fmt.Println()
+
+}
+func Length(chainHead *Block) int {
+	sum := 0
+	for chainHead != nil {
+
+		chainHead = chainHead.PrevPointer
+		sum++
+	}
+	return sum
+
+}
 
 func StartListening(listeningAddress string, node string) {
 	//var chainHead *Block
@@ -125,6 +159,9 @@ func readAdminData(conn net.Conn) {
 			log.Println(err1)
 		}
 		fmt.Println("In read admin data:")
+		if Length(globe.ChainHead) < Length(globalData.ChainHead) {
+			globe.ChainHead = globalData.ChainHead
+		}
 		globalData = globe
 		<-Globechan
 	}
@@ -134,6 +171,7 @@ func ViewMinerData() {
 
 	for {
 		Globechan <- "hello"
+
 		for i := 0; i < len(globalData.ClientsSlice); i++ {
 			if globalData.ClientsSlice[i].Role == "miner" {
 				fmt.Println("Miners connected to system:")
@@ -178,17 +216,49 @@ func main() {
 	//go StartListening(myListeningAddress, "user")
 
 	WriteString(conn, myPeer)
-	log.Println("Sending my listening address to Admin")
+	//log.Println("Sending my listening address to Admin")
 
 	go readAdminData(conn)
 
 	go ViewMinerData()
 
-	// fmt.Println("Enter Verifier port number from the list: ")
-	// var minerAddress string
-	// fmt.Scanln(&first)
-	minerAddress := "1200"
-	block := &Block{}
+	fmt.Println("Enter Verifier port number from the list: ")
+	var minerAddress string
+	fmt.Scanln(&minerAddress)
+
+	fmt.Println("Enter 1 for Course or 2 for Project details to verify: ")
+	var numb int
+	fmt.Scanln(&numb)
+	var cour Course
+	//var proj Project
+	if numb == 1 {
+		fmt.Println("Enter name for Course: ")
+		var names string
+		fmt.Scanln(&names)
+		fmt.Println("Enter code for Course: ")
+		var code string
+		fmt.Scanln(&code)
+		fmt.Println("Enter grade for Course: ")
+		var grade string
+		fmt.Scanln(&grade)
+		fmt.Println("Enter credit hours for Course: ")
+		var creditHours int
+		fmt.Scanln(&creditHours)
+		cour = Course{
+			code:        code,
+			name:        names,
+			grade:       grade,
+			creditHours: creditHours,
+		}
+
+	} else if numb == 2 {
+
+	}
+
+	//minerAddress := "1200"
+	block := &Block{
+		course: cour,
+	}
 
 	UserSendBlock(minerAddress, block)
 

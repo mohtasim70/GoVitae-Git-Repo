@@ -44,6 +44,7 @@ type Block struct {
 
 //var chainHead *Block
 var globalData Data
+var localData []Connected
 var mutex = &sync.Mutex{}
 
 //var globalData Data
@@ -75,6 +76,40 @@ func InsertOnlyBlock(newBlock *Block, chainHead *Block) *Block {
 	return newBlock
 
 }
+func ListBlocks(chainHead *Block) {
+
+	for chainHead != nil {
+		fmt.Print("Block-- ")
+		fmt.Print(" Current Hash: ", chainHead.CurrentHash)
+		if chainHead.PrevHash == "" {
+			fmt.Print(" Previous Hash: ", "Null")
+		} else {
+			fmt.Print(" Previous Hash: ", chainHead.PrevHash)
+		}
+		if (chainHead.course != Course{}) {
+			fmt.Print(" Course: ", chainHead.course.name)
+		}
+		if (chainHead.project != Project{}) {
+			fmt.Print(" Project: ", chainHead.project.name)
+		}
+
+		fmt.Print(" -> ")
+		chainHead = chainHead.PrevPointer
+
+	}
+	fmt.Println()
+
+}
+func Length(chainHead *Block) int {
+	sum := 0
+	for chainHead != nil {
+
+		chainHead = chainHead.PrevPointer
+		sum++
+	}
+	return sum
+
+}
 
 func StartListening(listeningAddress string, node string) {
 	//var chainHead *Block
@@ -98,7 +133,10 @@ func StartListening(listeningAddress string, node string) {
 			// }
 			// ClientsSlice = append(ClientsSlice, newClient)
 			// go broadcastBlockchaintoPeer(conn)
-
+			conns := Connected{
+				Conn: conn,
+			}
+			localData = append(localData, conns)
 			// go receiveBlockchainfromPeer(conn)
 
 			go MinerverifyBlock(conn)
@@ -117,7 +155,8 @@ func MinerverifyBlock(conn net.Conn) {
 	} else {
 		UpdateChan <- "start mining"
 		fmt.Println("Block Verified")
-		InsertOnlyBlock(recvdBlock, globalData.ChainHead)
+		globalData.ChainHead = InsertOnlyBlock(recvdBlock, globalData.ChainHead)
+		fmt.Println("Length of blockchain", Length(globalData.ChainHead))
 	}
 }
 func WriteString(conn net.Conn, details Peer) {
@@ -145,6 +184,9 @@ func readAdminData(conn net.Conn) {
 			log.Println(err1)
 		}
 		fmt.Println("In read admin data:")
+		if Length(globe.ChainHead) < Length(globalData.ChainHead) {
+			globe.ChainHead = globalData.ChainHead
+		}
 		globalData = globe
 
 		<-UpdateChan
@@ -169,6 +211,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	localData = append(localData, conn)
 	//The function below launches the server, uses different second argument
 	//It then starts a routine for each connection request received
 	//	role := "user"

@@ -424,7 +424,7 @@ func readAdminData(conn net.Conn) {
 	var globe Data
 	gobEncoder := gob.NewDecoder(conn)
 	err1 := gobEncoder.Decode(&globe)
-	fmt.Println("In Admindata: ", globe.ClientsSlice[0])
+	//	fmt.Println("In Admindata: ", globe.ClientsSlice[0])
 	if err1 != nil {
 		//	log.Println(err)
 	}

@@ -85,7 +85,7 @@ func StartListening(listeningAddress string, node string) {
 		if err != nil {
 			log.Fatal(err, ln)
 		}
-		//	clientsSlice := make([]Peer, 10)
+		//	ClientsSlice := make([]Peer, 10)
 		//	addchan := make(chan Peer)
 		for {
 			conn, err := ln.Accept()
@@ -96,7 +96,7 @@ func StartListening(listeningAddress string, node string) {
 			// newClient := Peer{
 			// 	Conn: conn,
 			// }
-			// clientsSlice = append(clientsSlice, newClient)
+			// ClientsSlice = append(ClientsSlice, newClient)
 			// go broadcastBlockchaintoPeer(conn)
 
 			// go receiveBlockchainfromPeer(conn)
@@ -115,6 +115,7 @@ func MinerverifyBlock(conn net.Conn) {
 		//handle error
 		fmt.Println("err")
 	} else {
+		UpdateChan <- "start mining"
 		fmt.Println("Block Verified")
 		InsertOnlyBlock(recvdBlock, globalData.ChainHead)
 	}
@@ -129,6 +130,8 @@ func WriteString(conn net.Conn, details Peer) {
 	}
 }
 
+var UpdateChan = make(chan string)
+
 func readAdminData(conn net.Conn) {
 	for {
 		//var globe Data
@@ -137,19 +140,21 @@ func readAdminData(conn net.Conn) {
 		//Stuck
 		err1 := gobEncoder.Decode(&globe)
 		//Stuck
-		fmt.Println("In Admindata: ", globe)
+		//	fmt.Println("In Admindata: ", globe)
 		if err1 != nil {
 			log.Println(err1)
 		}
 		fmt.Println("In read admin data:")
-		//	globalData = globe
+		globalData = globe
+
+		<-UpdateChan
 	}
 }
 func ViewMinerData() {
-	for i := 0; i < len(globalData.clientsSlice); i++ {
-		if globalData.clientsSlice[i].Role == "miner" {
+	for i := 0; i < len(globalData.ClientsSlice); i++ {
+		if globalData.ClientsSlice[i].Role == "miner" {
 			fmt.Println("Miners connected to system:")
-			fmt.Print(" Their address: ", globalData.clientsSlice[i].ListeningAddress)
+			fmt.Print(" Their address: ", globalData.ClientsSlice[i].ListeningAddress)
 		}
 	}
 }

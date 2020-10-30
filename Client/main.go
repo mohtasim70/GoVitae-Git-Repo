@@ -110,6 +110,8 @@ func WriteString(conn net.Conn, details Peer) {
 	}
 }
 
+var Globechan = make(chan string)
+
 func readAdminData(conn net.Conn) {
 	for {
 		//var globe Data
@@ -118,20 +120,25 @@ func readAdminData(conn net.Conn) {
 		//Stuck
 		err1 := gobEncoder.Decode(&globe)
 		//Stuck
-		fmt.Println("In Admindata: ", globe)
+		//	fmt.Println("In Admindata: ", globe)
 		if err1 != nil {
 			log.Println(err1)
 		}
 		fmt.Println("In read admin data:")
-		//	globalData = globe
+		globalData = globe
+		<-Globechan
 	}
 }
 
 func ViewMinerData() {
-	for i := 0; i < len(globalData.ClientsSlice); i++ {
-		if globalData.ClientsSlice[i].Role == "miner" {
-			fmt.Println("Miners connected to system:")
-			fmt.Print(" Their address: ", globalData.ClientsSlice[i].ListeningAddress)
+
+	for {
+		Globechan <- "hello"
+		for i := 0; i < len(globalData.ClientsSlice); i++ {
+			if globalData.ClientsSlice[i].Role == "miner" {
+				fmt.Println("Miners connected to system:")
+				fmt.Print(" Their address: ", globalData.ClientsSlice[i].ListeningAddress)
+			}
 		}
 	}
 }
@@ -143,7 +150,7 @@ func UserSendBlock(minerAddress string, block *Block) {
 	if errs != nil {
 		log.Fatal(errs)
 	}
-	fmt.Println("Sending to miner")
+	fmt.Println("Sending Block CONTENT to be verified to miner")
 	gobEncoder := gob.NewEncoder(conn)
 	err := gobEncoder.Encode(block)
 	if err != nil {
@@ -175,11 +182,15 @@ func main() {
 
 	go readAdminData(conn)
 
-	ViewMinerData()
-	// minerAddress := "1200"
-	// block := &Block{}
+	go ViewMinerData()
 
-	//UserSendBlock(minerAddress, block)
+	// fmt.Println("Enter Verifier port number from the list: ")
+	// var minerAddress string
+	// fmt.Scanln(&first)
+	minerAddress := "1200"
+	block := &Block{}
+
+	UserSendBlock(minerAddress, block)
 
 	//DIaling
 

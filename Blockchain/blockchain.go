@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"sync"
+	"time"
 )
 
 type Skill struct {
@@ -264,27 +265,22 @@ func WriteData(conn net.Conn, blockchan chan *Block) {
 
 var addchan = make(chan Peer)
 var globe Data
+var stopchan = make(chan string)
 
 //var clientsSlice []Verifier
 func broadcastAdminData() {
-	// gobEncoder := gob.NewEncoder(localData[0].Conn)
-	// //fmt.Println("BroadCheck: ", globalData.clientsSlice[i])
-	// //	globe = Data{}
-	// err1 := gobEncoder.Encode(globalData)
-	// if err1 != nil {
-	// 	log.Println(err1)
-	// }
-	//<-addchan
+
 	for i := 0; i < len(localData); i++ {
 		gobEncoder := gob.NewEncoder(localData[i].Conn)
 		//fmt.Println("BroadCheck: ", localData[i])
 		err1 := gobEncoder.Encode(globalData)
-		fmt.Println("Broadcasting:: ")
+		fmt.Println("Broadcasting StreamData:: ")
 		if err1 != nil {
 			//	log.Println(err)
 		}
 
 	}
+	<-StepbyChan
 
 }
 
@@ -308,10 +304,56 @@ func StoreClient(conn net.Conn) {
 
 	//	fmt.Println("Slice:", globalData.clientsSlice[0].ListeningAddress)
 	addchan <- newClient
+	<-stopchan
 
 	// dec := gob.NewDecoder(conn)
 	// p := P{}
 	// dec.Decode(&p)
+
+}
+
+var StepbyChan = make(chan string)
+
+//var RW3Chan = make(chan string)
+
+func readBlockchain(conn net.Conn) {
+	for {
+		//var globe Data
+		stopchan <- "hello"
+		fmt.Println("In read blockchain before decode:")
+		var chainhead *Block
+		gobEncoder := gob.NewDecoder(conn)
+		//Stuck
+		err1 := gobEncoder.Decode(&chainhead)
+		//Stuck
+		//	fmt.Println("In Admindata: ", globe)
+		if err1 != nil {
+			log.Println(err1, "Error in reading Blockchain ")
+		}
+		if Length(chainhead) > Length(globalData.ChainHead) {
+			globalData.ChainHead = chainhead
+		}
+		fmt.Println("Blockchain received:: ", Length(globalData.ChainHead))
+		//	globalData = globe
+		//	<-Globechan
+		//		<-RW3Chan
+	}
+}
+
+func broadcastBlock() {
+	StepbyChan <- "Hello"
+	//	RW3Chan <- "hello"
+	time.Sleep(5 * time.Second)
+	for i := 0; i < len(localData); i++ {
+		gobEncoder := gob.NewEncoder(localData[i].Conn)
+		//fmt.Println("BroadCheck: ", localData[i])
+		err1 := gobEncoder.Encode(globalData.ChainHead)
+		fmt.Println("Broadcasting Blockchain:: ")
+		if err1 != nil {
+			log.Println(err1, "in broadcasting block")
+		}
+
+	}
 
 }
 
@@ -325,10 +367,11 @@ func StartListening(listeningAddress string, node string) {
 			fmt.Println("Faital")
 		}
 		//	clientsSlice = make([]Verifier, 10)
-
+		fmt.Println("Stream Starts")
 		//blockchan := make(chan *Block)
 		newBlock := &Block{}
 		globalData.ChainHead = InsertOnlyBlock(newBlock, globalData.ChainHead)
+
 		for {
 			conn, err := ln.Accept()
 			if err != nil {
@@ -342,11 +385,13 @@ func StartListening(listeningAddress string, node string) {
 			// go receiveBlockchainfromPeer(conn)
 
 			go StoreClient(conn)
+			go readBlockchain(conn)
 
 			globalData.ClientsSlice = append(globalData.ClientsSlice, <-addchan)
 			localData = append(localData, conns)
-			broadcastAdminData()
 
+			go broadcastAdminData()
+			go broadcastBlock()
 			//	go WriteData(conn, blockchan)
 
 			//	fmt.Println("Slice:", globalData.clientsSlice[0].ListeningAddress)

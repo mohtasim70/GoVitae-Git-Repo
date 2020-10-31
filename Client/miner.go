@@ -9,20 +9,21 @@ import (
 	"net"
 	"os"
 	"sync"
+	"time"
 )
 
 type Skill struct {
 }
 type Course struct {
-	code        string
-	name        string
-	creditHours int
-	grade       string
+	Code        string
+	Name        string
+	CreditHours int
+	Grade       string
 }
 type Project struct {
 	name     string
 	document string
-	course   Course
+	Course   Course
 }
 type Peer struct {
 	ListeningAddress string
@@ -35,11 +36,14 @@ type Data struct {
 }
 
 type Block struct {
-	course      Course
+	Course      Course
 	project     Project
 	PrevPointer *Block
 	PrevHash    string
 	CurrentHash string
+}
+type Connected struct {
+	Conn net.Conn
 }
 
 //var chainHead *Block
@@ -52,7 +56,7 @@ var mutex = &sync.Mutex{}
 func CalculateHash(inputBlock *Block) string {
 
 	var temp string
-	temp = inputBlock.course.code + inputBlock.project.name
+	temp = inputBlock.Course.Name + inputBlock.project.name
 	h := sha256.New()
 	h.Write([]byte(temp))
 	sum := hex.EncodeToString(h.Sum(nil))
@@ -62,6 +66,25 @@ func CalculateHash(inputBlock *Block) string {
 	return sum
 }
 func InsertOnlyBlock(newBlock *Block, chainHead *Block) *Block {
+
+	newBlock.CurrentHash = CalculateHash(newBlock)
+	if chainHead == nil {
+		chainHead = newBlock
+		fmt.Println("Block Inserted")
+		return chainHead
+	}
+	newBlock.PrevPointer = chainHead
+	newBlock.PrevHash = chainHead.CurrentHash
+
+	fmt.Println("Block Course and Project Inserted")
+	return newBlock
+
+}
+func InsertCourse(course Course, chainHead *Block) *Block {
+	newBlock := &Block{
+		//Hash here
+		Course: course,
+	}
 	newBlock.CurrentHash = CalculateHash(newBlock)
 
 	if chainHead == nil {
@@ -72,7 +95,7 @@ func InsertOnlyBlock(newBlock *Block, chainHead *Block) *Block {
 	newBlock.PrevPointer = chainHead
 	newBlock.PrevHash = chainHead.CurrentHash
 
-	fmt.Println("Block Course and Project Inserted")
+	fmt.Println("Project Block Inserted")
 	return newBlock
 
 }
@@ -86,8 +109,9 @@ func ListBlocks(chainHead *Block) {
 		} else {
 			fmt.Print(" Previous Hash: ", chainHead.PrevHash)
 		}
-		if (chainHead.course != Course{}) {
-			fmt.Print(" Course: ", chainHead.course.name)
+		fmt.Print(" Course: ", chainHead.Course.Name)
+		if (chainHead.Course != Course{}) {
+			fmt.Print(" Course: ", chainHead.Course.Name)
 		}
 		if (chainHead.project != Project{}) {
 			fmt.Print(" Project: ", chainHead.project.name)
@@ -145,8 +169,8 @@ func StartListening(listeningAddress string, node string) {
 	}
 }
 func MinerverifyBlock(conn net.Conn) {
-	var recvdBlock *Block
-	//fmt.Println("block: ", recvdBlock.course.name)
+	var recvdBlock Course
+	//fmt.Println("block: ", recvdBlock.Course.name)
 	dec2 := gob.NewDecoder(conn)
 	err2 := dec2.Decode(&recvdBlock)
 	if err2 != nil {
@@ -154,8 +178,20 @@ func MinerverifyBlock(conn net.Conn) {
 		fmt.Println("err")
 	} else {
 		UpdateChan <- "start mining"
-		fmt.Println("Block Verified")
-		globalData.ChainHead = InsertOnlyBlock(recvdBlock, globalData.ChainHead)
+		mutex.Lock()
+		//	fmt.Println("Checkinf Course: ", recvdBlock.Course)
+		fmt.Println("Verify Data: Yes or No: ")
+		var choice string
+		fmt.Scanln(&choice)
+		if choice == "Yes" {
+			fmt.Println("Block Verified")
+
+			globalData.ChainHead = InsertCourse(recvdBlock, globalData.ChainHead)
+			broadcastBlock()
+		} else {
+			fmt.Println("Block Not Verified")
+		}
+		mutex.Unlock()
 		fmt.Println("Length of blockchain", Length(globalData.ChainHead))
 	}
 }
@@ -171,9 +207,16 @@ func WriteString(conn net.Conn, details Peer) {
 
 var UpdateChan = make(chan string)
 
+var NewChan = make(chan string)
+
+var MinerChan = make(chan string)
+
+//var RW2Chan = make(chan string)
+
 func readAdminData(conn net.Conn) {
 	for {
 		//var globe Data
+
 		var globe Data
 		gobEncoder := gob.NewDecoder(conn)
 		//Stuck
@@ -181,23 +224,64 @@ func readAdminData(conn net.Conn) {
 		//Stuck
 		//	fmt.Println("In Admindata: ", globe)
 		if err1 != nil {
-			log.Println(err1)
+			//		log.Println(err1, "In readAdmindtat")
 		}
-		fmt.Println("In read admin data:")
+		//	fmt.Println("In read admin data:")
 		if Length(globe.ChainHead) < Length(globalData.ChainHead) {
 			globe.ChainHead = globalData.ChainHead
 		}
 		globalData = globe
-
+		<-MinerChan
 		<-UpdateChan
+		<-NewChan
+
 	}
 }
 func ViewMinerData() {
 	for i := 0; i < len(globalData.ClientsSlice); i++ {
 		if globalData.ClientsSlice[i].Role == "miner" {
 			fmt.Println("Miners connected to system:")
-			fmt.Print(" Their address: ", globalData.ClientsSlice[i].ListeningAddress)
+			fmt.Println(" Their address: ", globalData.ClientsSlice[i].ListeningAddress)
 		}
+	}
+}
+func broadcastBlock() {
+	NewChan <- "start mining"
+	//RW2Chan <- "Gee"
+	time.Sleep(8 * time.Second)
+	for i := 0; i < len(localData); i++ {
+		gobEncoder := gob.NewEncoder(localData[i].Conn)
+		//fmt.Println("BroadCheck: ", localData[i])
+		err1 := gobEncoder.Encode(globalData.ChainHead)
+		fmt.Println("Broadcasting Blockchain:: ")
+		if err1 != nil {
+			//	log.Println(err)
+		}
+
+	}
+
+}
+func readBlockchain(conn net.Conn) {
+	for {
+		//var globe Data
+		MinerChan <- "Start Reading"
+
+		//	fmt.Println("In read blockchain before decode:")
+		var chainhead *Block
+		gobEncoder := gob.NewDecoder(conn)
+		//Stuck
+		err1 := gobEncoder.Decode(&chainhead)
+		if err1 != nil {
+			//		log.Println(err1, "Error in readBlockchain")
+		}
+
+		if Length(chainhead) > Length(globalData.ChainHead) {
+			globalData.ChainHead = chainhead
+		}
+		fmt.Println("Length blockchain:: ", Length(globalData.ChainHead))
+		//	globalData = globe
+		//	<-Globechan
+		//	<-RW2Chan
 	}
 }
 
@@ -211,7 +295,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	localData = append(localData, conn)
+	conns := Connected{
+		Conn: conn,
+	}
+	localData = append(localData, conns)
 	//The function below launches the server, uses different second argument
 	//It then starts a routine for each connection request received
 	//	role := "user"
@@ -223,9 +310,13 @@ func main() {
 	go StartListening(myListeningAddress, "miner")
 
 	WriteString(conn, myPeer)
-	log.Println("I Verifier Sending my listening address to Admin")
+	//	log.Println("I Verifier Sending my listening address to Admin")
 
 	go readAdminData(conn)
+
+	go broadcastBlock()
+
+	go readBlockchain(conn)
 
 	select {}
 }

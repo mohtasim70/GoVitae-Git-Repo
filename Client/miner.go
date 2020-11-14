@@ -140,7 +140,7 @@ func StartListening(listeningAddress string, node string) {
 	if node == "admin" {
 
 	} else if node == "miner" {
-		ln, err := net.Listen("tcp", ":"+listeningAddress)
+		ln, err := net.Listen("tcp", "localhost:"+listeningAddress)
 		if err != nil {
 			log.Fatal(err, ln)
 		}
@@ -170,9 +170,10 @@ func StartListening(listeningAddress string, node string) {
 }
 func MinerverifyBlock(conn net.Conn) {
 	var recvdBlock Course
-	//fmt.Println("block: ", recvdBlock.Course.name)
+
 	dec2 := gob.NewDecoder(conn)
 	err2 := dec2.Decode(&recvdBlock)
+	fmt.Println("block: ", recvdBlock.Name)
 	if err2 != nil {
 		//handle error
 		fmt.Println("err")
@@ -187,10 +188,13 @@ func MinerverifyBlock(conn net.Conn) {
 			fmt.Println("Block Verified")
 
 			globalData.ChainHead = InsertCourse(recvdBlock, globalData.ChainHead)
-			broadcastBlock()
+			ListBlocks(globalData.ChainHead)
+
+			//	broadcastBlock()
 		} else {
 			fmt.Println("Block Not Verified")
 		}
+		<-RW2Chan
 		mutex.Unlock()
 		fmt.Println("Length of blockchain", Length(globalData.ChainHead))
 	}
@@ -211,7 +215,7 @@ var NewChan = make(chan string)
 
 var MinerChan = make(chan string)
 
-//var RW2Chan = make(chan string)
+var RW2Chan = make(chan string)
 
 func readAdminData(conn net.Conn) {
 	for {
@@ -230,10 +234,14 @@ func readAdminData(conn net.Conn) {
 		if Length(globe.ChainHead) < Length(globalData.ChainHead) {
 			globe.ChainHead = globalData.ChainHead
 		}
+		if len(globe.ClientsSlice) < len(globalData.ClientsSlice) {
+			globe.ClientsSlice = globalData.ClientsSlice
+		}
 		globalData = globe
-		<-MinerChan
+		//	<-MinerChan
+		//	<-RW2Chan
 		<-UpdateChan
-		<-NewChan
+		//	<-NewChan
 
 	}
 }
@@ -284,6 +292,22 @@ func readBlockchain(conn net.Conn) {
 		//	<-RW2Chan
 	}
 }
+func broadcastAdminData() {
+	RW2Chan <- "start mining"
+
+	for i := 0; i < len(localData); i++ {
+		gobEncoder := gob.NewEncoder(localData[i].Conn)
+		//fmt.Println("BroadCheck: ", localData[i])
+		err1 := gobEncoder.Encode(globalData)
+		fmt.Println("Broadcasting StreamData:: ")
+		if err1 != nil {
+			//	log.Println(err)
+		}
+
+	}
+	//<-StepbyChan
+
+}
 
 func main() {
 
@@ -314,9 +338,10 @@ func main() {
 
 	go readAdminData(conn)
 
-	go broadcastBlock()
+	//	go broadcastBlock()
+	go broadcastAdminData()
 
-	go readBlockchain(conn)
+	//	go readBlockchain(conn)
 
 	select {}
 }

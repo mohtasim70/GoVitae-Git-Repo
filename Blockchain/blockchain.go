@@ -15,10 +15,10 @@ import (
 type Skill struct {
 }
 type Course struct {
-	code        string
-	name        string
-	creditHours int
-	grade       string
+	Code        string
+	Name        string
+	CreditHours int
+	Grade       string
 }
 type Project struct {
 	name     string
@@ -40,7 +40,7 @@ type Data struct {
 }
 
 type Block struct {
-	course      Course
+	Course      Course
 	project     Project
 	PrevPointer *Block
 	PrevHash    string
@@ -56,7 +56,7 @@ var mutex = &sync.Mutex{}
 func CalculateHash(inputBlock *Block) string {
 
 	var temp string
-	temp = inputBlock.course.code + inputBlock.project.name
+	temp = inputBlock.Course.Code + inputBlock.project.name
 	h := sha256.New()
 	h.Write([]byte(temp))
 	sum := hex.EncodeToString(h.Sum(nil))
@@ -83,7 +83,7 @@ func InsertOnlyBlock(newBlock *Block, chainHead *Block) *Block {
 func InsertBlock(course Course, project Project, chainHead *Block) *Block {
 	newBlock := &Block{
 		//Hash here
-		course:  course,
+		Course:  course,
 		project: project,
 	}
 	newBlock.CurrentHash = CalculateHash(newBlock)
@@ -122,7 +122,7 @@ func InsertProject(project Project, chainHead *Block) *Block {
 func InsertCourse(course Course, chainHead *Block) *Block {
 	newBlock := &Block{
 		//Hash here
-		course: course,
+		Course: course,
 	}
 	newBlock.CurrentHash = CalculateHash(newBlock)
 
@@ -142,8 +142,8 @@ func InsertCourse(course Course, chainHead *Block) *Block {
 func ChangeCourse(oldCourse Course, newCourse Course, chainHead *Block) {
 	present := false
 	for chainHead != nil {
-		if chainHead.course == oldCourse {
-			chainHead.course = newCourse
+		if chainHead.Course == oldCourse {
+			chainHead.Course = newCourse
 			present = true
 			break
 		}
@@ -193,8 +193,9 @@ func ListBlocks(chainHead *Block) {
 		} else {
 			fmt.Print(" Previous Hash: ", chainHead.PrevHash)
 		}
-		if (chainHead.course != Course{}) {
-			fmt.Print(" Course: ", chainHead.course.name)
+		fmt.Print(" Course: ", chainHead.Course.Name)
+		if (chainHead.Course != Course{}) {
+			fmt.Print(" Course: ", chainHead.Course.Name)
 		}
 		if (chainHead.project != Project{}) {
 			fmt.Print(" Project: ", chainHead.project.name)
@@ -247,21 +248,21 @@ func sendBlockchain(c net.Conn, chainHead *Block) {
 
 //Read
 
-func WriteData(conn net.Conn, blockchan chan *Block) {
-
-	firstCourse := Course{code: "CS50", name: "AI", creditHours: 3, grade: "A+"}
-	block := &Block{
-		//Hash here
-		course: firstCourse,
-	}
-	blockchan <- block
-	gobEncoder := gob.NewEncoder(conn)
-	err1 := gobEncoder.Encode(block)
-	if err1 != nil {
-		//	log.Println(err)
-	}
-
-}
+// func WriteData(conn net.Conn, blockchan chan *Block) {
+//
+// 	firstCourse := Course{code: "CS50", name: "AI", creditHours: 3, grade: "A+"}
+// 	block := &Block{
+// 		//Hash here
+// 		course: firstCourse,
+// 	}
+// 	blockchan <- block
+// 	gobEncoder := gob.NewEncoder(conn)
+// 	err1 := gobEncoder.Encode(block)
+// 	if err1 != nil {
+// 		//	log.Println(err)
+// 	}
+//
+// }
 
 var addchan = make(chan Peer)
 var globe Data
@@ -304,7 +305,7 @@ func StoreClient(conn net.Conn) {
 
 	//	fmt.Println("Slice:", globalData.clientsSlice[0].ListeningAddress)
 	addchan <- newClient
-	<-stopchan
+	//	<-stopchan
 
 	// dec := gob.NewDecoder(conn)
 	// p := P{}
@@ -314,7 +315,7 @@ func StoreClient(conn net.Conn) {
 
 var StepbyChan = make(chan string)
 
-//var RW3Chan = make(chan string)
+var RW3Chan = make(chan string)
 
 func readBlockchain(conn net.Conn) {
 	for {
@@ -336,7 +337,7 @@ func readBlockchain(conn net.Conn) {
 		fmt.Println("Blockchain received:: ", Length(globalData.ChainHead))
 		//	globalData = globe
 		//	<-Globechan
-		//		<-RW3Chan
+		//<-RW3Chan
 	}
 }
 
@@ -361,7 +362,7 @@ func broadcastBlock() {
 func StartListening(listeningAddress string, node string) {
 
 	if node == "server" {
-		ln, err := net.Listen("tcp", ":"+listeningAddress)
+		ln, err := net.Listen("tcp", "localhost:"+listeningAddress)
 		if err != nil {
 			log.Fatal(err)
 			fmt.Println("Faital")
@@ -385,13 +386,15 @@ func StartListening(listeningAddress string, node string) {
 			// go receiveBlockchainfromPeer(conn)
 
 			go StoreClient(conn)
-			go readBlockchain(conn)
+			//	go readBlockchain(conn)
+			go readAdminData(conn)
 
 			globalData.ClientsSlice = append(globalData.ClientsSlice, <-addchan)
 			localData = append(localData, conns)
 
 			go broadcastAdminData()
-			go broadcastBlock()
+			//	go broadcastBlock()
+
 			//	go WriteData(conn, blockchan)
 
 			//	fmt.Println("Slice:", globalData.clientsSlice[0].ListeningAddress)
@@ -479,6 +482,10 @@ func WriteString(conn net.Conn, details *Peer) {
 	}
 }
 func readAdminData(conn net.Conn) {
+	//	RW3Chan <- "hello"
+
+	StepbyChan <- "Hello"
+	fmt.Println("In reading blockchain", conn.RemoteAddr())
 	var globe Data
 	gobEncoder := gob.NewDecoder(conn)
 	err1 := gobEncoder.Decode(&globe)
@@ -486,8 +493,16 @@ func readAdminData(conn net.Conn) {
 	if err1 != nil {
 		//	log.Println(err)
 	}
-	fmt.Println("In read admin data:")
-	globalData = globe
+	if Length(globe.ChainHead) < Length(globalData.ChainHead) {
+		globe.ChainHead = globalData.ChainHead
+	}
+	if len(globe.ClientsSlice) < len(globalData.ClientsSlice) {
+		globe.ClientsSlice = globalData.ClientsSlice
+	}
+	fmt.Println("Blockchain read:")
+	ListBlocks(globe.ChainHead)
+
+	globalData.ChainHead = globe.ChainHead
 }
 
 func ViewMinerData() {

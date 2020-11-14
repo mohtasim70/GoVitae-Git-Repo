@@ -123,7 +123,7 @@ func StartListening(listeningAddress string, node string) {
 	if node == "admin" {
 
 	} else if node == "user" {
-		ln, err := net.Listen("tcp", ":"+listeningAddress)
+		ln, err := net.Listen("tcp", "localhost:"+listeningAddress)
 		if err != nil {
 			log.Fatal(err, ln)
 		}
@@ -153,11 +153,14 @@ func WriteString(conn net.Conn, details Peer) {
 }
 
 var Globechan = make(chan string)
+var checkchan = make(chan string)
 
 var NewChan = make(chan string)
 
 //var RWChan = make(chan string)
 var MinerChan = make(chan string)
+
+//var WaitChan = make(chan string)
 
 func readAdminData(conn net.Conn) {
 	for {
@@ -168,20 +171,27 @@ func readAdminData(conn net.Conn) {
 		//Stuck
 		err1 := gobEncoder.Decode(&globe)
 		//Stuck
-		//	fmt.Println("In Admindata: ", globe)
+		fmt.Println("In Admindata before: ", globe)
 		if err1 != nil {
 			//	log.Println(err1)
 		}
-		//	fmt.Println("In read admin data after:")
+		ListBlocks(globalData.ChainHead)
+		fmt.Println("In read admin data after:")
 		if Length(globe.ChainHead) < Length(globalData.ChainHead) {
 			globe.ChainHead = globalData.ChainHead
 		}
+		if len(globe.ClientsSlice) < len(globalData.ClientsSlice) {
+			globe.ClientsSlice = globalData.ClientsSlice
+		}
 		globalData = globe
+		ListBlocks(globalData.ChainHead)
 		<-Globechan
-		<-MinerChan
+		//	<-checkchan
 
-		//	<-RWChan
-		<-NewChan
+		// <-MinerChan
+		//
+		// //	<-RWChan
+		// <-NewChan
 
 	}
 }
@@ -242,9 +252,6 @@ func UserSendBlock(minerAddress string, block *Block) {
 	}
 }
 func UserSendCourse(minerAddress string, block Course) {
-	//Input from me
-
-	//Dialing Miner
 	conn, errs := net.Dial("tcp", ":"+minerAddress)
 	if errs != nil {
 		log.Fatal(errs)
@@ -260,6 +267,17 @@ func UserSendCourse(minerAddress string, block Course) {
 		//	log.Println(err)
 	}
 }
+func UserReceiveBlock(conn net.Conn) {
+
+	fmt.Println("Receiving Block CONTENT verified by miner")
+	gobEncoder := gob.NewDecoder(conn)
+	var chainHead *Block
+	err := gobEncoder.Decode(chainHead)
+	if err != nil {
+		log.Println(err)
+	}
+	globalData.ChainHead = chainHead
+}
 func broadcastBlock() {
 	NewChan <- "Hello"
 	//	RWChan <- "Yoo"
@@ -274,6 +292,22 @@ func broadcastBlock() {
 		}
 
 	}
+
+}
+func broadcastAdminData() {
+	checkchan <- "hello"
+
+	for i := 0; i < len(localData); i++ {
+		gobEncoder := gob.NewEncoder(localData[i].Conn)
+		//fmt.Println("BroadCheck: ", localData[i])
+		err1 := gobEncoder.Encode(globalData)
+		fmt.Println("Broadcasting StreamData:: ")
+		if err1 != nil {
+			//	log.Println(err)
+		}
+
+	}
+	//	<-StepbyChan
 
 }
 func main() {
@@ -301,7 +335,8 @@ func main() {
 	go StartListening(myListeningAddress, "user")
 
 	WriteString(conn, myPeer)
-	go broadcastBlock()
+	//	go broadcastBlock()
+	//go broadcastAdminData()
 	//log.Println("Sending my listening address to Admin")
 
 	go readAdminData(conn)
@@ -348,11 +383,15 @@ func main() {
 
 	//minerAddress := "1200"
 	//fmt.Println("In Course:: ", block.Course)
-
+	conn, errs := net.Dial("tcp", ":"+minerAddress)
+	if errs != nil {
+		log.Fatal(errs)
+	}
 	//	UserSendBlock(minerAddress, block)
 	UserSendCourse(minerAddress, cour)
+	readAdminData(localData[len(localData)-1].Conn)
 	mutex.Unlock()
-	go readBlockchain(conn)
+	//	go readBlockchain(conn)
 
 	//DIaling
 

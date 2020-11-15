@@ -160,7 +160,17 @@ func StartListening(listeningAddress string, node string) {
 			conns := Connected{
 				Conn: conn,
 			}
-			localData = append(localData, conns)
+			check := true
+			for i := 0; i < len(localData); i++ {
+				if conn == localData[i].Conn {
+					check = false
+					break
+				}
+
+			}
+			if check == true {
+				localData = append(localData, conns)
+			}
 			// go receiveBlockchainfromPeer(conn)
 
 			go MinerverifyBlock(conn)
@@ -178,7 +188,8 @@ func MinerverifyBlock(conn net.Conn) {
 		//handle error
 		fmt.Println("err")
 	} else {
-		UpdateChan <- "start mining"
+		//	UpdateChan <- "start mining"
+
 		mutex.Lock()
 		//	fmt.Println("Checkinf Course: ", recvdBlock.Course)
 		fmt.Println("Verify Data: Yes or No: ")
@@ -194,7 +205,10 @@ func MinerverifyBlock(conn net.Conn) {
 		} else {
 			fmt.Println("Block Not Verified")
 		}
-		<-RW2Chan
+
+		//	UpdateChan <- "start mining"
+		//	<-RW2Chan
+		broadcastAdminData()
 		mutex.Unlock()
 		fmt.Println("Length of blockchain", Length(globalData.ChainHead))
 	}
@@ -226,9 +240,9 @@ func readAdminData(conn net.Conn) {
 		//Stuck
 		err1 := gobEncoder.Decode(&globe)
 		//Stuck
-		//	fmt.Println("In Admindata: ", globe)
+		fmt.Println("Reading from admin: ", globe)
 		if err1 != nil {
-			//		log.Println(err1, "In readAdmindtat")
+			log.Println(err1, "In readAdmindtaterr")
 		}
 		//	fmt.Println("In read admin data:")
 		if Length(globe.ChainHead) < Length(globalData.ChainHead) {
@@ -240,7 +254,10 @@ func readAdminData(conn net.Conn) {
 		globalData = globe
 		//	<-MinerChan
 		//	<-RW2Chan
-		<-UpdateChan
+
+		//	broadcastAdminData()
+		//		<-UpdateChan
+
 		//	<-NewChan
 
 	}
@@ -293,10 +310,11 @@ func readBlockchain(conn net.Conn) {
 	}
 }
 func broadcastAdminData() {
-	RW2Chan <- "start mining"
-
+	//	RW2Chan <- "start mining"
+	//	mutex.Lock()
 	for i := 0; i < len(localData); i++ {
 		gobEncoder := gob.NewEncoder(localData[i].Conn)
+
 		//fmt.Println("BroadCheck: ", localData[i])
 		err1 := gobEncoder.Encode(globalData)
 		fmt.Println("Broadcasting StreamData:: ")
@@ -305,6 +323,7 @@ func broadcastAdminData() {
 		}
 
 	}
+	//	mutex.Unlock()
 	//<-StepbyChan
 
 }
@@ -339,7 +358,7 @@ func main() {
 	go readAdminData(conn)
 
 	//	go broadcastBlock()
-	go broadcastAdminData()
+	//	go broadcastAdminData()
 
 	//	go readBlockchain(conn)
 

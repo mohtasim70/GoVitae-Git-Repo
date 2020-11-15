@@ -310,6 +310,58 @@ func broadcastAdminData() {
 	//	<-StepbyChan
 
 }
+
+func input() {
+	for {
+		fmt.Println("Enter Verifier port number from the list: ")
+		fmt.Println()
+		var minerAddress string
+		fmt.Scanln(&minerAddress)
+
+		fmt.Println("Enter 1 for Course or 2 for Project details to verify: ")
+		var numb int
+		fmt.Scanln(&numb)
+		var cour Course
+		//var proj Project
+		block := &Block{}
+		if numb == 1 {
+			fmt.Println("Enter name for Course: ")
+			var names string
+			fmt.Scanln(&names)
+			fmt.Println("Names: ", names)
+			fmt.Println("Enter code for Course: ")
+			var code string
+			fmt.Scanln(&code)
+			fmt.Println("Enter grade for Course: ")
+			var grade string
+			fmt.Scanln(&grade)
+			fmt.Println("Enter credit hours for Course: ")
+			var creditHours int
+			fmt.Scanln(&creditHours)
+			cour = Course{
+				Code:        string(code),
+				Name:        string(names),
+				Grade:       string(grade),
+				CreditHours: int(creditHours),
+			}
+			block.Course = cour
+
+		} else if numb == 2 {
+
+		}
+
+		//minerAddress := "1200"
+		//fmt.Println("In Course:: ", block.Course)
+		conn, errs := net.Dial("tcp", ":"+minerAddress)
+		if errs != nil {
+			log.Fatal(errs)
+		}
+		//	UserSendBlock(minerAddress, block)
+		UserSendCourse(minerAddress, cour)
+		readAdminData(conn)
+		//	mutex.Unlock()
+	}
+}
 func main() {
 
 	satoshiAddress := os.Args[1]
@@ -343,54 +395,9 @@ func main() {
 
 	go ViewMinerData()
 
-	mutex.Lock()
-	fmt.Println("Enter Verifier port number from the list: ")
-	fmt.Println()
-	var minerAddress string
-	fmt.Scanln(&minerAddress)
+	input()
+	//	mutex.Lock()
 
-	fmt.Println("Enter 1 for Course or 2 for Project details to verify: ")
-	var numb int
-	fmt.Scanln(&numb)
-	var cour Course
-	//var proj Project
-	block := &Block{}
-	if numb == 1 {
-		fmt.Println("Enter name for Course: ")
-		var names string
-		fmt.Scanln(&names)
-		fmt.Println("Names: ", names)
-		fmt.Println("Enter code for Course: ")
-		var code string
-		fmt.Scanln(&code)
-		fmt.Println("Enter grade for Course: ")
-		var grade string
-		fmt.Scanln(&grade)
-		fmt.Println("Enter credit hours for Course: ")
-		var creditHours int
-		fmt.Scanln(&creditHours)
-		cour = Course{
-			Code:        string(code),
-			Name:        string(names),
-			Grade:       string(grade),
-			CreditHours: int(creditHours),
-		}
-		block.Course = cour
-
-	} else if numb == 2 {
-
-	}
-
-	//minerAddress := "1200"
-	//fmt.Println("In Course:: ", block.Course)
-	conn, errs := net.Dial("tcp", ":"+minerAddress)
-	if errs != nil {
-		log.Fatal(errs)
-	}
-	//	UserSendBlock(minerAddress, block)
-	UserSendCourse(minerAddress, cour)
-	readAdminData(localData[len(localData)-1].Conn)
-	mutex.Unlock()
 	//	go readBlockchain(conn)
 
 	//DIaling

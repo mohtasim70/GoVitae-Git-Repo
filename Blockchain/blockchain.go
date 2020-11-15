@@ -485,13 +485,13 @@ func readAdminData(conn net.Conn) {
 	//	RW3Chan <- "hello"
 
 	StepbyChan <- "Hello"
-	fmt.Println("In reading blockchain", conn.RemoteAddr())
+	fmt.Println("In reading blockchain", conn.LocalAddr())
 	var globe Data
 	gobEncoder := gob.NewDecoder(conn)
 	err1 := gobEncoder.Decode(&globe)
 	//	fmt.Println("In Admindata: ", globe.ClientsSlice[0])
 	if err1 != nil {
-		//	log.Println(err)
+		log.Println("admin:: ", err1)
 	}
 	if Length(globe.ChainHead) < Length(globalData.ChainHead) {
 		globe.ChainHead = globalData.ChainHead

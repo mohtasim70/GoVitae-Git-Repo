@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
-
+	"os"
 	"./router"
 	"./server"
 )
@@ -77,10 +77,10 @@ func StartListening(listeningAddress string, node string) {
 	}
 }
 
-func runWebServer() {
+func runWebServer(port string) {
 	r := router.Router()
-	fmt.Println("Starting server on the port 8080...")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	fmt.Println("Starting server on the port: ",port)
+	log.Fatal(http.ListenAndServe("localhost"+":"+port, r))
 }
 
 func main() {
@@ -94,10 +94,10 @@ func main() {
 
 	//The function below launches the server, uses different second argument
 	//It then starts a routine for each connection request received
-	//satoshiAddress := os.Args[1]
+	satoshiAddress := os.Args[1]
 	//go StartListening(satoshiAddress, "server")
-	go runWebServer()
-	//log.Println("Sending my course to Verifier")
+	go runWebServer(satoshiAddress)
+	
 
 	// firstCourse := Course{code: "CS50", name: "AI", creditHours: 3, grade: "A+"}
 	// minerAddress := ":4502"

@@ -4,11 +4,12 @@ import "./App.css";
 import { Container } from "semantic-ui-react";
 // import the ToDoList component
 import Blockchain from "./Blockchain";
+import Home from "./Components/homepage";
 function App() {
   return (
     <div>
       <Container>
-        <Blockchain />
+        <Home />
       </Container>
     </div>
   );

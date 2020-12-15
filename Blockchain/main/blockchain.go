@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -12,6 +13,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
+	"github.com/gorilla/websocket"
 )
 
 var chainHead *Block
@@ -49,6 +51,12 @@ type ListTheBlock struct {
 }
 
 var count int = 0
+var nodes = make(map[*websocket.Conn]bool) // connected clients
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
 //256bit
 func CalculateHash(inputBlock *Block) string {
@@ -219,6 +227,38 @@ func sendBlockchain(c net.Conn, chainHead *Block) {
 
 }
 
+func InsertCourse1(course Course, chainHead *Block) *Block {
+	newBlock := &Block{
+		//Hash here
+		Course: course,
+	}
+	newBlock.CurrentHash = CalculateHash(newBlock)
+
+	if chainHead == nil {
+		chainHead = newBlock
+		chainHead.BlockNo = count
+		fmt.Println("Block Inserted")
+		return chainHead
+	}
+	count = count + 1
+	newBlock.PrevPointer = chainHead
+	newBlock.PrevHash = chainHead.CurrentHash
+	newBlock.BlockNo = count
+
+	fmt.Println("Course Block Inserted")
+	return newBlock
+
+}
+func getCourse(ChainHead *Block) []Block {
+	var courses []Block
+	for chainHead != nil {
+		courses = append(courses, *chainHead)
+		chainHead = chainHead.PrevPointer
+	}
+	//	fmt.Println("Yo")
+	return courses
+}
+
 // Chi HTTP Services //
 
 type Handler func(w http.ResponseWriter, r *http.Request) error
@@ -305,31 +345,96 @@ func getHandler(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+var broadcast = make(chan []Block) // broadcast channel
+
+func HandleConnections(w http.ResponseWriter, r *http.Request) {
+
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Fatal(err)
+		fmt.Println("Error in ebss")
+	}
+
+	// make sure we close the connection when the function returns
+	//	defer ws.Close()
+
+	// register our new client
+	nodes[ws] = true
+
+	for {
+		// Read in a new message as JSON and map it to a Message object
+		var course Course
+		err := json.NewDecoder(r.Body).Decode(&course)
+		if err != nil {
+			panic(err)
+		}
+		// err := ws.ReadJSON(&course)
+		chainHead = InsertCourse1(course, chainHead)
+		// if err != nil {
+		// 	log.Printf("error: %v", err)
+		// 	//	delete(nodes, ws)
+		// 	break
+		// }
+
+		// Send the newly received message to the broadcast channel
+		broadcast <- getCourse(chainHead)
+	}
+
+}
+
 func runWebServer() {
 	r := chi.NewRouter()
 	r.Method("GET", "/", Handler(setHandler))
 	r.Method("POST", "/blockInsert", Handler(getHandler))
+	r.HandleFunc("/ws", HandleConnections)
 
 	http.ListenAndServe("localhost"+":3333", r)
+
+}
+func BroadcastMessages() {
+	for {
+		// Grab the next message from the broadcast channel
+		msg := <-broadcast
+		fmt.Println("In broadcast: ", msg)
+		// Send it out to every client that is currently connected
+		for client := range nodes {
+			err := client.WriteJSON(msg)
+			if err != nil {
+				log.Printf("error: %v", err)
+				client.Close()
+				delete(nodes, client)
+			}
+		}
+	}
 }
 
 // ---- //
 
 func main() {
-	ln, err := net.Listen("tcp", ":6003")
-	if err != nil {
-
-		log.Fatal(err)
-
-	}
+	// ln, err := net.Listen("tcp", "localhost:6003")
+	// if err != nil {
+	//
+	// 	log.Fatal(err, ln)
+	//
+	// }
 	go runWebServer()
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		go sendBlockchain(conn, chainHead)
-	}
+
+	go BroadcastMessages()
+
+	select {}
+
+	// conn, err := net.Dial("tcp", "localhost:3333")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Println("ss", conn)
+	// for {
+	// 	conn, err := ln.Accept()
+	// 	if err != nil {
+	// 		log.Println(err)
+	// 		continue
+	// 	}
+	// 	go sendBlockchain(conn, chainHead)
+	// }
 
 }

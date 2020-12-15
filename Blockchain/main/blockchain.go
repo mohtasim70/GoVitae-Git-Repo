@@ -36,6 +36,7 @@ type Block struct {
 	PrevPointer *Block
 	PrevHash    string
 	CurrentHash string
+	BlockNo     int
 }
 
 type ListTheBlock struct {
@@ -44,7 +45,10 @@ type ListTheBlock struct {
 	PrevPointer []*Block
 	PrevHash    []string
 	CurrentHash []string
+	BlockNo     []int
 }
+
+var count int = 0
 
 //256bit
 func CalculateHash(inputBlock *Block) string {
@@ -105,14 +109,18 @@ func InsertCourse(myBlock Block) *Block {
 	myBlock.CurrentHash = CalculateHash(&myBlock)
 
 	if chainHead == nil {
+		myBlock.BlockNo = count
+		myBlock.PrevHash = "null"
 		chainHead = &myBlock
-		fmt.Println("Block Inserted")
+		fmt.Println("Genesis Block Inserted")
 		return chainHead
 	}
+	count = count + 1
 	myBlock.PrevPointer = chainHead
 	myBlock.PrevHash = chainHead.CurrentHash
+	myBlock.BlockNo = count
 
-	fmt.Println("Project Block Inserted")
+	fmt.Println("Course Block Inserted")
 	return &myBlock
 
 }
@@ -164,7 +172,7 @@ func ChangeProject(oldProject Project, newProject Project, chainHead *Block) {
 func ListBlocks(chainHead *Block) {
 
 	for chainHead != nil {
-		fmt.Print("Block-- ")
+		fmt.Print("Block NO: ", chainHead.BlockNo)
 		fmt.Print(" Current Hash: ", chainHead.CurrentHash)
 		if chainHead.PrevHash == "" {
 			fmt.Print(" Previous Hash: ", "Null")
@@ -224,8 +232,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func setHandler(w http.ResponseWriter, r *http.Request) error {
-	t, err := template.ParseFiles("../Website/Blockchain.html") //parse the html file homepage.html
-	if err != nil {                                             // if there is an error
+	t, err := template.ParseFiles("../../Website/blockchain.html") //parse the html file homepage.html
+	if err != nil {                                                // if there is an error
 		log.Print("template parsing error: ", err) // log it
 	}
 
@@ -264,17 +272,29 @@ func getHandler(w http.ResponseWriter, r *http.Request) error {
 	tempHead := chainHead
 	viewTheBlock := new(ListTheBlock)
 	tempCourse := []Course{}
+	tempBlockNo := []int{}
+	tempCurrHash := []string{}
+	tempPrevHash := []string{}
 	for tempHead != nil {
 		tempCourse = append(tempCourse, tempHead.Course)
+		tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
+		tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
+		tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
 		viewTheBlock = &ListTheBlock{
-			Course: tempCourse,
+			Course:      tempCourse,
+			BlockNo:     tempBlockNo,
+			CurrentHash: tempCurrHash,
+			PrevHash:    tempPrevHash,
 		}
 		tempHead = tempHead.PrevPointer
 		fmt.Println(viewTheBlock.Course)
+		fmt.Println(viewTheBlock.BlockNo)
+		fmt.Println(viewTheBlock.CurrentHash)
+		fmt.Println(viewTheBlock.PrevHash)
 	}
 	// generate page by passing page variables into template
-	t, err := template.ParseFiles("../Website/viewBlock.html") //parse the html file homepage.html
-	if err != nil {                                            // if there is an error
+	t, err := template.ParseFiles("../../Website/blockchain.html") //parse the html file homepage.html
+	if err != nil {                                                // if there is an error
 		log.Print("template parsing error: ", err) // log it
 	}
 
@@ -290,7 +310,7 @@ func runWebServer() {
 	r.Method("GET", "/", Handler(setHandler))
 	r.Method("POST", "/blockInsert", Handler(getHandler))
 
-	http.ListenAndServe(":3333", r)
+	http.ListenAndServe("localhost"+":3333", r)
 }
 
 // ---- //

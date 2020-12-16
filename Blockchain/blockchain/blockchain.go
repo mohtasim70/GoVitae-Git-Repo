@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -13,7 +12,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi"
-	"github.com/gorilla/websocket"
+	//"github.com/gorilla/websocket"
 )
 
 var chainHead *Block
@@ -39,7 +38,7 @@ type Block struct {
 	PrevHash    string
 	CurrentHash string
 	BlockNo     int
-	Status      bool
+	Status      string
 }
 
 type ListTheBlock struct {
@@ -49,6 +48,7 @@ type ListTheBlock struct {
 	PrevHash    []string
 	CurrentHash []string
 	BlockNo     []int
+	Status      []string
 }
 
 type Client struct {
@@ -57,12 +57,13 @@ type Client struct {
 }
 
 var count int = 0
-var nodes = make(map[*websocket.Conn]bool) // connected clients
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
+
+//var nodes = make(map[*websocket.Conn]bool) // connected clients
+//var upgrader = websocket.Upgrader{
+//CheckOrigin: func(r *http.Request) bool {
+//return true
+//},
+//}
 
 //256bit
 func CalculateHash(inputBlock *Block) string {
@@ -125,6 +126,7 @@ func InsertCourse(myBlock Block) *Block {
 	if chainHead == nil {
 		myBlock.BlockNo = count
 		myBlock.PrevHash = "null"
+		myBlock.Status = "Pending"
 		chainHead = &myBlock
 		fmt.Println("Genesis Block Inserted")
 		return chainHead
@@ -133,6 +135,7 @@ func InsertCourse(myBlock Block) *Block {
 	myBlock.PrevPointer = chainHead
 	myBlock.PrevHash = chainHead.CurrentHash
 	myBlock.BlockNo = count
+	myBlock.Status = "Pending"
 
 	fmt.Println("Course Block Inserted")
 	return &myBlock
@@ -377,8 +380,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func setHandler(w http.ResponseWriter, r *http.Request) error {
-	t, err := template.ParseFiles("../../Website/blockchain.html") //parse the html file homepage.html
-	if err != nil {                                                // if there is an error
+	t, err := template.ParseFiles("../Website/blockchain.html") //parse the html file homepage.html
+	if err != nil {                                             // if there is an error
 		log.Print("template parsing error: ", err) // log it
 	}
 
@@ -438,8 +441,50 @@ func getHandler(w http.ResponseWriter, r *http.Request) error {
 		fmt.Println(viewTheBlock.PrevHash)
 	}
 	// generate page by passing page variables into template
-	t, err := template.ParseFiles("../../Website/blockchain.html") //parse the html file homepage.html
-	if err != nil {                                                // if there is an error
+	t, err := template.ParseFiles("../Website/blockchain.html") //parse the html file homepage.html
+	if err != nil {                                             // if there is an error
+		log.Print("template parsing error: ", err) // log it
+	}
+
+	err = t.Execute(w, viewTheBlock) //execute the template and pass it the HomePageVars struct to fill in the gaps
+	if err != nil {                  // if there is an error
+		log.Print("template executing error: ", err) //log it
+	}
+	return nil
+}
+
+func showBlocksHandler(w http.ResponseWriter, r *http.Request) error {
+	tempHead := chainHead
+	viewTheBlock := new(ListTheBlock)
+	tempCourse := []Course{}
+	tempBlockNo := []int{}
+	tempCurrHash := []string{}
+	tempPrevHash := []string{}
+	tempStatus := []string{}
+	for tempHead != nil {
+		tempCourse = append(tempCourse, tempHead.Course)
+		tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
+		tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
+		tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
+		tempStatus = append(tempStatus, tempHead.Status)
+
+		viewTheBlock = &ListTheBlock{
+			Course:      tempCourse,
+			BlockNo:     tempBlockNo,
+			CurrentHash: tempCurrHash,
+			PrevHash:    tempPrevHash,
+			Status:      tempStatus,
+		}
+		tempHead = tempHead.PrevPointer
+		fmt.Println(viewTheBlock.Course)
+		fmt.Println(viewTheBlock.BlockNo)
+		fmt.Println(viewTheBlock.CurrentHash)
+		fmt.Println(viewTheBlock.PrevHash)
+		fmt.Println(viewTheBlock.Status)
+	}
+	// generate page by passing page variables into template
+	t, err := template.ParseFiles("../Website/viewBlocks.html") //parse the html file homepage.html
+	if err != nil {                                             // if there is an error
 		log.Print("template parsing error: ", err) // log it
 	}
 
@@ -452,66 +497,80 @@ func getHandler(w http.ResponseWriter, r *http.Request) error {
 
 var broadcast = make(chan []Block) // broadcast channel
 
-func HandleConnections(w http.ResponseWriter, r *http.Request) {
+//func HandleConnections(w http.ResponseWriter, r *http.Request) {
 
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Fatal(err)
-		fmt.Println("Error in ebss")
-	}
+//	ws, err := upgrader.Upgrade(w, r, nil)
+//	if err != nil {
+//		log.Fatal(err)
+//		fmt.Println("Error in ebss")
+//	}
 
-	// make sure we close the connection when the function returns
-	//	defer ws.Close()
+// make sure we close the connection when the function returns
+//	defer ws.Close()
 
-	// register our new client
-	nodes[ws] = true
+// register our new client
+//	nodes[ws] = true
 
-	for {
-		// Read in a new message as JSON and map it to a Message object
-		var course Course
-		err := json.NewDecoder(r.Body).Decode(&course)
-		if err != nil {
-			panic(err)
-		}
-		// err := ws.ReadJSON(&course)
-		chainHead = InsertCourse1(course, chainHead)
-		// if err != nil {
-		// 	log.Printf("error: %v", err)
-		// 	//	delete(nodes, ws)
-		// 	break
-		// }
+//	for {
+// Read in a new message as JSON and map it to a Message object
+//		var course Course
+//		err := json.NewDecoder(r.Body).Decode(&course)
+//		if err != nil {
+//			panic(err)
+//		}
+// err := ws.ReadJSON(&course)
+//		chainHead = InsertCourse1(course, chainHead)
+// if err != nil {
+// 	log.Printf("error: %v", err)
+// 	//	delete(nodes, ws)
+// 	break
+// }
 
-		// Send the newly received message to the broadcast channel
-		broadcast <- getCourse(chainHead)
-	}
+// Send the newly received message to the broadcast channel
+//		broadcast <- getCourse(chainHead)
+//	}
 
-}
+//}
 
-func runWebServer() {
+// Clients Web Server //
+
+func RunWebServer() {
 	r := chi.NewRouter()
 	r.Method("GET", "/", Handler(setHandler))
 	r.Method("POST", "/blockInsert", Handler(getHandler))
-	r.HandleFunc("/ws", HandleConnections)
+	//r.HandleFunc("/ws", HandleConnections)
+
+	http.ListenAndServe("localhost"+":3334", r)
+
+}
+
+// Satoshi Web Server //
+
+func RunWebServerSatoshi() {
+	r := chi.NewRouter()
+	r.Method("GET", "/showBlocks", Handler(showBlocksHandler))
+	//r.HandleFunc("/ws", HandleConnections)
 
 	http.ListenAndServe("localhost"+":3333", r)
 
 }
-func BroadcastMessages() {
-	for {
-		// Grab the next message from the broadcast channel
-		msg := <-broadcast
-		fmt.Println("In broadcast: ", msg)
-		// Send it out to every client that is currently connected
-		for client := range nodes {
-			err := client.WriteJSON(msg)
-			if err != nil {
-				log.Printf("error: %v", err)
-				client.Close()
-				delete(nodes, client)
-			}
-		}
-	}
-}
+
+//func BroadcastMessages() {
+//	for {
+//	// Grab the next message from the broadcast channel
+//	msg := <-broadcast
+//	fmt.Println("In broadcast: ", msg)
+// Send it out to every client that is currently connected
+//	for client := range nodes {
+//		err := client.WriteJSON(msg)
+//		if err != nil {
+//		log.Printf("error: %v", err)
+//		client.Close()
+//		delete(nodes, client)
+//		}
+//	}
+//	}
+//}
 
 // ---- //
 
@@ -522,11 +581,11 @@ func main() {
 	// 	log.Fatal(err, ln)
 	//
 	// }
-	go runWebServer()
+	//go RunWebServer()
 
-	go BroadcastMessages()
+	//go BroadcastMessages()
 
-	select {}
+	//select {}
 
 	// conn, err := net.Dial("tcp", "localhost:3333")
 	// if err != nil {

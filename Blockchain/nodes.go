@@ -18,6 +18,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	go b.RunWebServer()
 	go b.StartListening(myListeningAddress, "others")
 
 	log.Println("Sending my listening address to Satoshi")

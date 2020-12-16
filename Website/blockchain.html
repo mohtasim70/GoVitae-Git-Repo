@@ -8,7 +8,7 @@
 </head>
 <body>
 
-  <script type="text/javascript">
+  <!-- <script type="text/javascript">
     ws = new WebSocket('ws://localhost:3333/ws');
 
     document.getElementById("form").onsubmit = function () {
@@ -28,12 +28,12 @@
 
 
 
-  </script>
+  </script> -->
 
 <div class="container">
   <h1>Add Block</h1>
   <h2>Course Details</h2>
-  <form id="form" method="post">
+  <form action="/blockInsert" id="form" method="post">
     <div class="form-group">
       <label for="courseCode">Course Code:</label>
       <input type="text" class="form-control" placeholder="Enter Course Code" name="courseCode">

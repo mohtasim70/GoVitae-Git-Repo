@@ -1,4 +1,4 @@
-package main
+package blockchain
 
 import (
 	"crypto/sha256"
@@ -39,6 +39,7 @@ type Block struct {
 	PrevHash    string
 	CurrentHash string
 	BlockNo     int
+	Status      bool
 }
 
 type ListTheBlock struct {
@@ -48,6 +49,11 @@ type ListTheBlock struct {
 	PrevHash    []string
 	CurrentHash []string
 	BlockNo     []int
+}
+
+type Client struct {
+	conn             net.Conn
+	ListeningAddress string
 }
 
 var count int = 0
@@ -257,6 +263,105 @@ func getCourse(ChainHead *Block) []Block {
 	}
 	//	fmt.Println("Yo")
 	return courses
+}
+func WriteString(conn net.Conn, myListeningAddress string) {
+	gobEncoder := gob.NewEncoder(conn)
+	err := gobEncoder.Encode(myListeningAddress)
+	if err != nil {
+		log.Println("In Write String: ", err)
+	}
+}
+
+func SendChain(conn net.Conn) {
+	gobEncoder := gob.NewEncoder(conn)
+	err := gobEncoder.Encode(chainHead)
+	if err != nil {
+		log.Println("In Write Chain: ", err)
+	}
+}
+
+var clientsSlice []Client
+var rwchan = make(chan string)
+
+func handleConnection(conn net.Conn, addchan chan Client) {
+	newClient := Client{
+		conn: conn,
+	}
+	var ListeningAddress string
+	dec := gob.NewDecoder(conn)
+	err := dec.Decode(&ListeningAddress)
+	if err != nil {
+		//handle error
+	}
+
+	newClient.ListeningAddress = ListeningAddress
+	fmt.Println("inHandle: ", newClient.ListeningAddress)
+	addchan <- newClient
+	//WaitForQuorum()
+
+}
+func handlePeer(conn net.Conn) {
+
+	buf := make([]byte, 50)
+	n, err := conn.Read(buf)
+	if err != nil || n == 0 {
+		fmt.Println("Error in handPeer")
+	}
+	fmt.Println("Recieved in handle: ", string(buf))
+
+}
+func ReceiveChain(conn net.Conn) Block {
+	var block Block
+	gobEncoder := gob.NewDecoder(conn)
+	err := gobEncoder.Decode(&block)
+	if err != nil {
+		log.Println(err)
+	}
+	return block
+}
+
+func StartListening(ListeningAddress string, node string) {
+	if node == "satoshi" {
+		ln, err := net.Listen("tcp", "localhost:"+ListeningAddress)
+		if err != nil {
+			log.Fatal(err)
+			fmt.Println("Faital")
+		}
+
+		addchan := make(chan Client)
+		block := Block{}
+		chainHead = InsertCourse(block) //Genesis Block
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				log.Println(err, "Yooooo")
+				continue
+			}
+			sendBlockchain(conn, chainHead)
+
+			go handleConnection(conn, addchan)
+			clientsSlice = append(clientsSlice, <-addchan)
+			//	chainHead = a2.InsertBlock("", "", "Satoshi", 0, chainHead)
+
+		}
+	} else {
+		ln, err := net.Listen("tcp", "localhost:"+ListeningAddress)
+		if err != nil {
+			log.Fatal(err)
+			fmt.Println("Faital")
+		}
+
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				log.Println(err, "Yooooo")
+				continue
+			}
+			go handlePeer(conn)
+
+		}
+
+	}
 }
 
 // Chi HTTP Services //

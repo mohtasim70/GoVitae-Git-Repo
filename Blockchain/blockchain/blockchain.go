@@ -268,6 +268,7 @@ func getCourse(ChainHead *Block) []Block {
 	return courses
 }
 func WriteString(conn net.Conn, myListeningAddress string) {
+	Satoshiconn = conn
 	gobEncoder := gob.NewEncoder(conn)
 	err := gobEncoder.Encode(myListeningAddress)
 	if err != nil {
@@ -283,6 +284,7 @@ func SendChain(conn net.Conn) {
 	}
 }
 
+var Satoshiconn net.Conn
 var clientsSlice []Client
 var rwchan = make(chan string)
 
@@ -345,9 +347,17 @@ func StartListening(ListeningAddress string, node string) {
 			go handleConnection(conn, addchan)
 			clientsSlice = append(clientsSlice, <-addchan)
 			//	chainHead = a2.InsertBlock("", "", "Satoshi", 0, chainHead)
+			var block Block
+			gobEncoder := gob.NewDecoder(conn)
+			err2 := gobEncoder.Decode(&block)
+			if err2 != nil {
+				log.Println(err2)
+			}
+			chainHead = InsertCourse(block)
+			ListBlocks(chainHead)
 
 		}
-	} else {
+	} else if node == "others" {
 		ln, err := net.Listen("tcp", "localhost:"+ListeningAddress)
 		if err != nil {
 			log.Fatal(err)
@@ -364,7 +374,24 @@ func StartListening(ListeningAddress string, node string) {
 
 		}
 
+	} else {
+		ln, err := net.Listen("tcp", "localhost:"+ListeningAddress)
+		if err != nil {
+			log.Fatal(err)
+			fmt.Println("Faital")
+		}
+
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				log.Println(err, "Yooooo")
+				continue
+			}
+			go handlePeer(conn)
+
+		}
 	}
+
 }
 
 // Chi HTTP Services //
@@ -414,7 +441,14 @@ func getHandler(w http.ResponseWriter, r *http.Request) error {
 		Course: AddCourse,
 	}
 
-	chainHead = InsertCourse(MyBlock)
+	//chainHead = InsertCourse(MyBlock)
+
+	// gobEncoder := gob.NewEncoder(Satoshiconn)
+	// err2 := gobEncoder.Encode(MyBlock)
+	// if err2 != nil {
+	// 	log.Println("In Write Chain: ", err2)
+	// }
+
 	ListBlocks(chainHead)
 
 	tempHead := chainHead
@@ -450,6 +484,13 @@ func getHandler(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {                  // if there is an error
 		log.Print("template executing error: ", err) //log it
 	}
+
+	gobEncoder := gob.NewEncoder(Satoshiconn)
+	err2 := gobEncoder.Encode(MyBlock)
+	if err2 != nil {
+		log.Println("In Write Chain: ", err2)
+	}
+
 	return nil
 }
 
@@ -492,6 +533,7 @@ func showBlocksHandler(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {                  // if there is an error
 		log.Print("template executing error: ", err) //log it
 	}
+
 	return nil
 }
 
@@ -534,13 +576,23 @@ var broadcast = make(chan []Block) // broadcast channel
 
 // Clients Web Server //
 
-func RunWebServer() {
+func RunWebServer(port string) {
 	r := chi.NewRouter()
 	r.Method("GET", "/", Handler(setHandler))
 	r.Method("POST", "/blockInsert", Handler(getHandler))
 	//r.HandleFunc("/ws", HandleConnections)
 
-	http.ListenAndServe("localhost"+":3334", r)
+	http.ListenAndServe("localhost:"+port, r)
+
+}
+
+func RunWebServerMiner(port string) {
+	r := chi.NewRouter()
+	r.Method("GET", "/", Handler(setHandler))
+	// r.Method("POST", "/blockInsert", Handler(getHandler))
+	//r.HandleFunc("/ws", HandleConnections)
+
+	http.ListenAndServe("localhost:"+port, r)
 
 }
 

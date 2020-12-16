@@ -9,7 +9,6 @@ import (
 )
 
 func main() {
-
 	satoshiAddress := os.Args[1]
 	myListeningAddress := os.Args[2]
 	webAddress := os.Args[3]
@@ -19,8 +18,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	go b.RunWebServer(webAddress)
-	go b.StartListening(myListeningAddress, "others")
+	go b.RunWebServerMiner(webAddress)
+	go b.StartListening(myListeningAddress, "miner")
 
 	log.Println("Sending my listening address to Satoshi")
 	//Satoshi is there waiting for our address, it stores it somehow
@@ -29,10 +28,6 @@ func main() {
 
 	b.WriteString(conn, myListeningAddress)
 
-	//once the satoshi unblocks on Quorum completion it sends peer to connect to
-	// log.Println("receiving peer to connect to ... ")
-	// receivedString := b.ReadString(conn)
-	// log.Println(receivedString)
 	select {}
 
 }

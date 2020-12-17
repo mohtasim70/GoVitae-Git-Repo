@@ -23,7 +23,7 @@ func main() {
 	go b.RunWebServer(webAddress)
 	go b.StartListening(myListeningAddress, "others")
 
-	log.Println("Sending my listening address to Satoshi")
+	log.Println("Sending my listening address to Satoshis")
 	//Satoshi is there waiting for our address, it stores it somehow
 	chainHead := b.ReceiveChain(conn)
 	b.ListBlocks(chainHead)

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+<body>
+
+  <!-- <script type="text/javascript">
+    ws = new WebSocket('ws://localhost:3333/ws');
+
+    document.getElementById("form").onsubmit = function () {
+                if (!conn) {
+                    return false;
+                }
+                if (!msg.value) {
+                    return false;
+                }
+                obj=JSON.stringify($("form").formToJson())
+                console.log("hello")
+                ws.send(obj);
+
+                return false;
+            };
+
+
+
+
+  </script> -->
+
+<div class="container">
+  <h1>Add Block</h1>
+  <h2>Course Details</h2>
+  <form action="/blockInsert" id="form" method="post">
+    <div class="form-group">
+      <label for="courseCode">Course Code:</label>
+      <input type="text" class="form-control" placeholder="Enter Course Code" name="courseCode">
+    </div>
+    <div class="form-group">
+      <label for="courseName">Course Name:</label>
+      <input type="text" class="form-control" placeholder="Enter Course Name" name="courseName">
+    </div>
+    <div class="form-group">
+      <label for="courseCHrs">Course Credit Hours:</label>
+      <input type="number" class="form-control" placeholder="Enter Course Credit Hours" name="courseCHrs">
+    </div>
+    <div class="form-group">
+      <label for="courseGrade">Course Grade:</label>
+      <input type="text" class="form-control" placeholder="Enter Course Grade" name="courseGrade">
+    </div>
+    <div class="form-group">
+      <label for="courseEmail">Email of Verifier:</label>
+      <input type="text" class="form-control" placeholder="Enter Email of Verifier" name="courseEmail">
+    </div>
+    <button type="submit" class="btn btn-default">Submit</button>
+  </form>
+</div>
+
+<div class="container">
+      <h1>Block Details</h1>
+      {{ $blockno := .BlockNo }}
+      {{ $currhash := .CurrentHash }}
+      {{ $prevhash := .PrevHash }}
+      {{range $index, $course := .Course }}
+      <div class="card" style="width: 600px;">
+        <div class="card-body">
+          <h5 class="card-title">Block No: {{index $blockno $index}}</h5>
+          <div class="card-text">
+            <p>Current Hash: {{index $currhash $index}}</p>
+            <p>Previous Hash: {{index $prevhash $index}}</p>
+            <p style="font-weight: bold;">Course Details:</p>
+            <p>Course Code: {{$course.Code}}</p>
+            <p>Course Name: {{$course.Name}}</p>
+            <p>Course Credit Hours: {{$course.CreditHours}}</p>
+            <p>Course Grade: {{$course.Grade}}</p>
+          </div>
+        </div>
+      </div>
+      {{end}}
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>

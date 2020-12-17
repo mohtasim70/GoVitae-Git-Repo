@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"os"
@@ -25,7 +24,7 @@ func main() {
 	log.Println("Sending my listening address to Satoshi")
 	//Satoshi is there waiting for our address, it stores it somehow
 	chainHead := b.ReceiveChain(conn)
-	b.ListBlocks(&chainHead)
+	b.ListBlocks(chainHead)
 
 	Peers := b.Client{
 		ListeningAddress: myListeningAddress,
@@ -34,9 +33,10 @@ func main() {
 	}
 	b.WriteString(conn, Peers)
 
-	slice := b.ReadPeers(conn)
+	go b.ReadPeers1(conn)
 
-	fmt.Println("Slice:: ", slice)
+	// slice := b.ReadPeers(conn)
+	// fmt.Println("Slice:: ", slice)
 	select {}
 
 }

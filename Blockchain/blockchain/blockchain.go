@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"crypto/sha256"
+	"crypto/tls"
 	"encoding/gob"
 	"encoding/hex"
 	"fmt"
@@ -10,6 +11,9 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"sync"
+
+	gomail "gopkg.in/mail.v2"
 
 	"github.com/gorilla/mux"
 	//"github.com/gorilla/websocket"
@@ -65,6 +69,7 @@ type Connected struct {
 var count int = 0
 
 var localData []Connected
+var mutex = &sync.Mutex{}
 
 //var nodes = make(map[*websocket.Conn]bool) // connected clients
 //var upgrader = websocket.Upgrader{
@@ -93,6 +98,7 @@ func InsertBlock(course Course, project Project, chainHead *Block) *Block {
 		Project: project,
 	}
 	newBlock.CurrentHash = CalculateHash(newBlock)
+	fmt.Println("In insertion: ", CalculateHash(newBlock))
 
 	if chainHead == nil {
 		chainHead = newBlock
@@ -130,13 +136,13 @@ func InsertProject(project Project, chainHead *Block) *Block {
 func InsertCourse(myBlock Block) *Block {
 
 	myBlock.CurrentHash = CalculateHash(&myBlock)
-
+	fmt.Println("Course Hash, ", CalculateHash(&myBlock))
 	if chainHead == nil {
 		myBlock.BlockNo = count
 		myBlock.PrevHash = "null"
 		myBlock.Status = "Pending"
 		chainHead = &myBlock
-		fmt.Println("Genesis Block Inserted")
+		//	fmt.Println("Genesis Block Inserted")
 		return chainHead
 	}
 	count = count + 1
@@ -333,18 +339,38 @@ func handlePeer(conn net.Conn) {
 	}
 
 	// newClient.ListeningAddress = ListeningAddress
-	fmt.Println("inHandlePeer: ", block.Email)
+	fmt.Println("inHandlePeer: ", block)
 	blockchan <- block
 
 }
-func ReceiveChain(conn net.Conn) Block {
-	var block Block
+func ReceiveChain(conn net.Conn) *Block {
+	fmt.Println("In func")
+	var block *Block
 	gobEncoder := gob.NewDecoder(conn)
 	err := gobEncoder.Decode(&block)
 	if err != nil {
 		log.Println(err)
 	}
-	chainHead = InsertCourse(block)
+	fmt.Println("Received chain")
+	chainHead = block
+	ListBlocks(chainHead)
+
+	//chainHead = InsertCourse(block)
+	return block
+}
+func ReceiveChain1(conn net.Conn) *Block {
+	//<-check
+	var block *Block
+	gobEncoder := gob.NewDecoder(conn)
+	err := gobEncoder.Decode(&block)
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println("Received chain")
+	chainHead = block
+	ListBlocks(chainHead)
+
+	//chainHead = InsertCourse(block)
 	return block
 }
 
@@ -364,7 +390,27 @@ func broadcastPeerData() {
 
 }
 
+func broadcastChain() {
+
+	for i := 0; i < len(localData); i++ {
+		//		fmt.Println("ss", nodesSlice[i].Types)
+		gobEncoder := gob.NewEncoder(localData[i].Conn)
+		//fmt.Println("BroadCheck: ", localData[i])
+		err1 := gobEncoder.Encode(chainHead)
+		fmt.Println("Broadcasting Chain:: ")
+		if err1 != nil {
+			log.Println("Errpr in broadcasting Chain", err1)
+		}
+
+	}
+
+	//	<-StepbyChan
+
+}
+
 func ReadPeers(conn net.Conn) []Client {
+	//	for {
+	//	mutex.Lock()
 	var slice []Client
 	gobEncoder := gob.NewDecoder(conn)
 	err := gobEncoder.Decode(&slice)
@@ -372,7 +418,27 @@ func ReadPeers(conn net.Conn) []Client {
 		log.Println(err)
 	}
 	nodesSlice = slice
+	fmt.Println("Read Peers: ", nodesSlice, len(nodesSlice))
+	//	mutex.Unlock()
+	//		check <- "d"
+	//	}
 	return nodesSlice
+}
+func ReadPeers1(conn net.Conn) []Client {
+	for {
+		//	mutex.Lock()
+		var slice []Client
+		gobEncoder := gob.NewDecoder(conn)
+		err := gobEncoder.Decode(&slice)
+		if err != nil {
+			log.Println(err)
+		}
+		nodesSlice = slice
+		fmt.Println("Read Peers: ", nodesSlice)
+		//	mutex.Unlock()
+		//		check <- "d"
+	}
+	//	return nodesSlice
 }
 func ReadBlockPeers(conn net.Conn) Block {
 	var block Block
@@ -481,6 +547,8 @@ func setHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+var minerConn net.Conn
+
 func getHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	cCode := r.Form.Get("courseCode")
@@ -559,10 +627,38 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Fatal(err)
 			}
+			minerConn = conn
 			gobEncoder := gob.NewEncoder(conn)
+			fmt.Println("blok:ahsh: ", CalculateHash(&MyBlock))
 			err2 := gobEncoder.Encode(MyBlock)
 			if err2 != nil {
 				log.Println("In Write Chain: ", err2)
+			}
+			m := gomail.NewMessage()
+
+			// Set E-Mail sender
+			m.SetHeader("From", "mohtasimasad@gmail.com")
+
+			// Set E-Mail receivers
+			m.SetHeader("To", MyBlock.Email)
+
+			// Set E-Mail subject
+			m.SetHeader("Subject", "Verification Content")
+
+			// Set E-Mail body. You can set plain text or html with text/html
+			m.SetBody("text/plain", "Course Name: "+MyBlock.Course.Name+"  Course Code: "+MyBlock.Course.Code+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mine/"+CalculateHash(&MyBlock))
+
+			// Settings for SMTP server
+			d := gomail.NewDialer("smtp.gmail.com", 587, "mohtasimasadabbasi@gmail.com", "mohtasim70")
+
+			// This is only needed when SSL/TLS certificate is not valid on server.
+			// In production this should be set to false.
+			d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+			// Now send E-Mail
+			if err := d.DialAndSend(m); err != nil {
+				fmt.Println(err, "mailerr")
+				panic(err)
 			}
 
 			break
@@ -618,6 +714,8 @@ func showBlocksHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+var check = make(chan string)
+
 func Mineblock(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	mineHash := params["hash"]
@@ -625,6 +723,15 @@ func Mineblock(w http.ResponseWriter, r *http.Request) {
 	chainHead = InsertCourse(Minedblock)
 	fmt.Println("In Mining")
 	ListBlocks(chainHead)
+
+	gobEncoder := gob.NewEncoder(Satoshiconn)
+	err2 := gobEncoder.Encode(chainHead)
+	if err2 != nil {
+		log.Println("In Write Chain: ", err2)
+	}
+
+	go broadcastChain()
+
 }
 
 var broadcast = make(chan []Block) // broadcast channel
@@ -689,7 +796,6 @@ func RunWebServerMiner(port string) {
 
 	// r.Method("POST", "/blockInsert", Handler(getHandler))
 	//r.HandleFunc("/ws", HandleConnections)
-
 	http.ListenAndServe("localhost:"+port, r)
 
 }

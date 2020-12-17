@@ -39,6 +39,7 @@ type Block struct {
 	CurrentHash string
 	BlockNo     int
 	Status      string
+	Email       string
 }
 
 type ListTheBlock struct {
@@ -49,14 +50,21 @@ type ListTheBlock struct {
 	CurrentHash []string
 	BlockNo     []int
 	Status      []string
+	Email       []string
 }
 
 type Client struct {
-	conn             net.Conn
 	ListeningAddress string
+	Types            bool //true for node and false for miner
+	Mail             string
+}
+type Connected struct {
+	Conn net.Conn
 }
 
 var count int = 0
+
+var localData []Connected
 
 //var nodes = make(map[*websocket.Conn]bool) // connected clients
 //var upgrader = websocket.Upgrader{
@@ -267,7 +275,7 @@ func getCourse(ChainHead *Block) []Block {
 	//	fmt.Println("Yo")
 	return courses
 }
-func WriteString(conn net.Conn, myListeningAddress string) {
+func WriteString(conn net.Conn, myListeningAddress Client) {
 	Satoshiconn = conn
 	gobEncoder := gob.NewEncoder(conn)
 	err := gobEncoder.Encode(myListeningAddress)
@@ -289,33 +297,84 @@ var clientsSlice []Client
 var rwchan = make(chan string)
 
 func handleConnection(conn net.Conn, addchan chan Client) {
-	newClient := Client{
-		conn: conn,
-	}
-	var ListeningAddress string
+	// newClient := Connected{
+	// 	Conn: conn,
+	// }
+	Clientz := Client{}
+	//var ListeningAddress string
 	dec := gob.NewDecoder(conn)
-	err := dec.Decode(&ListeningAddress)
+	err := dec.Decode(&Clientz)
 	if err != nil {
 		//handle error
 	}
 
-	newClient.ListeningAddress = ListeningAddress
-	fmt.Println("inHandle: ", newClient.ListeningAddress)
-	addchan <- newClient
+	// newClient.ListeningAddress = ListeningAddress
+	fmt.Println("inHandle: ", Clientz.ListeningAddress)
+	addchan <- Clientz
 	//WaitForQuorum()
 
 }
+
+var nodesSlice []Client
+var minechan = make(chan Client)
+
+var blockchan = make(chan Block)
+var Minedblock Block
+
 func handlePeer(conn net.Conn) {
 
-	buf := make([]byte, 50)
-	n, err := conn.Read(buf)
-	if err != nil || n == 0 {
-		fmt.Println("Error in handPeer")
+	//	Clientz := Client{}
+	block := Block{}
+	//var ListeningAddress string
+	dec := gob.NewDecoder(conn)
+	err := dec.Decode(&block)
+	if err != nil {
+		//handle error
 	}
-	fmt.Println("Recieved in handle: ", string(buf))
+
+	// newClient.ListeningAddress = ListeningAddress
+	fmt.Println("inHandlePeer: ", block.Email)
+	blockchan <- block
 
 }
 func ReceiveChain(conn net.Conn) Block {
+	var block Block
+	gobEncoder := gob.NewDecoder(conn)
+	err := gobEncoder.Decode(&block)
+	if err != nil {
+		log.Println(err)
+	}
+	chainHead = InsertCourse(block)
+	return block
+}
+
+func broadcastPeerData() {
+
+	for i := 0; i < len(localData); i++ {
+		gobEncoder := gob.NewEncoder(localData[i].Conn)
+		//fmt.Println("BroadCheck: ", localData[i])
+		err1 := gobEncoder.Encode(clientsSlice)
+		fmt.Println("Broadcasting StreamData:: ")
+		if err1 != nil {
+			log.Println("Errpr in broadcasting", err1)
+		}
+
+	}
+	//	<-StepbyChan
+
+}
+
+func ReadPeers(conn net.Conn) []Client {
+	var slice []Client
+	gobEncoder := gob.NewDecoder(conn)
+	err := gobEncoder.Decode(&slice)
+	if err != nil {
+		log.Println(err)
+	}
+	nodesSlice = slice
+	return nodesSlice
+}
+func ReadBlockPeers(conn net.Conn) Block {
 	var block Block
 	gobEncoder := gob.NewDecoder(conn)
 	err := gobEncoder.Decode(&block)
@@ -343,17 +402,23 @@ func StartListening(ListeningAddress string, node string) {
 				continue
 			}
 			sendBlockchain(conn, chainHead)
+			conns := Connected{
+				Conn: conn,
+			}
 
 			go handleConnection(conn, addchan)
 			clientsSlice = append(clientsSlice, <-addchan)
+			localData = append(localData, conns)
+			broadcastPeerData()
 			//	chainHead = a2.InsertBlock("", "", "Satoshi", 0, chainHead)
-			var block Block
-			gobEncoder := gob.NewDecoder(conn)
-			err2 := gobEncoder.Decode(&block)
-			if err2 != nil {
-				log.Println(err2)
-			}
-			chainHead = InsertCourse(block)
+			// var block Block
+			// gobEncoder := gob.NewDecoder(conn)
+			// err2 := gobEncoder.Decode(&block)
+			// if err2 != nil {
+			// 	log.Println(err2)
+			// }
+			go ReceiveChain(conn)
+			//chainHead = InsertCourse(block)
 			ListBlocks(chainHead)
 
 		}
@@ -371,10 +436,11 @@ func StartListening(ListeningAddress string, node string) {
 				continue
 			}
 			go handlePeer(conn)
+			nodesSlice = append(nodesSlice, <-minechan)
 
 		}
 
-	} else {
+	} else { //miner
 		ln, err := net.Listen("tcp", "localhost:"+ListeningAddress)
 		if err != nil {
 			log.Fatal(err)
@@ -387,7 +453,14 @@ func StartListening(ListeningAddress string, node string) {
 				log.Println(err, "Yooooo")
 				continue
 			}
+			conns := Connected{
+				Conn: conn,
+			}
+			localData = append(localData, conns)
+
 			go handlePeer(conn)
+
+			Minedblock = <-blockchan
 
 		}
 	}
@@ -424,6 +497,7 @@ func getHandler(w http.ResponseWriter, r *http.Request) error {
 	cCode := r.Form.Get("courseCode")
 	cName := r.Form.Get("courseName")
 	cGrade := r.Form.Get("courseGrade")
+	cEmail := r.Form.Get("courseEmail")
 
 	a, err := strconv.Atoi(r.FormValue("courseCHrs"))
 	if err != nil {
@@ -439,6 +513,7 @@ func getHandler(w http.ResponseWriter, r *http.Request) error {
 
 	MyBlock := Block{
 		Course: AddCourse,
+		Email:  cEmail,
 	}
 
 	//chainHead = InsertCourse(MyBlock)
@@ -457,22 +532,26 @@ func getHandler(w http.ResponseWriter, r *http.Request) error {
 	tempBlockNo := []int{}
 	tempCurrHash := []string{}
 	tempPrevHash := []string{}
+	tempEmail := []string{}
 	for tempHead != nil {
 		tempCourse = append(tempCourse, tempHead.Course)
 		tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
 		tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
 		tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
+		tempEmail = append(tempEmail, tempHead.Email)
 		viewTheBlock = &ListTheBlock{
 			Course:      tempCourse,
 			BlockNo:     tempBlockNo,
 			CurrentHash: tempCurrHash,
 			PrevHash:    tempPrevHash,
+			Email:       tempEmail,
 		}
 		tempHead = tempHead.PrevPointer
 		fmt.Println(viewTheBlock.Course)
 		fmt.Println(viewTheBlock.BlockNo)
 		fmt.Println(viewTheBlock.CurrentHash)
 		fmt.Println(viewTheBlock.PrevHash)
+		fmt.Println(viewTheBlock.Email)
 	}
 	// generate page by passing page variables into template
 	t, err := template.ParseFiles("../Website/blockchain.html") //parse the html file homepage.html
@@ -485,11 +564,27 @@ func getHandler(w http.ResponseWriter, r *http.Request) error {
 		log.Print("template executing error: ", err) //log it
 	}
 
-	gobEncoder := gob.NewEncoder(Satoshiconn)
-	err2 := gobEncoder.Encode(MyBlock)
-	if err2 != nil {
-		log.Println("In Write Chain: ", err2)
+	for i := 0; i < len(nodesSlice); i++ {
+		if nodesSlice[i].Mail == MyBlock.Email {
+			conn, err := net.Dial("tcp", "localhost:"+nodesSlice[i].ListeningAddress)
+			if err != nil {
+				log.Fatal(err)
+			}
+			gobEncoder := gob.NewEncoder(conn)
+			err2 := gobEncoder.Encode(MyBlock)
+			if err2 != nil {
+				log.Println("In Write Chain: ", err2)
+			}
+
+			break
+		}
 	}
+
+	// gobEncoder := gob.NewEncoder(Satoshiconn)
+	// err2 := gobEncoder.Encode(MyBlock)
+	// if err2 != nil {
+	// 	log.Println("In Write Chain: ", err2)
+	// }
 
 	return nil
 }
@@ -537,6 +632,14 @@ func showBlocksHandler(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+func Mineblock(w http.ResponseWriter, r *http.Request) error {
+	chainHead = InsertCourse(Minedblock)
+	fmt.Println("In Mining")
+	ListBlocks(chainHead)
+
+	return nil
+}
+
 var broadcast = make(chan []Block) // broadcast channel
 
 //func HandleConnections(w http.ResponseWriter, r *http.Request) {
@@ -577,6 +680,12 @@ var broadcast = make(chan []Block) // broadcast channel
 // Clients Web Server //
 
 func RunWebServer(port string) {
+	// router := mux.NewRouter().StrictSlash(true)
+	// router.HandleFunc("/ws", server.HandleConnections)
+	// router.HandleFunc("/api/block", server.GetAllBlock).Methods("GET", "OPTIONS")
+	// router.HandleFunc("/api/block", server.CreateBlock).Methods("POST", "OPTIONS")
+	// router.HandleFunc("/api/task", server.CreateTask).Methods("POST", "OPTIONS")
+
 	r := chi.NewRouter()
 	r.Method("GET", "/", Handler(setHandler))
 	r.Method("POST", "/blockInsert", Handler(getHandler))
@@ -588,7 +697,7 @@ func RunWebServer(port string) {
 
 func RunWebServerMiner(port string) {
 	r := chi.NewRouter()
-	r.Method("GET", "/", Handler(setHandler))
+	r.Method("GET", "/mine", Handler(Mineblock))
 	// r.Method("POST", "/blockInsert", Handler(getHandler))
 	//r.HandleFunc("/ws", HandleConnections)
 

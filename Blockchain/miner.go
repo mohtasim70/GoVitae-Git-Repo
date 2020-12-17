@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -26,8 +27,16 @@ func main() {
 	chainHead := b.ReceiveChain(conn)
 	b.ListBlocks(&chainHead)
 
-	b.WriteString(conn, myListeningAddress)
+	Peers := b.Client{
+		ListeningAddress: myListeningAddress,
+		Types:            false,
+		Mail:             "mohtasimasad@gmail.com",
+	}
+	b.WriteString(conn, Peers)
 
+	slice := b.ReadPeers(conn)
+
+	fmt.Println("Slice:: ", slice)
 	select {}
 
 }

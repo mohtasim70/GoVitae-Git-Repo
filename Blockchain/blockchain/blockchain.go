@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi"
+	"github.com/gorilla/mux"
 	//"github.com/gorilla/websocket"
 )
 
@@ -469,17 +469,7 @@ func StartListening(ListeningAddress string, node string) {
 
 // Chi HTTP Services //
 
-type Handler func(w http.ResponseWriter, r *http.Request) error
-
-func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := h(w, r); err != nil {
-		// handle returned error here.
-		w.WriteHeader(503)
-		w.Write([]byte("bad"))
-	}
-}
-
-func setHandler(w http.ResponseWriter, r *http.Request) error {
+func setHandler(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles("../Website/blockchain.html") //parse the html file homepage.html
 	if err != nil {                                             // if there is an error
 		log.Print("template parsing error: ", err) // log it
@@ -489,10 +479,9 @@ func setHandler(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {         // if there is an error
 		log.Print("template executing error: ", err) //log it
 	}
-	return nil
 }
 
-func getHandler(w http.ResponseWriter, r *http.Request) error {
+func getHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	cCode := r.Form.Get("courseCode")
 	cName := r.Form.Get("courseName")
@@ -586,10 +575,9 @@ func getHandler(w http.ResponseWriter, r *http.Request) error {
 	// 	log.Println("In Write Chain: ", err2)
 	// }
 
-	return nil
 }
 
-func showBlocksHandler(w http.ResponseWriter, r *http.Request) error {
+func showBlocksHandler(w http.ResponseWriter, r *http.Request) {
 	tempHead := chainHead
 	viewTheBlock := new(ListTheBlock)
 	tempCourse := []Course{}
@@ -628,16 +616,13 @@ func showBlocksHandler(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {                  // if there is an error
 		log.Print("template executing error: ", err) //log it
 	}
-
-	return nil
 }
 
-func Mineblock(w http.ResponseWriter, r *http.Request) error {
+func Mineblock(w http.ResponseWriter, r *http.Request) {
 	chainHead = InsertCourse(Minedblock)
 	fmt.Println("In Mining")
 	ListBlocks(chainHead)
 
-	return nil
 }
 
 var broadcast = make(chan []Block) // broadcast channel
@@ -686,9 +671,9 @@ func RunWebServer(port string) {
 	// router.HandleFunc("/api/block", server.CreateBlock).Methods("POST", "OPTIONS")
 	// router.HandleFunc("/api/task", server.CreateTask).Methods("POST", "OPTIONS")
 
-	r := chi.NewRouter()
-	r.Method("GET", "/", Handler(setHandler))
-	r.Method("POST", "/blockInsert", Handler(getHandler))
+	r := mux.NewRouter()
+	r.HandleFunc("/", setHandler).Methods("GET")
+	r.HandleFunc("/blockInsert", getHandler).Methods("POST")
 	//r.HandleFunc("/ws", HandleConnections)
 
 	http.ListenAndServe("localhost:"+port, r)
@@ -696,8 +681,10 @@ func RunWebServer(port string) {
 }
 
 func RunWebServerMiner(port string) {
-	r := chi.NewRouter()
-	r.Method("GET", "/mine", Handler(Mineblock))
+
+	r := mux.NewRouter()
+	r.HandleFunc("/mine", Mineblock).Methods("GET")
+
 	// r.Method("POST", "/blockInsert", Handler(getHandler))
 	//r.HandleFunc("/ws", HandleConnections)
 
@@ -708,8 +695,9 @@ func RunWebServerMiner(port string) {
 // Satoshi Web Server //
 
 func RunWebServerSatoshi() {
-	r := chi.NewRouter()
-	r.Method("GET", "/showBlocks", Handler(showBlocksHandler))
+
+	r := mux.NewRouter()
+	r.HandleFunc("/showBlocks", showBlocksHandler).Methods("GET")
 	//r.HandleFunc("/ws", HandleConnections)
 
 	http.ListenAndServe("localhost"+":3333", r)

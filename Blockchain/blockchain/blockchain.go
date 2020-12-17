@@ -619,10 +619,12 @@ func showBlocksHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Mineblock(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	mineHash := params["hash"]
+	fmt.Println(mineHash)
 	chainHead = InsertCourse(Minedblock)
 	fmt.Println("In Mining")
 	ListBlocks(chainHead)
-
 }
 
 var broadcast = make(chan []Block) // broadcast channel
@@ -683,7 +685,7 @@ func RunWebServer(port string) {
 func RunWebServerMiner(port string) {
 
 	r := mux.NewRouter()
-	r.HandleFunc("/mine", Mineblock).Methods("GET")
+	r.HandleFunc("/mine/{hash}", Mineblock).Methods("GET")
 
 	// r.Method("POST", "/blockInsert", Handler(getHandler))
 	//r.HandleFunc("/ws", HandleConnections)

@@ -23,8 +23,9 @@ func main() {
 
 	log.Println("Sending my listening address to Satoshi")
 	//Satoshi is there waiting for our address, it stores it somehow
-	chainHead := b.ReceiveChain(conn)
-	b.ListBlocks(chainHead)
+	// chainHead := b.ReceiveChain(conn)
+	// b.ListBlocks(chainHead)
+	b.ReceiveChain(conn)
 
 	Peers := b.Client{
 		ListeningAddress: myListeningAddress,

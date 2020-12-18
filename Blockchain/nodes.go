@@ -34,10 +34,19 @@ func main() {
 	}
 	b.WriteString(conn, Peers)
 
-	//go b.ReadPeers(conn)
-	slice := b.ReadPeers(conn)
-	fmt.Println("Slice:: ", slice)
-
+	//go b.ReceiveChain(conn)
+	go b.ReadPeers1(conn)
+	//slice := b.ReadPeers(conn)
+	//fmt.Println("Slice:: ", slice)
+	go func() {
+		for {
+			if b.Mined == true {
+				fmt.Println("Innn Sent:: ")
+				b.ReceiveChain(b.MinerConn)
+				b.Mined = false
+			}
+		}
+	}()
 	// chainHead = b.ReceiveChain(conn)
 
 	//once the satoshi unblocks on Quorum completion it sends peer to connect to

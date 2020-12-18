@@ -360,19 +360,24 @@ func ReceiveChain(conn net.Conn) *Block {
 }
 func ReceiveChain1(conn net.Conn) *Block {
 	//<-check
-	var block *Block
-	gobEncoder := gob.NewDecoder(conn)
-	err := gobEncoder.Decode(&block)
-	if err != nil {
-		log.Println(err)
-	}
-	fmt.Println("Received chain")
-	chainHead = block
-	ListBlocks(chainHead)
+	for {
+		rwchan <- "sss"
+		var block *Block
+		gobEncoder := gob.NewDecoder(conn)
+		err := gobEncoder.Decode(&block)
+		if err != nil {
+			log.Println(err)
+		}
+		fmt.Println("Received chain")
+		chainHead = block
+		ListBlocks(chainHead)
 
-	//chainHead = InsertCourse(block)
-	return block
+		//chainHead = InsertCourse(block)
+	}
+	//	return block
 }
+
+var j int
 
 func broadcastPeerData() {
 
@@ -380,12 +385,13 @@ func broadcastPeerData() {
 		gobEncoder := gob.NewEncoder(localData[i].Conn)
 		//fmt.Println("BroadCheck: ", localData[i])
 		err1 := gobEncoder.Encode(clientsSlice)
-		fmt.Println("Broadcasting StreamData:: ")
+		fmt.Println("Broadcasting PeerData:: ")
 		if err1 != nil {
 			log.Println("Errpr in broadcasting", err1)
 		}
 
 	}
+
 	//	<-StepbyChan
 
 }
@@ -397,7 +403,7 @@ func broadcastChain() {
 		gobEncoder := gob.NewEncoder(localData[i].Conn)
 		//fmt.Println("BroadCheck: ", localData[i])
 		err1 := gobEncoder.Encode(chainHead)
-		fmt.Println("Broadcasting Chain:: ")
+		fmt.Println("Broadcasting Chain to:: ", localData[i].Conn)
 		if err1 != nil {
 			log.Println("Errpr in broadcasting Chain", err1)
 		}
@@ -427,6 +433,7 @@ func ReadPeers(conn net.Conn) []Client {
 func ReadPeers1(conn net.Conn) []Client {
 	for {
 		//	mutex.Lock()
+
 		var slice []Client
 		gobEncoder := gob.NewDecoder(conn)
 		err := gobEncoder.Decode(&slice)
@@ -435,6 +442,8 @@ func ReadPeers1(conn net.Conn) []Client {
 		}
 		nodesSlice = slice
 		fmt.Println("Read Peers: ", nodesSlice)
+
+		//		<-rwchan
 		//	mutex.Unlock()
 		//		check <- "d"
 	}
@@ -457,7 +466,7 @@ func StartListening(ListeningAddress string, node string) {
 			log.Fatal(err)
 			fmt.Println("Faital")
 		}
-
+		j = 0
 		addchan := make(chan Client)
 		block := Block{}
 		chainHead = InsertCourse(block) //Genesis Block
@@ -475,7 +484,34 @@ func StartListening(ListeningAddress string, node string) {
 			go handleConnection(conn, addchan)
 			clientsSlice = append(clientsSlice, <-addchan)
 			localData = append(localData, conns)
+			//fmt.Println("BroadCheck: ", localData[i])
 			broadcastPeerData()
+			// go func() {
+			// 	for {
+			// 		time.Sleep(5 * time.Second)
+			// 		mutex.Lock()
+			// 		for i := 0; i < len(localData); i++ {
+			// 			//		fmt.Println("ss", nodesSlice[i].Types)
+			// 			gobEncoder := gob.NewEncoder(localData[i].Conn)
+			// 			//fmt.Println("BroadCheck: ", localData[i])
+			// 			err1 := gobEncoder.Encode(chainHead)
+			// 			fmt.Println("Broadcasting Chain:: ")
+			// 			if err1 != nil {
+			// 				log.Println("Errpr in broadcasting Chain", err1)
+			// 			}
+			// 			gobEncoder2 := gob.NewEncoder(localData[i].Conn)
+			// 			//fmt.Println("BroadCheck: ", localData[i])
+			// 			err2 := gobEncoder2.Encode(clientsSlice)
+			// 			fmt.Println("Broadcasting PeerData:: ")
+			// 			if err2 != nil {
+			// 				log.Println("Errpr in broadcasting", err2)
+			// 			}
+			//
+			// 		}
+			// 		mutex.Unlock()
+			//
+			// 	}
+			// }()
 			//	chainHead = a2.InsertBlock("", "", "Satoshi", 0, chainHead)
 			// var block Block
 			// gobEncoder := gob.NewDecoder(conn)
@@ -519,6 +555,8 @@ func StartListening(ListeningAddress string, node string) {
 				log.Println(err, "Yooooo")
 				continue
 			}
+			fmt.Println("COnnedted")
+			testConn = conn
 			conns := Connected{
 				Conn: conn,
 			}
@@ -532,6 +570,8 @@ func StartListening(ListeningAddress string, node string) {
 	}
 
 }
+
+var testConn net.Conn
 
 // Chi HTTP Services //
 
@@ -547,7 +587,8 @@ func setHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var minerConn net.Conn
+var MinerConn net.Conn
+var Mined bool
 
 func getHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
@@ -620,14 +661,15 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {                  // if there is an error
 		log.Print("template executing error: ", err) //log it
 	}
-
+	//	fmt.Println("FFFFFFFFFF", len(nodesSlice))
 	for i := 0; i < len(nodesSlice); i++ {
+		//	fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
 		if nodesSlice[i].Mail == MyBlock.Email {
 			conn, err := net.Dial("tcp", "localhost:"+nodesSlice[i].ListeningAddress)
 			if err != nil {
 				log.Fatal(err)
 			}
-			minerConn = conn
+			MinerConn = conn
 			gobEncoder := gob.NewEncoder(conn)
 			fmt.Println("blok:ahsh: ", CalculateHash(&MyBlock))
 			err2 := gobEncoder.Encode(MyBlock)
@@ -637,7 +679,7 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 			m := gomail.NewMessage()
 
 			// Set E-Mail sender
-			m.SetHeader("From", "mohtasimasad@gmail.com")
+			m.SetHeader("From", "mohtasimasadabbasi@gmail.com")
 
 			// Set E-Mail receivers
 			m.SetHeader("To", MyBlock.Email)
@@ -660,7 +702,8 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 				fmt.Println(err, "mailerr")
 				panic(err)
 			}
-
+			fmt.Println("Email Sent")
+			Mined = true
 			break
 		}
 	}
@@ -729,8 +772,15 @@ func Mineblock(w http.ResponseWriter, r *http.Request) {
 	if err2 != nil {
 		log.Println("In Write Chain: ", err2)
 	}
+	gobEncoder2 := gob.NewEncoder(testConn)
+	//fmt.Println("BroadCheck: ", localData[i])
+	err1 := gobEncoder2.Encode(chainHead)
+	fmt.Println("Bro Chain to:: ", testConn)
+	if err1 != nil {
+		log.Println("Errpr in brosti Chain", err1)
+	}
 
-	go broadcastChain()
+	//	broadcastChain()
 
 }
 

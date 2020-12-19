@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net"
@@ -35,18 +36,46 @@ func main() {
 	b.WriteString(conn, Peers)
 
 	//go b.ReceiveChain(conn)
-	go b.ReadPeers1(conn)
-	//slice := b.ReadPeers(conn)
-	//fmt.Println("Slice:: ", slice)
+
+	go b.ReadPeersMinerChainEverything(conn)
+
 	go func() {
 		for {
 			if b.Mined == true {
-				fmt.Println("Innn Sent:: ")
-				b.ReceiveChain(b.MinerConn)
+				fmt.Println("trueue")
+				var stuu b.Combo
+				fmt.Println("In Read Peers fffwd")
+				gobEncoder := gob.NewDecoder(b.MinerConn)
+				err := gobEncoder.Decode(&stuu)
+				if err != nil {
+					log.Println(err, "FFF")
+				}
+				fmt.Println("Read StuuPeers: ", stuu.ClientsSlice)
+				b.ListBlocks(stuu.ChainHead)
+				// if Length(stuu.ChainHead) >= Length(chainHead) {
+				// 	chainHead = stuu.ChainHead
+				// 	stuff.ChainHead = chainHead
+				// 	fmt.Println("Read Chain: ")
+				// 	ListBlocks(chainHead)
+				// }
 				b.Mined = false
 			}
+
 		}
+
 	}()
+
+	// go b.ReadPeers1(conn)
+	//
+	// go func() {
+	// 	for {
+	// 		if b.Mined == true {
+	// 			fmt.Println("Innn Sent:: ")
+	// 			b.ReceiveChain(b.MinerConn)
+	// 			b.Mined = false
+	// 		}
+	// 	}
+	// }()
 	// chainHead = b.ReceiveChain(conn)
 
 	//once the satoshi unblocks on Quorum completion it sends peer to connect to

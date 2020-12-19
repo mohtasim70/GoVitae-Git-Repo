@@ -17,7 +17,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	b.Doit = true
 	go b.RunWebServerMiner(webAddress)
 	go b.StartListening(myListeningAddress, "miner")
 
@@ -34,7 +34,17 @@ func main() {
 	}
 	b.WriteString(conn, Peers)
 
-	go b.ReadPeers1(conn)
+	go b.ReadPeersMinerChainEverything(conn)
+
+	//go b.ReadPeersMinerChain(conn)
+
+	// go func() {
+	// 	for {
+	// 		fmt.Println("Innn Miner Sent:: ")
+	// 		b.ReceiveChain(conn)
+	//
+	// 	}
+	// }()
 
 	// slice := b.ReadPeers(conn)
 	// fmt.Println("Slice:: ", slice)

@@ -1,10 +1,12 @@
 package blockchain
 
 import (
+	"context"
 	"crypto/sha256"
 	"crypto/tls"
 	"encoding/gob"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -14,8 +16,15 @@ import (
 	"sync"
 	"time"
 
+	"../Database"
+	"../Models"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
 	gomail "gopkg.in/mail.v2"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	//"github.com/gorilla/websocket"
 )
@@ -75,6 +84,9 @@ var count int = 0
 var stuff Combo
 var localData []Connected
 var mutex = &sync.Mutex{}
+
+var tokenString = ""
+var urlLogin = ""
 
 //var nodes = make(map[*websocket.Conn]bool) // connected clients
 //var upgrader = websocket.Upgrader{
@@ -1017,6 +1029,167 @@ var broadcast = make(chan []Block) // broadcast channel
 
 // Clients Web Server //
 
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method == "GET" {
+		t, err := template.ParseFiles("../Website/register.html") //parse the html file homepage.html
+		if err != nil {                                           // if there is an error
+			log.Print("template parsing error: ", err) // log it
+		}
+
+		err = t.Execute(w, nil) //execute the template and pass it the HomePageVars struct to fill in the gaps
+		if err != nil {         // if there is an error
+			log.Print("template executing error: ", err) //log it
+		}
+	}
+	if r.Method == "POST" {
+		r.ParseForm()
+		userName := r.Form.Get("username")
+		fName := r.Form.Get("firstname")
+		lName := r.Form.Get("lastname")
+		password := r.Form.Get("pass")
+		w.Header().Set("Content-Type", "application/json")
+		user := model.User{
+			Username:  userName,
+			FirstName: fName,
+			LastName:  lName,
+			Password:  password,
+		}
+
+		collection, err := db.GetDBCollection()
+
+		var result model.User
+		err = collection.FindOne(context.TODO(), bson.D{primitive.E{Key: "username", Value: user.Username}}).Decode(&result)
+
+		if err != nil {
+			if err.Error() == "mongo: no documents in result" {
+				hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 5)
+				if err != nil { // if there is an error
+					log.Print("Error ", err) //log it
+				}
+				user.Password = string(hash)
+
+				_, err = collection.InsertOne(context.TODO(), user)
+				if err != nil { // if there is an error
+					log.Print("Error ", err) //log it
+				}
+			}
+		}
+		http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
+	}
+}
+
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method == "GET" {
+		t, err := template.ParseFiles("../Website/login.html") //parse the html file homepage.html
+		if err != nil {                                        // if there is an error
+			log.Print("template parsing error: ", err) // log it
+		}
+
+		err = t.Execute(w, nil) //execute the template and pass it the HomePageVars struct to fill in the gaps
+		if err != nil {         // if there is an error
+			log.Print("template executing error: ", err) //log it
+		}
+	}
+	if r.Method == "POST" {
+		r.ParseForm()
+		userName := r.Form.Get("username")
+		password := r.Form.Get("pass")
+		w.Header().Set("Content-Type", "application/json")
+		user := model.User{
+			Username: userName,
+			Password: password,
+		}
+
+		collection, err := db.GetDBCollection()
+
+		if err != nil {
+			log.Fatal(err)
+		}
+		var result model.User
+		var res model.ResponseResult
+
+		err = collection.FindOne(context.TODO(), bson.D{primitive.E{Key: "username", Value: user.Username}}).Decode(&result)
+
+		if err != nil {
+			res.Error = "Invalid username"
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(user.Password))
+
+		if err != nil {
+			res.Error = "Invalid password"
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"username":  result.Username,
+			"firstname": result.FirstName,
+			"lastname":  result.LastName,
+		})
+
+		tokenString, err = token.SignedString([]byte("secret"))
+
+		if err != nil {
+			res.Error = "Error while generating token,Try again"
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+
+		result.Token = tokenString
+		result.Password = ""
+		http.Redirect(w, r, urlLogin+"/profile", http.StatusSeeOther)
+		json.NewEncoder(w).Encode(result)
+	}
+}
+
+func ProfileHandler(w http.ResponseWriter, r *http.Request) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Don't forget to validate the alg is what you expect:
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			fmt.Println(" ---- Access Denied ----")
+			return nil, fmt.Errorf("Unexpected signing method")
+		}
+		return []byte("secret"), nil
+	})
+	if token == nil {
+		fmt.Println(" ---- Access Denied ----")
+		http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
+		return
+	}
+	var result model.User
+	var res model.ResponseResult
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		result.Username = claims["username"].(string)
+		result.FirstName = claims["firstname"].(string)
+		result.LastName = claims["lastname"].(string)
+		user := model.User{
+			Username:  result.Username,
+			FirstName: result.FirstName,
+			LastName:  result.LastName,
+			Password:  "",
+		}
+		t, err := template.ParseFiles("../Website/profile.html") //parse the html file homepage.html
+		if err != nil {                                          // if there is an error
+			log.Print("template parsing error: ", err) // log it
+		}
+
+		err = t.Execute(w, user) //execute the template and pass it the HomePageVars struct to fill in the gaps
+		if err != nil {          // if there is an error
+			log.Print("template executing error: ", err) //log it
+		}
+	} else {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+
+}
+
 func RunWebServer(port string) {
 	// router := mux.NewRouter().StrictSlash(true)
 	// router.HandleFunc("/ws", server.HandleConnections)
@@ -1028,7 +1201,12 @@ func RunWebServer(port string) {
 	r.HandleFunc("/", setHandler).Methods("GET")
 	r.HandleFunc("/blockInsert", getHandler).Methods("POST")
 	//r.HandleFunc("/ws", HandleConnections)
+	r.HandleFunc("/register", RegisterHandler)
+	r.HandleFunc("/login", LoginHandler)
+	r.HandleFunc("/profile", ProfileHandler).
+		Methods("GET")
 
+	urlLogin = "http://localhost:" + port
 	http.ListenAndServe("localhost:"+port, r)
 
 }

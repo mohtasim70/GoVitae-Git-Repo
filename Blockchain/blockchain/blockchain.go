@@ -9,9 +9,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -87,6 +89,7 @@ var mutex = &sync.Mutex{}
 
 var tokenString = ""
 var urlLogin = ""
+var chainHeadArray []*Block
 
 //var nodes = make(map[*websocket.Conn]bool) // connected clients
 //var upgrader = websocket.Upgrader{
@@ -94,6 +97,50 @@ var urlLogin = ""
 //return true
 //},
 //}
+
+func ReadBlockchainFile() {
+	// file, _ := ioutil.ReadFile("blockchainFile.json")
+	//
+	// _ = json.Unmarshal([]byte(file), &chainHeadArray)
+
+	file, err := os.Open("blockchainFile.json")
+	if err != nil {
+		log.Println("Can't read file")
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	decoder.Token()
+	block := Block{}
+	// Appends decoded object to dataArr until every object gets parsed
+	for decoder.More() {
+		decoder.Decode(&block)
+		chainHead = InsertCourse(block)
+	}
+	ListBlocks(chainHead)
+}
+
+func WriteBlockchainFile(chainHead []*Block) {
+
+	file, _ := json.MarshalIndent(chainHead, "", " ")
+	_ = ioutil.WriteFile("blockchainFile.json", file, 0644)
+	fmt.Println("file")
+
+}
+
+func GetBlockhainArray(chainHead *Block) []*Block {
+	var data []*Block
+	i := 0
+	for chainHead != nil {
+		chainHead.PrevPointer = nil
+		data = append(data, chainHead)
+		chainHead = chainHead.PrevPointer
+		i++
+
+	}
+	return data
+
+}
 
 //256bit
 func CalculateHash(inputBlock *Block) string {
@@ -448,6 +495,8 @@ func ReceiveEverything(conn net.Conn) { //Admin
 			fmt.Println("Received new chain")
 			chainHead = stuu.ChainHead
 			stuff.ChainHead = chainHead
+			data := GetBlockhainArray(chainHead)
+			WriteBlockchainFile(data)
 		} else {
 			fmt.Println("Received old chain")
 		}

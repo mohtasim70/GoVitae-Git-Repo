@@ -9,7 +9,6 @@ import (
 func main() {
 
 	satoshiAddress := os.Args[1]
-	b.ReadBlockchainFile()
 
 	go b.RunWebServerSatoshi()
 	go b.StartListening(satoshiAddress, "satoshi")

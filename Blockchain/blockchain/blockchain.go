@@ -117,6 +117,7 @@ func ReadBlockchainFile() {
 		decoder.Decode(&block)
 		chainHead = InsertCourse(block)
 	}
+	stuff.ChainHead = chainHead
 	ListBlocks(chainHead)
 }
 
@@ -697,6 +698,7 @@ func StartListening(ListeningAddress string, node string) {
 		addchan := make(chan Client)
 		block := Block{}
 		chainHead = InsertCourse(block) //Genesis Block
+		ReadBlockchainFile()
 		stuff.ChainHead = chainHead
 		for {
 			conn, err := ln.Accept()

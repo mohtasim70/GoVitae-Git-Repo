@@ -1106,13 +1106,15 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		userName := r.Form.Get("username")
 		fName := r.Form.Get("firstname")
 		lName := r.Form.Get("lastname")
-		password := r.Form.Get("pass")
+		password := r.Form.Get("password")
+		emailAddr := r.Form.Get("email")
 		w.Header().Set("Content-Type", "application/json")
 		user := model.User{
 			Username:  userName,
 			FirstName: fName,
 			LastName:  lName,
 			Password:  password,
+			Email:     emailAddr,
 		}
 
 		collection, err := db.GetDBCollection()
@@ -1154,7 +1156,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		r.ParseForm()
 		userName := r.Form.Get("username")
-		password := r.Form.Get("pass")
+		password := r.Form.Get("password")
 		w.Header().Set("Content-Type", "application/json")
 		user := model.User{
 			Username: userName,
@@ -1189,6 +1191,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			"username":  result.Username,
 			"firstname": result.FirstName,
 			"lastname":  result.LastName,
+			"email":     result.Email,
 		})
 
 		tokenString, err = token.SignedString([]byte("secret"))
@@ -1201,7 +1204,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 		result.Token = tokenString
 		result.Password = ""
-		http.Redirect(w, r, urlLogin+"/profile", http.StatusSeeOther)
+		http.Redirect(w, r, urlLogin+"/dashboard", http.StatusSeeOther)
 		json.NewEncoder(w).Encode(result)
 	}
 }
@@ -1226,14 +1229,16 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		result.Username = claims["username"].(string)
 		result.FirstName = claims["firstname"].(string)
 		result.LastName = claims["lastname"].(string)
+		result.Email = claims["email"].(string)
 		user := model.User{
 			Username:  result.Username,
 			FirstName: result.FirstName,
 			LastName:  result.LastName,
+			Email:     result.Email,
 			Password:  "",
 		}
-		t, err := template.ParseFiles("../Website/profile.html") //parse the html file homepage.html
-		if err != nil {                                          // if there is an error
+		t, err := template.ParseFiles("../Website/index.html") //parse the html file homepage.html
+		if err != nil {                                        // if there is an error
 			log.Print("template parsing error: ", err) // log it
 		}
 
@@ -1249,6 +1254,11 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	tokenString = ""
+	http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
+}
+
 func RunWebServer(port string) {
 	// router := mux.NewRouter().StrictSlash(true)
 	// router.HandleFunc("/ws", server.HandleConnections)
@@ -1262,8 +1272,14 @@ func RunWebServer(port string) {
 	//r.HandleFunc("/ws", HandleConnections)
 	r.HandleFunc("/register", RegisterHandler)
 	r.HandleFunc("/login", LoginHandler)
-	r.HandleFunc("/profile", ProfileHandler).
+	r.HandleFunc("/logout", LogoutHandler)
+	r.HandleFunc("/dashboard", ProfileHandler).
 		Methods("GET")
+	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("../Website/css"))))
+	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("../Website/js"))))
+	r.PathPrefix("/vendor/").Handler(http.StripPrefix("/vendor/", http.FileServer(http.Dir("../Website/vendor"))))
+	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", http.FileServer(http.Dir("../Website/images"))))
+	r.PathPrefix("/fonts/").Handler(http.StripPrefix("/fonts/", http.FileServer(http.Dir("../Website/fonts"))))
 
 	urlLogin = "http://localhost:" + port
 	http.ListenAndServe("localhost:"+port, r)

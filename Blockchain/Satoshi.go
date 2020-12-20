@@ -28,12 +28,23 @@ func main() {
 	// 	Name:        "wqw2",
 	// 	CreditHours: 8,
 	// }
+	// course3 := b.Course{
+	// 	Code:        "999wsd",
+	// 	Name:        "Kalb",
+	// 	CreditHours: 8,
+	// }
 	// newBlock2 := b.Block{
 	// 	//Hash here
 	// 	Course: course2,
 	// }
+	// newBlock3 := b.Block{
+	// 	//Hash here
+	// 	Course: course3,
+	// }
+	//
 	// chainHead := b.InsertCourse(newBlock)
 	// chainHead = b.InsertCourse(newBlock2)
+	// chainHead = b.InsertCourse(newBlock3)
 	// b.ListBlocks(chainHead)
 	// data := b.GetBlockhainArray(chainHead)
 	//

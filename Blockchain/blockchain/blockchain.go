@@ -18,8 +18,8 @@ import (
 	"sync"
 	"time"
 
-	"../Database"
-	"../Models"
+	db "../Database"
+	model "../Models"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -121,7 +121,7 @@ func ReadBlockchainFile() {
 	ListBlocks(chainHead)
 }
 
-func WriteBlockchainFile(chainHead []*Block) {
+func WriteBlockchainFile(chainHead []Block) {
 
 	file, _ := json.MarshalIndent(chainHead, "", " ")
 	_ = ioutil.WriteFile("blockchainFile.json", file, 0644)
@@ -129,12 +129,20 @@ func WriteBlockchainFile(chainHead []*Block) {
 
 }
 
-func GetBlockhainArray(chainHead *Block) []*Block {
-	var data []*Block
+func GetBlockhainArray(chainHead *Block) []Block {
+	var data []Block
 	i := 0
+	var block Block
 	for chainHead != nil {
-		chainHead.PrevPointer = nil
-		data = append(data, chainHead)
+		block.Email = chainHead.Email
+		if (chainHead.Course != Course{}) {
+			block.Course = chainHead.Course
+		}
+		block.Status = chainHead.Status
+		if (chainHead.Project != Project{}) {
+			block.Project = chainHead.Project
+		}
+		data = append(data, block)
 		chainHead = chainHead.PrevPointer
 		i++
 

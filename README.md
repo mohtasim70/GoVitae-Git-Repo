@@ -55,6 +55,3 @@ https://www.authbridge.com/blog/resume-verification-must-your-hiring-process
 https://www.criteriacorp.com/resources/glossary/resume-spamming
 https://medium.com/swlh/a-simple-guide-to-blockchain-technology-4589971e6d03
 https://www.glassdoor.com/blog/lying-on-your-resume
-
-
-USER MANUAL :

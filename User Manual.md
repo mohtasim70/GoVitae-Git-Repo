@@ -1,4 +1,5 @@
 Implementation:
+
 Part 0 - Genesis:
 It’s a peer to peer system with miners, users as its main system users. A node ( Satoshi Node ) is created at the time of Genesis/Start of everything. Now this Satoshi node has a mongoDB backend and the complete updated blockchain is stored here as a json file.
 System itself will run on the Satoshi node

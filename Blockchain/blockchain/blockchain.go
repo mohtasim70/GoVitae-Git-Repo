@@ -69,6 +69,7 @@ type CV struct {
 	Firstname string
 	Lastname  string
 	Course    []Course
+	Project   []Project
 	Username  string
 }
 
@@ -1392,37 +1393,65 @@ func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 
 		tempHead := unverifiedChain
 		viewTheBlock := new(UnverifyBlock)
+		tempProject := []Project{}
 		tempCourse := []Course{}
 		tempBlockNo := []int{}
 		tempCurrHash := []string{}
 		tempPrevHash := []string{}
 		tempEmail := []string{}
 		tempStatus := []string{}
+
 		for tempHead != nil {
 			if tempHead.Username == result.Username {
 				if tempHead.Status == "Pending" {
-					tempStatus = append(tempStatus, tempHead.Status)
-					tempCourse = append(tempCourse, tempHead.Course)
-					tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
-					tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
-					tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
-					tempEmail = append(tempEmail, tempHead.Email)
-					viewTheBlock = &UnverifyBlock{
-						Course:      tempCourse,
-						BlockNo:     tempBlockNo,
-						CurrentHash: tempCurrHash,
-						PrevHash:    tempPrevHash,
-						Email:       tempEmail,
-						Status:      tempStatus,
-						Username:    result.Username,
-						UserEmail:   result.Email,
+					if tempHead.Course.Name == "" {
+						tempStatus = append(tempStatus, tempHead.Status)
+						tempProject = append(tempProject, tempHead.Project)
+						tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
+						tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
+						tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
+						tempEmail = append(tempEmail, tempHead.Email)
+						viewTheBlock = &UnverifyBlock{
+							Project:     tempProject,
+							BlockNo:     tempBlockNo,
+							CurrentHash: tempCurrHash,
+							PrevHash:    tempPrevHash,
+							Email:       tempEmail,
+							Status:      tempStatus,
+							Username:    result.Username,
+							UserEmail:   result.Email,
+						}
+						fmt.Println(viewTheBlock.Project)
+						fmt.Println(viewTheBlock.BlockNo)
+						fmt.Println(viewTheBlock.CurrentHash)
+						fmt.Println(viewTheBlock.PrevHash)
+						fmt.Println(viewTheBlock.Email)
+						fmt.Println(viewTheBlock.Status)
 					}
-					fmt.Println(viewTheBlock.Course)
-					fmt.Println(viewTheBlock.BlockNo)
-					fmt.Println(viewTheBlock.CurrentHash)
-					fmt.Println(viewTheBlock.PrevHash)
-					fmt.Println(viewTheBlock.Email)
-					fmt.Println(viewTheBlock.Status)
+					if tempHead.Project.Name == "" {
+						tempStatus = append(tempStatus, tempHead.Status)
+						tempCourse = append(tempCourse, tempHead.Course)
+						tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
+						tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
+						tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
+						tempEmail = append(tempEmail, tempHead.Email)
+						viewTheBlock = &UnverifyBlock{
+							Course:      tempCourse,
+							BlockNo:     tempBlockNo,
+							CurrentHash: tempCurrHash,
+							PrevHash:    tempPrevHash,
+							Email:       tempEmail,
+							Status:      tempStatus,
+							Username:    result.Username,
+							UserEmail:   result.Email,
+						}
+						fmt.Println(viewTheBlock.Course)
+						fmt.Println(viewTheBlock.BlockNo)
+						fmt.Println(viewTheBlock.CurrentHash)
+						fmt.Println(viewTheBlock.PrevHash)
+						fmt.Println(viewTheBlock.Email)
+						fmt.Println(viewTheBlock.Status)
+					}
 				}
 			}
 			tempHead = tempHead.PrevPointer
@@ -1475,9 +1504,11 @@ func GenerateCVHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		tempHead := chainHead
 		tempCourse := []Course{}
+		tempProject := []Project{}
 		for tempHead != nil {
 			if tempHead.Username == result.Username {
 				tempCourse = append(tempCourse, tempHead.Course)
+				tempProject = append(tempProject, tempHead.Project)
 			}
 			tempHead = tempHead.PrevPointer
 		}
@@ -1487,6 +1518,7 @@ func GenerateCVHandler(w http.ResponseWriter, r *http.Request) {
 			Firstname: result.FirstName,
 			Lastname:  result.LastName,
 			Course:    tempCourse,
+			Project:   tempProject,
 			Username:  result.Username,
 		}
 
@@ -1553,6 +1585,7 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.Method == "POST" {
 		r.ParseForm()
+		r.ParseMultipartForm(10 << 20)
 		pName := r.Form.Get("projectName")
 		pDetails := r.Form.Get("projectDetails")
 		pFile, pHandler, pErr := r.FormFile("fileInput")

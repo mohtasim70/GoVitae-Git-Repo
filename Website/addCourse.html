@@ -173,8 +173,12 @@
                                 <i class="fas fa-chart-bar"></i>Add Course</a>
                         </li>
                         <li>
-                            <a href="#">
+                            <a href="generateCV">
                                 <i class="fas fa-table"></i>Generate CV</a>
+                        </li>
+                        <li>
+                            <a href="showBlocks">
+                                <i class="fas fa-table"></i>Show Unverified Blocks</a>
                         </li>
                     </ul>
                 </nav>
@@ -351,26 +355,40 @@
                     <div class="container-fluid">
                         <div class="row">
                             <div class="col-lg-6 offset-3">
-                                    <h1>Block Details</h1>
-                                    {{ $blockno := .BlockNo }}
-                                    {{ $currhash := .CurrentHash }}
-                                    {{ $prevhash := .PrevHash }}
-                                    {{range $index, $course := .Course }}
-                                    <div class="card" style="width: 600px;">
-                                      <div class="card-body">
-                                        <h5 class="card-title">Block No: {{index $blockno $index}}</h5>
-                                        <div class="card-text">
-                                          <p>Current Hash: {{index $currhash $index}}</p>
-                                          <p>Previous Hash: {{index $prevhash $index}}</p>
-                                          <p style="font-weight: bold;">Course Details:</p>
-                                          <p>Course Code: {{$course.Code}}</p>
-                                          <p>Course Name: {{$course.Name}}</p>
-                                          <p>Course Credit Hours: {{$course.CreditHours}}</p>
-                                          <p>Course Grade: {{$course.Grade}}</p>
-                                        </div>
-                                      </div>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <strong>Add Course</strong> Form
                                     </div>
-                                    {{end}}
+                                    <div class="card-body card-block">
+                                      <form action="/addCourse" id="form" method="POST">
+                                            <div class="form-group">
+                                              <label for="courseCode">Course Code:</label>
+                                              <input type="text" class="form-control" placeholder="Enter Course Code" name="courseCode" required>
+                                            </div>
+                                            <div class="form-group">
+                                              <label for="courseName">Course Name:</label>
+                                              <input type="text" class="form-control" placeholder="Enter Course Name" name="courseName" required>
+                                            </div>
+                                            <div class="form-group">
+                                              <label for="courseCHrs">Course Credit Hours:</label>
+                                              <input type="number" class="form-control" placeholder="Enter Course Credit Hours" name="courseCHrs" required>
+                                            </div>
+                                            <div class="form-group">
+                                              <label for="courseGrade">Course Grade:</label>
+                                              <input type="text" class="form-control" placeholder="Enter Course Grade" name="courseGrade" required>
+                                            </div>
+                                            <div class="form-group">
+                                              <label for="courseEmail">Email of Verifier:</label>
+                                              <input type="text" class="form-control" placeholder="Enter Email of Verifier" name="courseEmail" required>
+                                            </div>
+                                            <div class="card-footer">
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="fa fa-dot-circle-o"></i> Submit
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="row">

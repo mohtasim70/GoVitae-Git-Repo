@@ -173,8 +173,12 @@
                                 <i class="fas fa-chart-bar"></i>Add Course</a>
                         </li>
                         <li>
-                            <a href="#">
+                            <a href="generateCV">
                                 <i class="fas fa-table"></i>Generate CV</a>
+                        </li>
+                        <li>
+                            <a href="showBlocks">
+                                <i class="fas fa-table"></i>Show Unverified Blocks</a>
                         </li>
                     </ul>
                 </nav>
@@ -327,7 +331,7 @@
                                                     <h5 class="name">
                                                         <a href="#">{{.Username}}</a>
                                                     </h5>
-                                                    <span class="email">{{.Email}}</span>
+                                                    <span class="email">{{.UserEmail}}</span>
                                                 </div>
                                             </div>
                                             <div class="account-dropdown__footer">
@@ -350,27 +354,31 @@
                 <div class="section__content section__content--p30">
                     <div class="container-fluid">
                         <div class="row">
-                            <div class="col-lg-6 offset-3">
-                                    <h1>Block Details</h1>
-                                    {{ $blockno := .BlockNo }}
-                                    {{ $currhash := .CurrentHash }}
-                                    {{ $prevhash := .PrevHash }}
-                                    {{range $index, $course := .Course }}
-                                    <div class="card" style="width: 600px;">
-                                      <div class="card-body">
-                                        <h5 class="card-title">Block No: {{index $blockno $index}}</h5>
-                                        <div class="card-text">
-                                          <p>Current Hash: {{index $currhash $index}}</p>
-                                          <p>Previous Hash: {{index $prevhash $index}}</p>
-                                          <p style="font-weight: bold;">Course Details:</p>
-                                          <p>Course Code: {{$course.Code}}</p>
-                                          <p>Course Name: {{$course.Name}}</p>
-                                          <p>Course Credit Hours: {{$course.CreditHours}}</p>
-                                          <p>Course Grade: {{$course.Grade}}</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    {{end}}
+                            <div class="col-8 offset-2">
+                              <h1 style="text-align: center; margin-bottom: 30px;">Unverified Blocks</h1>
+                              {{ $blockno := .BlockNo }}
+                              {{ $currhash := .CurrentHash }}
+                              {{ $prevhash := .PrevHash }}
+                              {{ $status := .Status }}
+                              {{ $email := .Email }}
+                              {{range $index, $course := .Course }}
+                              <div class="card">
+                                <div class="card-body">
+                                  <h5 class="card-title" style="font-size: 20px;">Block No: {{index $blockno $index}}</h5>
+                                  <div class="card-text">
+                                    <p>Current Hash: {{index $currhash $index}}</p>
+                                    <p>Previous Hash: {{index $prevhash $index}}</p>
+                                    <p>Verifier Email: {{index $email $index}}</p>
+                                    <p>Status: {{index $status $index}}</p>
+                                    <p style="font-weight: bold; margin-top: 20px;">Course Details:</p>
+                                    <p>Course Code: {{$course.Code}}</p>
+                                    <p>Course Name: {{$course.Name}}</p>
+                                    <p>Course Credit Hours: {{$course.CreditHours}}</p>
+                                    <p>Course Grade: {{$course.Grade}}</p>
+                                  </div>
+                                </div>
+                              </div>
+                              {{end}}
                             </div>
                         </div>
                         <div class="row">

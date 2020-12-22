@@ -33,6 +33,8 @@ import (
 
 var chainHead *Block
 
+var unverifiedChain *Block
+
 type Skill struct {
 }
 type Course struct {
@@ -56,6 +58,17 @@ type Block struct {
 	BlockNo     int
 	Status      string
 	Email       string
+	Username    string
+}
+
+// Structure defined for web pages //
+
+type CV struct {
+	Email     string
+	Firstname string
+	Lastname  string
+	Course    []Course
+	Username  string
 }
 
 type ListTheBlock struct {
@@ -67,7 +80,23 @@ type ListTheBlock struct {
 	BlockNo     []int
 	Status      []string
 	Email       []string
+	Username    []string
 }
+
+type UnverifyBlock struct {
+	Course      []Course
+	Project     []Project
+	PrevPointer []*Block
+	PrevHash    []string
+	CurrentHash []string
+	BlockNo     []int
+	Status      []string
+	Email       []string
+	Username    string
+	UserEmail   string
+}
+
+//////////////////////////////////////
 
 type Client struct {
 	ListeningAddress string
@@ -90,6 +119,8 @@ var mutex = &sync.Mutex{}
 var tokenString = ""
 var urlLogin = ""
 var chainHeadArray []*Block
+
+var currUser model.User
 
 //var nodes = make(map[*websocket.Conn]bool) // connected clients
 //var upgrader = websocket.Upgrader{
@@ -213,7 +244,6 @@ func InsertCourse(myBlock Block) *Block {
 	if chainHead == nil {
 		myBlock.BlockNo = count
 		myBlock.PrevHash = "null"
-		myBlock.Status = "Pending"
 		chainHead = &myBlock
 		//	fmt.Println("Genesis Block Inserted")
 		return chainHead
@@ -222,9 +252,31 @@ func InsertCourse(myBlock Block) *Block {
 	myBlock.PrevPointer = chainHead
 	myBlock.PrevHash = chainHead.CurrentHash
 	myBlock.BlockNo = count
-	myBlock.Status = "Pending"
 
-	fmt.Println("Course Block Inserted")
+	fmt.Println("Course Block Inserted!")
+	return &myBlock
+
+}
+
+// Unverified Course Chain //
+
+func InsertCourseUnverified(myBlock Block) *Block {
+
+	myBlock.CurrentHash = CalculateHash(&myBlock)
+	fmt.Println("Course Hash, ", CalculateHash(&myBlock))
+	if unverifiedChain == nil {
+		myBlock.BlockNo = count
+		myBlock.PrevHash = "null"
+		unverifiedChain = &myBlock
+		//	fmt.Println("Genesis Block Inserted")
+		return unverifiedChain
+	}
+	count = count + 1
+	myBlock.PrevPointer = unverifiedChain
+	myBlock.PrevHash = unverifiedChain.CurrentHash
+	myBlock.BlockNo = count
+
+	fmt.Println("Course Block Inserted!")
 	return &myBlock
 
 }
@@ -1025,26 +1077,30 @@ func Mineblock(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	mineHash := params["hash"]
 	fmt.Println(mineHash)
-	chainHead = InsertCourse(Minedblock)
-	stuff.ChainHead = chainHead
-	fmt.Println("In Mining")
-	ListBlocks(chainHead)
+	blockHash := CalculateHash(&Minedblock)
+	fmt.Println(blockHash)
+	if blockHash == mineHash {
+		Minedblock.Status = "Verified"
+		chainHead = InsertCourse(Minedblock)
+		stuff.ChainHead = chainHead
+		fmt.Println("In Mining")
+		ListBlocks(chainHead)
 
-	gobEncoder := gob.NewEncoder(Satoshiconn)
-	err2 := gobEncoder.Encode(stuff)
-	if err2 != nil {
-		log.Println("InError Write Chain: ", err2)
+		gobEncoder := gob.NewEncoder(Satoshiconn)
+		err2 := gobEncoder.Encode(stuff)
+		if err2 != nil {
+			log.Println("InError Write Chain: ", err2)
+		}
+		log.Println("Sent to Satoshi: ")
+
+		gobEncoder2 := gob.NewEncoder(testConn)
+		//fmt.Println("BroadCheck: ", localData[i])
+		err1 := gobEncoder2.Encode(stuff)
+		fmt.Println("Bro Chain sent to peer:: ", testConn)
+		if err1 != nil {
+			log.Println("Errpr in brosti Chain", err1)
+		}
 	}
-	log.Println("Sent to Satoshi: ")
-
-	gobEncoder2 := gob.NewEncoder(testConn)
-	//fmt.Println("BroadCheck: ", localData[i])
-	err1 := gobEncoder2.Encode(stuff)
-	fmt.Println("Bro Chain sent to peer:: ", testConn)
-	if err1 != nil {
-		log.Println("Errpr in brosti Chain", err1)
-	}
-
 	//	broadcastChain()
 
 }
@@ -1230,7 +1286,7 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		result.FirstName = claims["firstname"].(string)
 		result.LastName = claims["lastname"].(string)
 		result.Email = claims["email"].(string)
-		user := model.User{
+		currUser = model.User{
 			Username:  result.Username,
 			FirstName: result.FirstName,
 			LastName:  result.LastName,
@@ -1242,14 +1298,343 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 			log.Print("template parsing error: ", err) // log it
 		}
 
-		err = t.Execute(w, user) //execute the template and pass it the HomePageVars struct to fill in the gaps
-		if err != nil {          // if there is an error
+		err = t.Execute(w, currUser) //execute the template and pass it the HomePageVars struct to fill in the gaps
+		if err != nil {              // if there is an error
 			log.Print("template executing error: ", err) //log it
 		}
 	} else {
 		res.Error = err.Error()
 		json.NewEncoder(w).Encode(res)
 		return
+	}
+
+}
+
+func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Don't forget to validate the alg is what you expect:
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			fmt.Println(" ---- Access Denied ----")
+			return nil, fmt.Errorf("Unexpected signing method")
+		}
+		return []byte("secret"), nil
+	})
+	if token == nil {
+		fmt.Println(" ---- Access Denied ----")
+		http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
+		return
+	}
+	var result model.User
+	var res model.ResponseResult
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		result.Username = claims["username"].(string)
+		result.FirstName = claims["firstname"].(string)
+		result.LastName = claims["lastname"].(string)
+		result.Email = claims["email"].(string)
+		currUser = model.User{
+			Username:  result.Username,
+			FirstName: result.FirstName,
+			LastName:  result.LastName,
+			Email:     result.Email,
+			Password:  "",
+		}
+
+		tempHead2 := chainHead
+		tempCurrHash2 := []string{}
+		for tempHead2 != nil {
+			if tempHead2.Username == result.Username {
+				tempCurrHash2 = append(tempCurrHash2, tempHead2.CurrentHash)
+			}
+			tempHead2 = tempHead2.PrevPointer
+		}
+
+		tempHead3 := unverifiedChain
+		for tempHead3 != nil {
+			if tempHead3.Username == result.Username {
+				for i := 0; i < len(tempCurrHash2); i++ {
+					fmt.Println(tempHead3.CurrentHash, tempCurrHash2[i])
+					if tempHead3.Status == "Pending" && tempHead3.CurrentHash == tempCurrHash2[i] {
+						tempHead3.Status = "Verified"
+					}
+				}
+			}
+			tempHead3 = tempHead3.PrevPointer
+		}
+
+		tempHead := unverifiedChain
+		viewTheBlock := new(UnverifyBlock)
+		tempCourse := []Course{}
+		tempBlockNo := []int{}
+		tempCurrHash := []string{}
+		tempPrevHash := []string{}
+		tempEmail := []string{}
+		tempStatus := []string{}
+		for tempHead != nil {
+			if tempHead.Username == result.Username {
+				if tempHead.Status == "Pending" {
+					tempStatus = append(tempStatus, tempHead.Status)
+					tempCourse = append(tempCourse, tempHead.Course)
+					tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
+					tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
+					tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
+					tempEmail = append(tempEmail, tempHead.Email)
+					viewTheBlock = &UnverifyBlock{
+						Course:      tempCourse,
+						BlockNo:     tempBlockNo,
+						CurrentHash: tempCurrHash,
+						PrevHash:    tempPrevHash,
+						Email:       tempEmail,
+						Status:      tempStatus,
+						Username:    result.Username,
+						UserEmail:   result.Email,
+					}
+					fmt.Println(viewTheBlock.Course)
+					fmt.Println(viewTheBlock.BlockNo)
+					fmt.Println(viewTheBlock.CurrentHash)
+					fmt.Println(viewTheBlock.PrevHash)
+					fmt.Println(viewTheBlock.Email)
+					fmt.Println(viewTheBlock.Status)
+				}
+			}
+			tempHead = tempHead.PrevPointer
+		}
+
+		t, err := template.ParseFiles("../Website/showBlocks.html") //parse the html file homepage.html
+		if err != nil {                                             // if there is an error
+			log.Print("template parsing error: ", err) // log it
+		}
+
+		err = t.Execute(w, viewTheBlock) //execute the template and pass it the HomePageVars struct to fill in the gaps
+		if err != nil {                  // if there is an error
+			log.Print("template executing error: ", err) //log it
+		}
+	} else {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+
+}
+
+func GenerateCVHandler(w http.ResponseWriter, r *http.Request) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Don't forget to validate the alg is what you expect:
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			fmt.Println(" ---- Access Denied ----")
+			return nil, fmt.Errorf("Unexpected signing method")
+		}
+		return []byte("secret"), nil
+	})
+	if token == nil {
+		fmt.Println(" ---- Access Denied ----")
+		http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
+		return
+	}
+	var result model.User
+	var res model.ResponseResult
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		result.Username = claims["username"].(string)
+		result.FirstName = claims["firstname"].(string)
+		result.LastName = claims["lastname"].(string)
+		result.Email = claims["email"].(string)
+		currUser = model.User{
+			Username:  result.Username,
+			FirstName: result.FirstName,
+			LastName:  result.LastName,
+			Email:     result.Email,
+			Password:  "",
+		}
+		tempHead := chainHead
+		tempCourse := []Course{}
+		for tempHead != nil {
+			if tempHead.Username == result.Username {
+				tempCourse = append(tempCourse, tempHead.Course)
+			}
+			tempHead = tempHead.PrevPointer
+		}
+
+		cv := CV{
+			Email:     result.Email,
+			Firstname: result.FirstName,
+			Lastname:  result.LastName,
+			Course:    tempCourse,
+			Username:  result.Username,
+		}
+
+		t, err := template.ParseFiles("../Website/generateCV.html") //parse the html file homepage.html
+		if err != nil {                                             // if there is an error
+			log.Print("template parsing error: ", err) // log it
+		}
+
+		err = t.Execute(w, cv) //execute the template and pass it the HomePageVars struct to fill in the gaps
+		if err != nil {        // if there is an error
+			log.Print("template executing error: ", err) //log it
+		}
+	} else {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+
+}
+
+func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			// Don't forget to validate the alg is what you expect:
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				fmt.Println(" ---- Access Denied ----")
+				return nil, fmt.Errorf("Unexpected signing method")
+			}
+			return []byte("secret"), nil
+		})
+		if token == nil {
+			fmt.Println(" ---- Access Denied ----")
+			http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
+			return
+		}
+		var result model.User
+		var res model.ResponseResult
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			result.Username = claims["username"].(string)
+			result.FirstName = claims["firstname"].(string)
+			result.LastName = claims["lastname"].(string)
+			result.Email = claims["email"].(string)
+			currUser = model.User{
+				Username:  result.Username,
+				FirstName: result.FirstName,
+				LastName:  result.LastName,
+				Email:     result.Email,
+				Password:  "",
+			}
+			t, err := template.ParseFiles("../Website/addCourse.html") //parse the html file homepage.html
+			if err != nil {                                            // if there is an error
+				log.Print("template parsing error: ", err) // log it
+			}
+
+			err = t.Execute(w, currUser) //execute the template and pass it the HomePageVars struct to fill in the gaps
+			if err != nil {              // if there is an error
+				log.Print("template executing error: ", err) //log it
+			}
+		} else {
+			res.Error = err.Error()
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+	}
+	if r.Method == "POST" {
+		r.ParseForm()
+		cCode := r.Form.Get("courseCode")
+		cName := r.Form.Get("courseName")
+		cGrade := r.Form.Get("courseGrade")
+		cEmail := r.Form.Get("courseEmail")
+
+		a, err := strconv.Atoi(r.FormValue("courseCHrs"))
+		if err != nil {
+		}
+		cCHrs := a
+		currUsername := currUser.Username
+
+		AddCourse := Course{
+			Code:        cCode,
+			Name:        cName,
+			CreditHours: cCHrs,
+			Grade:       cGrade,
+		}
+
+		MyBlock := Block{
+			Course:   AddCourse,
+			Email:    cEmail,
+			Username: currUsername,
+			Status:   "Pending",
+		}
+
+		//chainHead = InsertCourse(MyBlock)
+
+		// gobEncoder := gob.NewEncoder(Satoshiconn)
+		// err2 := gobEncoder.Encode(MyBlock)
+		// if err2 != nil {
+		// 	log.Println("In Write Chain: ", err2)
+		// }
+
+		unverifiedChain = InsertCourseUnverified(MyBlock)
+		ListBlocks(chainHead)
+
+		tempHead := chainHead
+		viewTheBlock := new(ListTheBlock)
+		tempCourse := []Course{}
+		tempBlockNo := []int{}
+		tempCurrHash := []string{}
+		tempPrevHash := []string{}
+		tempEmail := []string{}
+		for tempHead != nil {
+			tempCourse = append(tempCourse, tempHead.Course)
+			tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
+			tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
+			tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
+			tempEmail = append(tempEmail, tempHead.Email)
+			viewTheBlock = &ListTheBlock{
+				Course:      tempCourse,
+				BlockNo:     tempBlockNo,
+				CurrentHash: tempCurrHash,
+				PrevHash:    tempPrevHash,
+				Email:       tempEmail,
+			}
+			tempHead = tempHead.PrevPointer
+			fmt.Println(viewTheBlock.Course)
+			fmt.Println(viewTheBlock.BlockNo)
+			fmt.Println(viewTheBlock.CurrentHash)
+			fmt.Println(viewTheBlock.PrevHash)
+			fmt.Println(viewTheBlock.Email)
+		}
+		//	fmt.Println("FFFFFFFFFF", len(nodesSlice))
+		for i := 0; i < len(nodesSlice); i++ {
+			//	fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
+			if nodesSlice[i].Mail == MyBlock.Email {
+				conn, err := net.Dial("tcp", "localhost:"+nodesSlice[i].ListeningAddress)
+				if err != nil {
+					log.Fatal(err)
+				}
+				MinerConn = conn
+				gobEncoder := gob.NewEncoder(conn)
+				fmt.Println("blok:ahsh: ", CalculateHash(&MyBlock))
+				err2 := gobEncoder.Encode(MyBlock)
+				if err2 != nil {
+					log.Println("In Write Chain: ", err2)
+				}
+				m := gomail.NewMessage()
+
+				// Set E-Mail sender
+				m.SetHeader("From", "mohtasimasadabbasi@gmail.com")
+
+				// Set E-Mail receivers
+				m.SetHeader("To", MyBlock.Email)
+
+				// Set E-Mail subject
+				m.SetHeader("Subject", "Verification Content")
+
+				// Set E-Mail body. You can set plain text or html with text/html
+				m.SetBody("text/plain", "Course Name: "+MyBlock.Course.Name+"  Course Code: "+MyBlock.Course.Code+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mine/"+CalculateHash(&MyBlock))
+
+				// Settings for SMTP server
+				d := gomail.NewDialer("smtp.gmail.com", 587, "mohtasimasadabbasi@gmail.com", "mohtasim70")
+
+				// This is only needed when SSL/TLS certificate is not valid on server.
+				// In production this should be set to false.
+				d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+				// Now send E-Mail
+				if err := d.DialAndSend(m); err != nil {
+					fmt.Println(err, "mailerr")
+					panic(err)
+				}
+				Mined = true
+				fmt.Println("Email Sent", Mined, nodesSlice[i].ListeningAddress)
+
+				break
+			}
+		}
+		http.Redirect(w, r, urlLogin+"/dashboard", http.StatusSeeOther)
 	}
 
 }
@@ -1270,6 +1655,9 @@ func RunWebServer(port string) {
 	r.HandleFunc("/", setHandler).Methods("GET")
 	r.HandleFunc("/blockInsert", getHandler).Methods("POST")
 	//r.HandleFunc("/ws", HandleConnections)
+	r.HandleFunc("/showBlocks", UnverifiedBlocksHandler)
+	r.HandleFunc("/generateCV", GenerateCVHandler)
+	r.HandleFunc("/addCourse", AddCourseHandler)
 	r.HandleFunc("/register", RegisterHandler)
 	r.HandleFunc("/login", LoginHandler)
 	r.HandleFunc("/logout", LogoutHandler)

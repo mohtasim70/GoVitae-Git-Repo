@@ -1,10 +1,10 @@
 [
  {
   "Course": {
-   "Code": "erf34f",
-   "Name": "AIIwswd",
+   "Code": "CS303",
+   "Name": "Database Systems",
    "CreditHours": 3,
-   "Grade": "D"
+   "Grade": "A+"
   },
   "Project": {
    "Name": "",
@@ -20,15 +20,16 @@
   "PrevHash": "",
   "CurrentHash": "",
   "BlockNo": 0,
-  "Status": "Pending",
-  "Email": "mohtasimasad@gmail.com"
+  "Status": "Verified",
+  "Email": "mohtasimasad@gmail.com",
+  "Username": ""
  },
  {
   "Course": {
-   "Code": "Ccc",
-   "Name": "sss",
-   "CreditHours": 8,
-   "Grade": ""
+   "Code": "CS303",
+   "Name": "Database Systems",
+   "CreditHours": 3,
+   "Grade": "A+"
   },
   "Project": {
    "Name": "",
@@ -44,55 +45,8 @@
   "PrevHash": "",
   "CurrentHash": "",
   "BlockNo": 0,
-  "Status": "Pending",
-  "Email": ""
- },
- {
-  "Course": {
-   "Code": "999wsd",
-   "Name": "Kalb",
-   "CreditHours": 8,
-   "Grade": ""
-  },
-  "Project": {
-   "Name": "",
-   "Document": "",
-   "Course": {
-    "Code": "",
-    "Name": "",
-    "CreditHours": 0,
-    "Grade": ""
-   }
-  },
-  "PrevPointer": null,
-  "PrevHash": "",
-  "CurrentHash": "",
-  "BlockNo": 0,
-  "Status": "Pending",
-  "Email": ""
- },
- {
-  "Course": {
-   "Code": "999wsd",
-   "Name": "Kalb",
-   "CreditHours": 8,
-   "Grade": ""
-  },
-  "Project": {
-   "Name": "",
-   "Document": "",
-   "Course": {
-    "Code": "",
-    "Name": "",
-    "CreditHours": 0,
-    "Grade": ""
-   }
-  },
-  "PrevPointer": null,
-  "PrevHash": "",
-  "CurrentHash": "",
-  "BlockNo": 0,
-  "Status": "Pending",
-  "Email": ""
+  "Status": "",
+  "Email": "",
+  "Username": ""
  }
 ]

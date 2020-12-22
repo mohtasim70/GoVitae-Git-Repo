@@ -359,19 +359,48 @@
                     <div class="container-fluid">
                         <div class="row">
                             <div class="col-lg-6 offset-3">
-                                    <div class="card" style="width: 600px;">
-                                      <div class="card-body">
-                                        <h1 style="text-align: center; margin-bottom: 30px;">CV</h1>
-                                        <h5 class="card-title" style="font-size: 20px;">Name: {{.Firstname}} {{.Lastname}}</h5>
-                                        <div class="card-text">
-                                          <p>Email: {{.Email}}</p>
-                                          <p style="font-weight: bold; margin-top: 20px;">Courses:</p>
-                                          {{range $index, $course := .Course }}
-                                            <p style="margin-top: 10px;">{{$course.Code}} · {{$course.Name}} · {{$course.CreditHours}} Credit Hours · <span style="font-weight: bold;">Grade:</span> {{$course.Grade}}</p>
-                                          {{end}}
-                                        </div>
-                                      </div>
+                                <div class="card">
+                                    <div class="card-header">
+                                        <strong>Add Project</strong> Form
                                     </div>
+                                    <div class="card-body card-block">
+                                      <form action="/addProject" id="form" method="POST">
+                                            <div class="form-group">
+                                              <label for="projectName">Project Name:</label>
+                                              <input type="text" class="form-control" placeholder="Enter Project Name" name="projectName" required>
+                                            </div>
+                                            <div class="form-group">
+                                              <label for="projectDetails">Project Details:</label>
+                                              <input type="text" class="form-control" placeholder="Enter Project Details" name="projectDetails" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="fileInput" class=" form-control-label">Attach Project files</label>
+                                                <input type="file" id="fileInput" name="fileInput" class="form-control-file">
+                                            </div>
+                                            <div class="form-group">
+                                              <label for="courseName">Course Name:</label>
+                                              <input type="text" class="form-control" placeholder="Enter Course Name" name="courseName" required>
+                                            </div>
+                                            <div class="form-group">
+                                              <label for="courseEmail">Email of Verifier:</label>
+                                              <input type="text" class="form-control" placeholder="Enter Email of Verifier" name="courseEmail" required>
+                                            </div>
+                                            <div class="form-group">
+                                              <label for="userEmail">Email of Sender:</label>
+                                              <input type="text" class="form-control" placeholder="Enter Email of Sender" name="userEmail" required>
+                                            </div>
+                                            <div class="form-group">
+                                              <label for="userPass">Password of Sender:</label>
+                                              <input type="password" class="form-control" placeholder="Enter Email of Password" name="userPass" required>
+                                            </div>
+                                            <div class="card-footer">
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="fa fa-dot-circle-o"></i> Submit
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="row">

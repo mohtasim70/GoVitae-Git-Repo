@@ -44,9 +44,10 @@ type Course struct {
 	Grade       string
 }
 type Project struct {
-	Name     string
-	Document string
-	Course   Course
+	Name       string
+	Details    string
+	FileName   string
+	CourseName string
 }
 
 type Block struct {
@@ -216,27 +217,9 @@ func InsertBlock(course Course, project Project, chainHead *Block) *Block {
 	return newBlock
 
 }
-func InsertProject(project Project, chainHead *Block) *Block {
-	newBlock := &Block{
-		//Hash here
-		Project: project,
-	}
-	newBlock.CurrentHash = CalculateHash(newBlock)
 
-	if chainHead == nil {
-		chainHead = newBlock
-		fmt.Println("Block Inserted")
-		return chainHead
-	}
-	newBlock.PrevPointer = chainHead
-	newBlock.PrevHash = chainHead.CurrentHash
+// Insert Verified Course //
 
-	fmt.Println("Project Block Inserted")
-	return newBlock
-
-}
-
-// Changing InsertCourse Code //
 func InsertCourse(myBlock Block) *Block {
 
 	myBlock.CurrentHash = CalculateHash(&myBlock)
@@ -254,6 +237,29 @@ func InsertCourse(myBlock Block) *Block {
 	myBlock.BlockNo = count
 
 	fmt.Println("Course Block Inserted!")
+	return &myBlock
+
+}
+
+// Insert Verified Project //
+
+func InsertProject(myBlock Block) *Block {
+
+	myBlock.CurrentHash = CalculateHash(&myBlock)
+	fmt.Println("Course Hash, ", CalculateHash(&myBlock))
+	if chainHead == nil {
+		myBlock.BlockNo = count
+		myBlock.PrevHash = "null"
+		chainHead = &myBlock
+		//	fmt.Println("Genesis Block Inserted")
+		return chainHead
+	}
+	count = count + 1
+	myBlock.PrevPointer = chainHead
+	myBlock.PrevHash = chainHead.CurrentHash
+	myBlock.BlockNo = count
+
+	fmt.Println("Project Block Inserted!")
 	return &myBlock
 
 }
@@ -276,7 +282,30 @@ func InsertCourseUnverified(myBlock Block) *Block {
 	myBlock.PrevHash = unverifiedChain.CurrentHash
 	myBlock.BlockNo = count
 
-	fmt.Println("Course Block Inserted!")
+	fmt.Println("Course UnVerified Block Inserted!")
+	return &myBlock
+
+}
+
+// Unverified Project Chain //
+
+func InsertProjectUnverified(myBlock Block) *Block {
+
+	myBlock.CurrentHash = CalculateHash(&myBlock)
+	fmt.Println("Course Hash, ", CalculateHash(&myBlock))
+	if unverifiedChain == nil {
+		myBlock.BlockNo = count
+		myBlock.PrevHash = "null"
+		unverifiedChain = &myBlock
+		//	fmt.Println("Genesis Block Inserted")
+		return unverifiedChain
+	}
+	count = count + 1
+	myBlock.PrevPointer = unverifiedChain
+	myBlock.PrevHash = unverifiedChain.CurrentHash
+	myBlock.BlockNo = count
+
+	fmt.Println("Project UnVerified Block Inserted!")
 	return &myBlock
 
 }
@@ -1478,6 +1507,147 @@ func GenerateCVHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			// Don't forget to validate the alg is what you expect:
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				fmt.Println(" ---- Access Denied ----")
+				return nil, fmt.Errorf("Unexpected signing method")
+			}
+			return []byte("secret"), nil
+		})
+		if token == nil {
+			fmt.Println(" ---- Access Denied ----")
+			http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
+			return
+		}
+		var result model.User
+		var res model.ResponseResult
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			result.Username = claims["username"].(string)
+			result.FirstName = claims["firstname"].(string)
+			result.LastName = claims["lastname"].(string)
+			result.Email = claims["email"].(string)
+			currUser = model.User{
+				Username:  result.Username,
+				FirstName: result.FirstName,
+				LastName:  result.LastName,
+				Email:     result.Email,
+				Password:  "",
+			}
+			t, err := template.ParseFiles("../Website/addProject.html") //parse the html file homepage.html
+			if err != nil {                                             // if there is an error
+				log.Print("template parsing error: ", err) // log it
+			}
+
+			err = t.Execute(w, currUser) //execute the template and pass it the HomePageVars struct to fill in the gaps
+			if err != nil {              // if there is an error
+				log.Print("template executing error: ", err) //log it
+			}
+		} else {
+			res.Error = err.Error()
+			json.NewEncoder(w).Encode(res)
+			return
+		}
+	}
+	if r.Method == "POST" {
+		r.ParseForm()
+		pName := r.Form.Get("projectName")
+		pDetails := r.Form.Get("projectDetails")
+		pFile, pHandler, pErr := r.FormFile("fileInput")
+		pCourse := r.Form.Get("courseName")
+		pEmail := r.Form.Get("courseEmail")
+		pUserEmail := r.Form.Get("userEmail")
+		pUserPass := r.Form.Get("userPass")
+
+		// Use pFile for sending files to mailer //
+
+		fmt.Println(pFile, pErr)
+
+		/////////////////////////////////
+
+		currUsername := currUser.Username
+
+		AddProject := Project{
+			Name:       pName,
+			Details:    pDetails,
+			FileName:   pHandler.Filename,
+			CourseName: pCourse,
+		}
+
+		MyBlock := Block{
+			Project:  AddProject,
+			Email:    pEmail,
+			Username: currUsername,
+			Status:   "Pending",
+		}
+
+		//chainHead = InsertCourse(MyBlock)
+
+		// gobEncoder := gob.NewEncoder(Satoshiconn)
+		// err2 := gobEncoder.Encode(MyBlock)
+		// if err2 != nil {
+		// 	log.Println("In Write Chain: ", err2)
+		// }
+
+		unverifiedChain = InsertProjectUnverified(MyBlock)
+		ListBlocks(chainHead)
+
+		//	fmt.Println("FFFFFFFFFF", len(nodesSlice))
+		for i := 0; i < len(nodesSlice); i++ {
+			//	fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
+			if nodesSlice[i].Mail == MyBlock.Email {
+				conn, err := net.Dial("tcp", "localhost:"+nodesSlice[i].ListeningAddress)
+				if err != nil {
+					log.Fatal(err)
+				}
+				MinerConn = conn
+				gobEncoder := gob.NewEncoder(conn)
+				fmt.Println("blok:ahsh: ", CalculateHash(&MyBlock))
+				err2 := gobEncoder.Encode(MyBlock)
+				if err2 != nil {
+					log.Println("In Write Chain: ", err2)
+				}
+				m := gomail.NewMessage()
+
+				// Set E-Mail sender
+				m.SetHeader("From", pUserEmail)
+
+				// Set E-Mail receivers
+				m.SetHeader("To", MyBlock.Email)
+
+				// Set E-Mail subject
+				m.SetHeader("Subject", "Verification Content")
+
+				// Set E-Mail body. You can set plain text or html with text/html
+
+				///////////// Add files to send to the mailer /////////////////
+				m.SetBody("text/plain", "Project Name: "+MyBlock.Project.Name+"  Project Details: "+MyBlock.Project.Details+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mine/"+CalculateHash(&MyBlock))
+
+				// Settings for SMTP server
+				d := gomail.NewDialer("smtp.gmail.com", 587, pUserEmail, pUserPass)
+
+				// This is only needed when SSL/TLS certificate is not valid on server.
+				// In production this should be set to false.
+				d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+				// Now send E-Mail
+				if err := d.DialAndSend(m); err != nil {
+					fmt.Println(err, "mailerr")
+					panic(err)
+				}
+				Mined = true
+				fmt.Println("Email Sent", Mined, nodesSlice[i].ListeningAddress)
+
+				break
+			}
+		}
+		http.Redirect(w, r, urlLogin+"/dashboard", http.StatusSeeOther)
+	}
+
+}
+
 func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -1528,6 +1698,8 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 		cName := r.Form.Get("courseName")
 		cGrade := r.Form.Get("courseGrade")
 		cEmail := r.Form.Get("courseEmail")
+		cUserEmail := r.Form.Get("userEmail")
+		cUserPass := r.Form.Get("userPass")
 
 		a, err := strconv.Atoi(r.FormValue("courseCHrs"))
 		if err != nil {
@@ -1560,33 +1732,6 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 		unverifiedChain = InsertCourseUnverified(MyBlock)
 		ListBlocks(chainHead)
 
-		tempHead := chainHead
-		viewTheBlock := new(ListTheBlock)
-		tempCourse := []Course{}
-		tempBlockNo := []int{}
-		tempCurrHash := []string{}
-		tempPrevHash := []string{}
-		tempEmail := []string{}
-		for tempHead != nil {
-			tempCourse = append(tempCourse, tempHead.Course)
-			tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
-			tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
-			tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
-			tempEmail = append(tempEmail, tempHead.Email)
-			viewTheBlock = &ListTheBlock{
-				Course:      tempCourse,
-				BlockNo:     tempBlockNo,
-				CurrentHash: tempCurrHash,
-				PrevHash:    tempPrevHash,
-				Email:       tempEmail,
-			}
-			tempHead = tempHead.PrevPointer
-			fmt.Println(viewTheBlock.Course)
-			fmt.Println(viewTheBlock.BlockNo)
-			fmt.Println(viewTheBlock.CurrentHash)
-			fmt.Println(viewTheBlock.PrevHash)
-			fmt.Println(viewTheBlock.Email)
-		}
 		//	fmt.Println("FFFFFFFFFF", len(nodesSlice))
 		for i := 0; i < len(nodesSlice); i++ {
 			//	fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
@@ -1605,7 +1750,7 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 				m := gomail.NewMessage()
 
 				// Set E-Mail sender
-				m.SetHeader("From", "mohtasimasadabbasi@gmail.com")
+				m.SetHeader("From", cUserEmail)
 
 				// Set E-Mail receivers
 				m.SetHeader("To", MyBlock.Email)
@@ -1617,7 +1762,7 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 				m.SetBody("text/plain", "Course Name: "+MyBlock.Course.Name+"  Course Code: "+MyBlock.Course.Code+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mine/"+CalculateHash(&MyBlock))
 
 				// Settings for SMTP server
-				d := gomail.NewDialer("smtp.gmail.com", 587, "mohtasimasadabbasi@gmail.com", "mohtasim70")
+				d := gomail.NewDialer("smtp.gmail.com", 587, cUserEmail, cUserPass)
 
 				// This is only needed when SSL/TLS certificate is not valid on server.
 				// In production this should be set to false.
@@ -1655,6 +1800,7 @@ func RunWebServer(port string) {
 	r.HandleFunc("/", setHandler).Methods("GET")
 	r.HandleFunc("/blockInsert", getHandler).Methods("POST")
 	//r.HandleFunc("/ws", HandleConnections)
+	r.HandleFunc("/addProject", AddProjectHandler)
 	r.HandleFunc("/showBlocks", UnverifiedBlocksHandler)
 	r.HandleFunc("/generateCV", GenerateCVHandler)
 	r.HandleFunc("/addCourse", AddCourseHandler)

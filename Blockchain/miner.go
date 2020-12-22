@@ -12,6 +12,7 @@ func main() {
 	satoshiAddress := os.Args[1]
 	myListeningAddress := os.Args[2]
 	webAddress := os.Args[3]
+	mail := os.Args[4]
 
 	conn, err := net.Dial("tcp", "localhost:"+satoshiAddress)
 	if err != nil {
@@ -30,7 +31,7 @@ func main() {
 	Peers := b.Client{
 		ListeningAddress: myListeningAddress,
 		Types:            false,
-		Mail:             "mohtasimasad@gmail.com",
+		Mail:             mail,
 	}
 	b.WriteString(conn, Peers)
 

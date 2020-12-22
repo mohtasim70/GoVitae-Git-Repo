@@ -367,11 +367,11 @@
                                           <p>Email: {{.Email}}</p>
                                           <p style="font-weight: bold; margin-top: 20px;">Courses:</p>
                                           {{range $index, $course := .Course }}
-                                            <p style="margin-top: 10px;">{{$course.Code}} · {{$course.Name}} · {{$course.CreditHours}} Credit Hours · <span style="font-weight: bold;">Grade:</span> {{$course.Grade}}</p>
+                                            <p style="margin-top: 10px;">{{$course.Code}} · {{$course.Name}} · {{$course.CreditHours}} Credit Hours ·   Verified · <span style="font-weight: bold;">Grade:</span> {{$course.Grade}}</p>
                                           {{end}}
                                           <p style="font-weight: bold; margin-top: 20px;">Projects:</p>
                                           {{range $index, $project := .Project }}
-                                            <p style="margin-top: 10px;">{{$project.Name}} · {{$project.Details}} · <span style="font-weight: bold;">Filename:</span> {{$project.FileName}} · <span style="font-weight: bold;">Course:</span> {{$project.CourseName}}</p>
+                                            <p style="margin-top: 10px;">{{$project.Name}} · {{$project.Details}} · <span style="font-weight: bold;">Filename:</span> {{$project.FileName}} ·  Verified · <span style="font-weight: bold;">Course:</span> {{$project.CourseName}}</p>
                                           {{end}}
                                         </div>
                                       </div>

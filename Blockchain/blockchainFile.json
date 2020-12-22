@@ -7,10 +7,31 @@
    "Grade": ""
   },
   "Project": {
-   "Name": "Hello1234",
-   "Details": "A fast system.",
-   "FileName": "truffle-config.js",
-   "CourseName": "Database Systems"
+   "Name": "Satoshi Coin",
+   "Details": "My own cryptocurrency",
+   "FileName": "answer.zip",
+   "CourseName": "IBC"
+  },
+  "PrevPointer": null,
+  "PrevHash": "",
+  "CurrentHash": "",
+  "BlockNo": 0,
+  "Status": "Verified",
+  "Email": "anasasad99@gmail.com",
+  "Username": ""
+ },
+ {
+  "Course": {
+   "Code": "CS998",
+   "Name": "IBC",
+   "CreditHours": 3,
+   "Grade": "A"
+  },
+  "Project": {
+   "Name": "Satoshi Coin",
+   "Details": "My own cryptocurrency",
+   "FileName": "answer.zip",
+   "CourseName": "IBC"
   },
   "PrevPointer": null,
   "PrevHash": "",
@@ -22,16 +43,16 @@
  },
  {
   "Course": {
-   "Code": "",
-   "Name": "",
-   "CreditHours": 0,
-   "Grade": ""
+   "Code": "CS998",
+   "Name": "IBC",
+   "CreditHours": 3,
+   "Grade": "A"
   },
   "Project": {
-   "Name": "Hello1234",
-   "Details": "A fast system.",
-   "FileName": "truffle-config.js",
-   "CourseName": "Database Systems"
+   "Name": "Satoshi Coin",
+   "Details": "My own cryptocurrency",
+   "FileName": "answer.zip",
+   "CourseName": "IBC"
   },
   "PrevPointer": null,
   "PrevHash": "",

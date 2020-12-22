@@ -8,6 +8,7 @@
 </head>
 <body>
 
+
 <div class="container">
       <h1 style="margin-top: 30px; margin-bottom: 30px; text-align: center;">Block Details</h1>
       {{ $blockno := .BlockNo }}
@@ -22,11 +23,11 @@
             <p>Current Hash: {{index $currhash $index}}</p>
             <p>Previous Hash: {{index $prevhash $index}}</p>
             <p>Status: {{index $status $index}}</p>
-            <p style="font-weight: bold;">Course Details:</p>
+            <!-- <p style="font-weight: bold;">Course Details:</p>
             <p>Course Code: {{$course.Code}}</p>
             <p>Course Name: {{$course.Name}}</p>
             <p>Course Credit Hours: {{$course.CreditHours}}</p>
-            <p>Course Grade: {{$course.Grade}}</p>
+            <p>Course Grade: {{$course.Grade}}</p> -->
           </div>
         </div>
       </div>

@@ -188,7 +188,12 @@ func GetBlockhainArray(chainHead *Block) []Block {
 func CalculateHash(inputBlock *Block) string {
 
 	var temp string
-	temp = inputBlock.Course.Code + inputBlock.Project.Name
+	if (inputBlock.Course != Course{}) {
+		temp = inputBlock.Course.Code + inputBlock.Course.Name + inputBlock.Course.Grade
+	}
+	if (inputBlock.Project != Project{}) {
+		temp = inputBlock.Project.CourseName + inputBlock.Project.Name + inputBlock.Project.Details + inputBlock.Project.FileName
+	}
 	h := sha256.New()
 	h.Write([]byte(temp))
 	sum := hex.EncodeToString(h.Sum(nil))
@@ -1822,6 +1827,17 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
 }
 
+func Index(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("../Website/homepage.html") //parse the html file homepage.html
+	if err != nil {                                           // if there is an error
+		log.Print("template parsing error: ", err, t) // log it
+	}
+	err = t.Execute(w, nil) //execute the template and pass it the HomePageVars struct to fill in the gaps
+	if err != nil {         // if there is an error
+		log.Print("template executing error: ", err) //log it
+	}
+}
+
 func RunWebServer(port string) {
 	// router := mux.NewRouter().StrictSlash(true)
 	// router.HandleFunc("/ws", server.HandleConnections)
@@ -1830,8 +1846,10 @@ func RunWebServer(port string) {
 	// router.HandleFunc("/api/task", server.CreateTask).Methods("POST", "OPTIONS")
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", setHandler).Methods("GET")
+	r.HandleFunc("/", Index)
+	//r.HandleFunc("/", setHandler).Methods("GET")
 	r.HandleFunc("/blockInsert", getHandler).Methods("POST")
+	//	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("../mountain"))))
 	//r.HandleFunc("/ws", HandleConnections)
 	r.HandleFunc("/addProject", AddProjectHandler)
 	r.HandleFunc("/showBlocks", UnverifiedBlocksHandler)
@@ -1873,53 +1891,5 @@ func RunWebServerSatoshi() {
 	//r.HandleFunc("/ws", HandleConnections)
 
 	http.ListenAndServe("localhost"+":3333", r)
-
-}
-
-//func BroadcastMessages() {
-//	for {
-//	// Grab the next message from the broadcast channel
-//	msg := <-broadcast
-//	fmt.Println("In broadcast: ", msg)
-// Send it out to every client that is currently connected
-//	for client := range nodes {
-//		err := client.WriteJSON(msg)
-//		if err != nil {
-//		log.Printf("error: %v", err)
-//		client.Close()
-//		delete(nodes, client)
-//		}
-//	}
-//	}
-//}
-
-// ---- //
-
-func main() {
-	// ln, err := net.Listen("tcp", "localhost:6003")
-	// if err != nil {
-	//
-	// 	log.Fatal(err, ln)
-	//
-	// }
-	//go RunWebServer()
-
-	//go BroadcastMessages()
-
-	//select {}
-
-	// conn, err := net.Dial("tcp", "localhost:3333")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println("ss", conn)
-	// for {
-	// 	conn, err := ln.Accept()
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 		continue
-	// 	}
-	// 	go sendBlockchain(conn, chainHead)
-	// }
 
 }

@@ -124,17 +124,8 @@ var chainHeadArray []*Block
 
 var currUser model.User
 
-//var nodes = make(map[*websocket.Conn]bool) // connected clients
-//var upgrader = websocket.Upgrader{
-//CheckOrigin: func(r *http.Request) bool {
-//return true
-//},
-//}
-
+//ReadBlockchainFile for reading FIle
 func ReadBlockchainFile() {
-	// file, _ := ioutil.ReadFile("blockchainFile.json")
-	//
-	// _ = json.Unmarshal([]byte(file), &chainHeadArray)
 
 	file, err := os.Open("blockchainFile.json")
 	if err != nil {
@@ -162,6 +153,7 @@ func WriteBlockchainFile(chainHead []Block) {
 
 }
 
+// Getting blockchain Data in Array
 func GetBlockhainArray(chainHead *Block) []Block {
 	var data []Block
 	i := 0
@@ -201,27 +193,6 @@ func CalculateHash(inputBlock *Block) string {
 	// sum := sha256.Sum256([]byte(temp))
 
 	return sum
-}
-func InsertBlock(course Course, project Project, chainHead *Block) *Block {
-	newBlock := &Block{
-		//Hash here
-		Course:  course,
-		Project: project,
-	}
-	newBlock.CurrentHash = CalculateHash(newBlock)
-	fmt.Println("In insertion: ", CalculateHash(newBlock))
-
-	if chainHead == nil {
-		chainHead = newBlock
-		fmt.Println("Block Inserted")
-		return chainHead
-	}
-	newBlock.PrevPointer = chainHead
-	newBlock.PrevHash = chainHead.CurrentHash
-
-	fmt.Println("Block Course and Project Inserted")
-	return newBlock
-
 }
 
 // Insert Verified Course //
@@ -360,6 +331,7 @@ func ChangeProject(oldProject Project, newProject Project, chainHead *Block) {
 
 }
 
+// Prints Blocks in Commandline
 func ListBlocks(chainHead *Block) {
 
 	for chainHead != nil {
@@ -381,6 +353,7 @@ func ListBlocks(chainHead *Block) {
 
 }
 
+//VerifyChain Checks if hash of chain is changed or not
 func VerifyChain(chainHead *Block) { //What to do?
 	for chainHead != nil {
 		if chainHead.PrevPointer != nil {
@@ -395,6 +368,25 @@ func VerifyChain(chainHead *Block) { //What to do?
 	fmt.Println("Blockchain Verified")
 }
 
+//ReceiveChain Recieves blockchain the firsttime
+func ReceiveChain(conn net.Conn) *Block {
+	fmt.Println("In func")
+	var block *Block
+	gobEncoder := gob.NewDecoder(conn)
+	err := gobEncoder.Decode(&block)
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println("Received chain")
+	chainHead = block
+	stuff.ChainHead = chainHead
+	ListBlocks(chainHead)
+
+	//chainHead = InsertCourse(block)
+	return block
+}
+
+//Length length of blockchain
 func Length(chainHead *Block) int {
 	sum := 0
 	for chainHead != nil {
@@ -495,12 +487,13 @@ var nodesSlice []Client
 var minechan = make(chan Client)
 
 var blockchan = make(chan Block)
+
+//Minedblock Mined Block in this var
 var Minedblock Block
 
 var newchan = make(chan *Block)
 
-var NewChain bool
-
+//Handles connection of n peer
 func handlePeer(conn net.Conn) {
 
 	//	Clientz := Client{}
@@ -518,22 +511,7 @@ func handlePeer(conn net.Conn) {
 	blockchan <- block
 
 }
-func ReceiveChain(conn net.Conn) *Block {
-	fmt.Println("In func")
-	var block *Block
-	gobEncoder := gob.NewDecoder(conn)
-	err := gobEncoder.Decode(&block)
-	if err != nil {
-		log.Println(err)
-	}
-	fmt.Println("Received chain")
-	chainHead = block
-	stuff.ChainHead = chainHead
-	ListBlocks(chainHead)
 
-	//chainHead = InsertCourse(block)
-	return block
-}
 func ReceiveMinerChain(conn net.Conn) *Block {
 	fmt.Println("In func")
 	var block *Block
@@ -573,6 +551,7 @@ func ReceiveMinerChain(conn net.Conn) *Block {
 	return block
 }
 
+//ReceiveEverything Satoshi receives everything
 func ReceiveEverything(conn net.Conn) { //Admin
 	for {
 		fmt.Println("In Recieved  func Doit", Doit)
@@ -609,6 +588,8 @@ func ReceiveEverything(conn net.Conn) { //Admin
 	// }
 
 }
+
+//ReceiveChain1 not used
 func ReceiveChain1(conn net.Conn) *Block {
 	//<-check
 	for {
@@ -630,6 +611,7 @@ func ReceiveChain1(conn net.Conn) *Block {
 
 var j int
 
+//not used
 func broadcastPeerData() {
 
 	for i := 0; i < len(localData); i++ {
@@ -647,6 +629,7 @@ func broadcastPeerData() {
 
 }
 
+//not used
 func broadcastChain() {
 
 	for i := 0; i < len(localData); i++ {
@@ -664,6 +647,8 @@ func broadcastChain() {
 	//	<-StepbyChan
 
 }
+
+//not used
 func broadcastEverything() {
 	// stuff.ChainHead = chainHead
 	// stuff.ClientsSlice = nodesSlice
@@ -683,6 +668,7 @@ func broadcastEverything() {
 
 }
 
+//ReadPeers Reading peers
 func ReadPeers(conn net.Conn) []Client {
 	//	for {
 	//	mutex.Lock()
@@ -699,6 +685,8 @@ func ReadPeers(conn net.Conn) []Client {
 	//	}
 	return nodesSlice
 }
+
+//ReadPeers1 not useddd
 func ReadPeers1(conn net.Conn) []Client {
 	for {
 		//	mutex.Lock()
@@ -718,6 +706,8 @@ func ReadPeers1(conn net.Conn) []Client {
 	}
 	//	return nodesSlice
 }
+
+//ReadPeersMinerChain not useddddd
 func ReadPeersMinerChain(conn net.Conn) []Client {
 	for {
 		//	mutex.Lock()
@@ -740,6 +730,8 @@ func ReadPeersMinerChain(conn net.Conn) []Client {
 	}
 	//	return nodesSlice
 }
+
+//ReadPeersMinerChainEverything miner recieves chain and everything
 func ReadPeersMinerChainEverything(conn net.Conn) { //Miner
 	for {
 		//	mutex.Lock()
@@ -772,6 +764,8 @@ func ReadPeersMinerChainEverything(conn net.Conn) { //Miner
 	}
 	//	return nodesSlice
 }
+
+//ReadBlockPeers not used
 func ReadBlockPeers(conn net.Conn) Block {
 	var block Block
 	gobEncoder := gob.NewDecoder(conn)
@@ -782,6 +776,7 @@ func ReadBlockPeers(conn net.Conn) Block {
 	return block
 }
 
+//StartListening Server for Satoshi node and miner
 func StartListening(ListeningAddress string, node string) {
 	if node == "satoshi" {
 		ln, err := net.Listen("tcp", "localhost:"+ListeningAddress)
@@ -806,7 +801,7 @@ func StartListening(ListeningAddress string, node string) {
 				Conn: conn,
 			}
 
-			go handleConnection(conn, addchan)
+			go handleConnection(conn, addchan) //Reads Clients Satoshi
 			clientsSlice = append(clientsSlice, <-addchan)
 			stuff.ClientsSlice = clientsSlice
 			fmt.Println("stuffCl: ", stuff.ClientsSlice)
@@ -816,7 +811,7 @@ func StartListening(ListeningAddress string, node string) {
 			//		broadcastPeerData()
 			//		broadcastEverything()
 
-			go func() {
+			go func() { //Broadcasting data after every 10 seconds to each node/miner connected
 				for {
 					time.Sleep(10 * time.Second)
 					mutex.Lock()
@@ -835,21 +830,13 @@ func StartListening(ListeningAddress string, node string) {
 
 				}
 			}()
-			//	chainHead = a2.InsertBlock("", "", "Satoshi", 0, chainHead)
-			// var block Block
-			// gobEncoder := gob.NewDecoder(conn)
-			// err2 := gobEncoder.Decode(&block)
-			// if err2 != nil {
-			// 	log.Println(err2)
-			// }
-			//	go ReceiveMinerChain(conn)
+
 			go ReceiveEverything(conn)
 
-			//chainHead = InsertCourse(block)
 			ListBlocks(chainHead)
 
 		}
-	} else if node == "others" {
+	} else if node == "others" { //For nodes own server
 		ln, err := net.Listen("tcp", "localhost:"+ListeningAddress)
 		if err != nil {
 			log.Fatal(err)
@@ -867,7 +854,7 @@ func StartListening(ListeningAddress string, node string) {
 
 		}
 
-	} else { //miner
+	} else { //miner's own server
 		ln, err := net.Listen("tcp", "localhost:"+ListeningAddress)
 		if err != nil {
 			log.Fatal(err)
@@ -896,7 +883,7 @@ func StartListening(ListeningAddress string, node string) {
 
 }
 
-var testConn net.Conn
+var testConn net.Conn //Users connection stored
 
 // Chi HTTP Services //
 
@@ -912,7 +899,10 @@ func setHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//MinerConn connection stored for user
 var MinerConn net.Conn
+
+//Mined ; for checking if block is mined or not
 var Mined bool
 
 func getHandler(w http.ResponseWriter, r *http.Request) {
@@ -1085,30 +1075,13 @@ func showBlocksHandler(w http.ResponseWriter, r *http.Request) {
 
 var check = make(chan string)
 
+//Doit check if miner has clicked the link
 var Doit bool
 
 func Mineblock(w http.ResponseWriter, r *http.Request) {
-	// Doit = false
-	// gobEncoder3 := gob.NewEncoder(Satoshiconn)
-	// err3 := gobEncoder3.Encode(stuff)
-	// if err3 != nil {
-	// 	log.Println("In Write Chain..........: ", err3)
-	// }
+
 	fmt.Println("In Mine Block")
-
-	// var block Combo
-	// Decoder := gob.NewDecoder(Satoshiconn)
-	// err8 := Decoder.Decode(&block)
-	// if err8 != nil {
-	// 	log.Println(err8, "Errr while mining.......")
-	// }
-	// fmt.Println("Decoding Doneee............")
-	//
-	// chainHead = block.ChainHead
-	// stuff.ChainHead = chainHead
-	// fmt.Println("Handler executed.........")
 	Doit = true
-
 	params := mux.Vars(r)
 	mineHash := params["hash"]
 	fmt.Println(mineHash)
@@ -1139,43 +1112,6 @@ func Mineblock(w http.ResponseWriter, r *http.Request) {
 	//	broadcastChain()
 
 }
-
-var broadcast = make(chan []Block) // broadcast channel
-
-//func HandleConnections(w http.ResponseWriter, r *http.Request) {
-
-//	ws, err := upgrader.Upgrade(w, r, nil)
-//	if err != nil {
-//		log.Fatal(err)
-//		fmt.Println("Error in ebss")
-//	}
-
-// make sure we close the connection when the function returns
-//	defer ws.Close()
-
-// register our new client
-//	nodes[ws] = true
-
-//	for {
-// Read in a new message as JSON and map it to a Message object
-//		var course Course
-//		err := json.NewDecoder(r.Body).Decode(&course)
-//		if err != nil {
-//			panic(err)
-//		}
-// err := ws.ReadJSON(&course)
-//		chainHead = InsertCourse1(course, chainHead)
-// if err != nil {
-// 	log.Printf("error: %v", err)
-// 	//	delete(nodes, ws)
-// 	break
-// }
-
-// Send the newly received message to the broadcast channel
-//		broadcast <- getCourse(chainHead)
-//	}
-
-//}
 
 // Clients Web Server //
 
@@ -1838,6 +1774,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//RunWebServer Running WebServer of User
 func RunWebServer(port string) {
 	// router := mux.NewRouter().StrictSlash(true)
 	// router.HandleFunc("/ws", server.HandleConnections)
@@ -1871,6 +1808,7 @@ func RunWebServer(port string) {
 
 }
 
+//RunWebServerMiner : Miners server
 func RunWebServerMiner(port string) {
 
 	r := mux.NewRouter()
@@ -1882,8 +1820,7 @@ func RunWebServerMiner(port string) {
 
 }
 
-// Satoshi Web Server //
-
+//RunWebServerSatoshi Satoshi Web Server //
 func RunWebServerSatoshi() {
 
 	r := mux.NewRouter()

@@ -25,7 +25,6 @@ func main() {
 	go b.StartListening(myListeningAddress, "others")
 
 	log.Println("Sending my listening address to Satoshis")
-	//Satoshi is there waiting for our address, it stores it somehow
 	chainHead := b.ReceiveChain(conn)
 	b.ListBlocks(chainHead)
 
@@ -65,23 +64,6 @@ func main() {
 
 	}()
 
-	// go b.ReadPeers1(conn)
-	//
-	// go func() {
-	// 	for {
-	// 		if b.Mined == true {
-	// 			fmt.Println("Innn Sent:: ")
-	// 			b.ReceiveChain(b.MinerConn)
-	// 			b.Mined = false
-	// 		}
-	// 	}
-	// }()
-	// chainHead = b.ReceiveChain(conn)
-
-	//once the satoshi unblocks on Quorum completion it sends peer to connect to
-	// log.Println("receiving peer to connect to ... ")
-	// receivedString := b.ReadString(conn)
-	// log.Println(receivedString)
 	select {}
 
 }

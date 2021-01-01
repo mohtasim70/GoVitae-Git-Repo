@@ -885,19 +885,7 @@ func StartListening(ListeningAddress string, node string) {
 
 var testConn net.Conn //Users connection stored
 
-// Chi HTTP Services //
-
-func setHandler(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("../Website/blockchain.html") //parse the html file homepage.html
-	if err != nil {                                             // if there is an error
-		log.Print("template parsing error: ", err) // log it
-	}
-
-	err = t.Execute(w, nil) //execute the template and pass it the HomePageVars struct to fill in the gaps
-	if err != nil {         // if there is an error
-		log.Print("template executing error: ", err) //log it
-	}
-}
+/// Mux Router HTTP Services ///
 
 //MinerConn connection stored for user
 var MinerConn net.Conn
@@ -905,133 +893,7 @@ var MinerConn net.Conn
 //Mined ; for checking if block is mined or not
 var Mined bool
 
-func getHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	cCode := r.Form.Get("courseCode")
-	cName := r.Form.Get("courseName")
-	cGrade := r.Form.Get("courseGrade")
-	cEmail := r.Form.Get("courseEmail")
-
-	a, err := strconv.Atoi(r.FormValue("courseCHrs"))
-	if err != nil {
-	}
-	cCHrs := a
-
-	AddCourse := Course{
-		Code:        cCode,
-		Name:        cName,
-		CreditHours: cCHrs,
-		Grade:       cGrade,
-	}
-
-	MyBlock := Block{
-		Course: AddCourse,
-		Email:  cEmail,
-	}
-
-	//chainHead = InsertCourse(MyBlock)
-
-	// gobEncoder := gob.NewEncoder(Satoshiconn)
-	// err2 := gobEncoder.Encode(MyBlock)
-	// if err2 != nil {
-	// 	log.Println("In Write Chain: ", err2)
-	// }
-
-	ListBlocks(chainHead)
-
-	tempHead := chainHead
-	viewTheBlock := new(ListTheBlock)
-	tempCourse := []Course{}
-	tempBlockNo := []int{}
-	tempCurrHash := []string{}
-	tempPrevHash := []string{}
-	tempEmail := []string{}
-	for tempHead != nil {
-		tempCourse = append(tempCourse, tempHead.Course)
-		tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
-		tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
-		tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
-		tempEmail = append(tempEmail, tempHead.Email)
-		viewTheBlock = &ListTheBlock{
-			Course:      tempCourse,
-			BlockNo:     tempBlockNo,
-			CurrentHash: tempCurrHash,
-			PrevHash:    tempPrevHash,
-			Email:       tempEmail,
-		}
-		tempHead = tempHead.PrevPointer
-		fmt.Println(viewTheBlock.Course)
-		fmt.Println(viewTheBlock.BlockNo)
-		fmt.Println(viewTheBlock.CurrentHash)
-		fmt.Println(viewTheBlock.PrevHash)
-		fmt.Println(viewTheBlock.Email)
-	}
-	// generate page by passing page variables into template
-	t, err := template.ParseFiles("../Website/blockchain.html") //parse the html file homepage.html
-	if err != nil {                                             // if there is an error
-		log.Print("template parsing error: ", err) // log it
-	}
-
-	err = t.Execute(w, viewTheBlock) //execute the template and pass it the HomePageVars struct to fill in the gaps
-	if err != nil {                  // if there is an error
-		log.Print("template executing error: ", err) //log it
-	}
-	//	fmt.Println("FFFFFFFFFF", len(nodesSlice))
-	for i := 0; i < len(nodesSlice); i++ {
-		//	fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
-		if nodesSlice[i].Mail == MyBlock.Email {
-			conn, err := net.Dial("tcp", "localhost:"+nodesSlice[i].ListeningAddress)
-			if err != nil {
-				log.Fatal(err)
-			}
-			MinerConn = conn
-			gobEncoder := gob.NewEncoder(conn)
-			fmt.Println("blok:ahsh: ", CalculateHash(&MyBlock))
-			err2 := gobEncoder.Encode(MyBlock)
-			if err2 != nil {
-				log.Println("In Write Chain: ", err2)
-			}
-			m := gomail.NewMessage()
-
-			// Set E-Mail sender
-			m.SetHeader("From", "mohtasimasadabbasi@gmail.com")
-
-			// Set E-Mail receivers
-			m.SetHeader("To", MyBlock.Email)
-
-			// Set E-Mail subject
-			m.SetHeader("Subject", "Verification Content")
-
-			// Set E-Mail body. You can set plain text or html with text/html
-			m.SetBody("text/plain", "Course Name: "+MyBlock.Course.Name+"  Course Code: "+MyBlock.Course.Code+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mine/"+CalculateHash(&MyBlock))
-
-			// Settings for SMTP server
-			d := gomail.NewDialer("smtp.gmail.com", 587, "mohtasimasadabbasi@gmail.com", "mohtasim70")
-
-			// This is only needed when SSL/TLS certificate is not valid on server.
-			// In production this should be set to false.
-			d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-
-			// Now send E-Mail
-			if err := d.DialAndSend(m); err != nil {
-				fmt.Println(err, "mailerr")
-				panic(err)
-			}
-			Mined = true
-			fmt.Println("Email Sent", Mined, nodesSlice[i].ListeningAddress)
-
-			break
-		}
-	}
-
-	// gobEncoder := gob.NewEncoder(Satoshiconn)
-	// err2 := gobEncoder.Encode(MyBlock)
-	// if err2 != nil {
-	// 	log.Println("In Write Chain: ", err2)
-	// }
-
-}
-
+/// Web Handler to show all blocks of blockchain in satoshi server ///
 func showBlocksHandler(w http.ResponseWriter, r *http.Request) {
 	tempHead := chainHead
 	viewTheBlock := new(ListTheBlock)
@@ -1078,6 +940,7 @@ var check = make(chan string)
 //Doit check if miner has clicked the link
 var Doit bool
 
+/// Web Handler to verify and mine the block in miner server ///
 func Mineblock(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("In Mine Block")
@@ -1115,6 +978,7 @@ func Mineblock(w http.ResponseWriter, r *http.Request) {
 
 // Clients Web Server //
 
+/// Web Handler to register user into DB ///
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
@@ -1167,6 +1031,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/// Web Handler to login user using JWT Authentication ///
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
@@ -1236,6 +1101,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/// Web Handler to show dashboard to the user ///
 func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
@@ -1281,6 +1147,7 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/// Web Handler to show UnVerified Blocks in blockchain to the user ///
 func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
@@ -1415,6 +1282,7 @@ func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/// Web Handler to generate CV for the user ///
 func GenerateCVHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
@@ -1480,6 +1348,7 @@ func GenerateCVHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/// Web Handler to add projects into the blockchain ///
 func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -1622,6 +1491,7 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/// Web Handler to add courses into the blockchain ///
 func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -1758,6 +1628,7 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/// Web Handler to logout the user ///
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	tokenString = ""
 	http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
@@ -1776,16 +1647,12 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 //RunWebServer Running WebServer of User
 func RunWebServer(port string) {
-	// router := mux.NewRouter().StrictSlash(true)
 	// router.HandleFunc("/ws", server.HandleConnections)
-	// router.HandleFunc("/api/block", server.GetAllBlock).Methods("GET", "OPTIONS")
-	// router.HandleFunc("/api/block", server.CreateBlock).Methods("POST", "OPTIONS")
-	// router.HandleFunc("/api/task", server.CreateTask).Methods("POST", "OPTIONS")
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", Index)
 	//r.HandleFunc("/", setHandler).Methods("GET")
-	r.HandleFunc("/blockInsert", getHandler).Methods("POST")
+	//r.HandleFunc("/blockInsert", getHandler).Methods("POST")
 	//	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("../mountain"))))
 	//r.HandleFunc("/ws", HandleConnections)
 	r.HandleFunc("/addProject", AddProjectHandler)
@@ -1797,6 +1664,7 @@ func RunWebServer(port string) {
 	r.HandleFunc("/logout", LogoutHandler)
 	r.HandleFunc("/dashboard", ProfileHandler).
 		Methods("GET")
+
 	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("../Website/css"))))
 	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("../Website/js"))))
 	r.PathPrefix("/vendor/").Handler(http.StripPrefix("/vendor/", http.FileServer(http.Dir("../Website/vendor"))))

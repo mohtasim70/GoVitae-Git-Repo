@@ -1634,8 +1634,21 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
 }
 
+/// Web Handler to show homepage ///
 func Index(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles("../Website/homepage.html") //parse the html file homepage.html
+	if err != nil {                                           // if there is an error
+		log.Print("template parsing error: ", err, t) // log it
+	}
+	err = t.Execute(w, nil) //execute the template and pass it the HomePageVars struct to fill in the gaps
+	if err != nil {         // if there is an error
+		log.Print("template executing error: ", err) //log it
+	}
+}
+
+/// Web Handler to show details ///
+func Details(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("../Website/discover.html") //parse the html file homepage.html
 	if err != nil {                                           // if there is an error
 		log.Print("template parsing error: ", err, t) // log it
 	}
@@ -1651,6 +1664,7 @@ func RunWebServer(port string) {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", Index)
+	r.HandleFunc("/details", Details)
 	//r.HandleFunc("/", setHandler).Methods("GET")
 	//r.HandleFunc("/blockInsert", getHandler).Methods("POST")
 	//	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("../mountain"))))

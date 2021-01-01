@@ -35,10 +35,6 @@ var chainHead *Block
 
 var unverifiedChain *Block
 
-//Skill Not implemneted yet
-type Skill struct {
-}
-
 //Course Structure for course content
 type Course struct {
 	Code        string
@@ -66,6 +62,18 @@ type Block struct {
 	Status      string
 	Email       string
 	Username    string
+}
+
+//Skill Not used yet
+type Skill struct {
+	types string
+	name  string
+	level string
+}
+
+//BlockHandler not used
+type BlockHandler struct {
+	id int
 }
 
 //CV Structure defined for web pages //

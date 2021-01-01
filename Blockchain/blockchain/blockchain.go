@@ -35,14 +35,19 @@ var chainHead *Block
 
 var unverifiedChain *Block
 
+//Skill Not implemneted yet
 type Skill struct {
 }
+
+//Course Structure for course content
 type Course struct {
 	Code        string
 	Name        string
 	CreditHours int
 	Grade       string
 }
+
+//Project Struct for project contents
 type Project struct {
 	Name       string
 	Details    string
@@ -50,6 +55,7 @@ type Project struct {
 	CourseName string
 }
 
+//Block stores block information which includes hash
 type Block struct {
 	Course      Course
 	Project     Project
@@ -62,8 +68,7 @@ type Block struct {
 	Username    string
 }
 
-// Structure defined for web pages //
-
+//CV Structure defined for web pages //
 type CV struct {
 	Email     string
 	Firstname string
@@ -73,6 +78,7 @@ type CV struct {
 	Username  string
 }
 
+//ListTheBlock for webpages listing content
 type ListTheBlock struct {
 	Course      []Course
 	Project     []Project
@@ -85,6 +91,7 @@ type ListTheBlock struct {
 	Username    []string
 }
 
+//UnverifyBlock displaying unverified blocks
 type UnverifyBlock struct {
 	Course      []Course
 	Project     []Project
@@ -98,17 +105,20 @@ type UnverifyBlock struct {
 	UserEmail   string
 }
 
-//////////////////////////////////////
-
+//Client stores info of client connected to Satoshi
 type Client struct {
 	ListeningAddress string
 	Types            bool //true for node and false for miner
 	Mail             string
 }
+
+//Combo Stores blockchain and clientsconnected
 type Combo struct {
 	ClientsSlice []Client
 	ChainHead    *Block
 }
+
+//Connected just for connection
 type Connected struct {
 	Conn net.Conn
 }
@@ -218,8 +228,7 @@ func InsertCourse(myBlock Block) *Block {
 
 }
 
-// Insert Verified Project //
-
+//InsertProject Insert Verified Project //
 func InsertProject(myBlock Block) *Block {
 
 	myBlock.CurrentHash = CalculateHash(&myBlock)
@@ -285,6 +294,7 @@ func InsertProjectUnverified(myBlock Block) *Block {
 
 }
 
+//ChangeCourse for changing details not used yet
 func ChangeCourse(oldCourse Course, newCourse Course, chainHead *Block) {
 	present := false
 	for chainHead != nil {
@@ -307,6 +317,7 @@ func ChangeCourse(oldCourse Course, newCourse Course, chainHead *Block) {
 
 }
 
+//ChangeProject for changing details not used yet
 func ChangeProject(oldProject Project, newProject Project, chainHead *Block) {
 	present := false
 	for chainHead != nil {
@@ -329,7 +340,7 @@ func ChangeProject(oldProject Project, newProject Project, chainHead *Block) {
 
 }
 
-// Prints Blocks in Commandline
+//ListBlocks Prints Blocks in Commandline
 func ListBlocks(chainHead *Block) {
 
 	for chainHead != nil {
@@ -410,6 +421,7 @@ func sendBlockchain(c net.Conn, chainHead *Block) {
 
 }
 
+//InsertCourse1 not used
 func InsertCourse1(course Course, chainHead *Block) *Block {
 	newBlock := &Block{
 		//Hash here
@@ -461,6 +473,7 @@ func SendChain(conn net.Conn) {
 	}
 }
 
+//Satoshiconn to store connection for Satoshi
 var Satoshiconn net.Conn
 var clientsSlice []Client
 var rwchan = make(chan string)
@@ -929,7 +942,7 @@ var check = make(chan string)
 //Doit check if miner has clicked the link
 var Doit bool
 
-/// Web Handler to verify and mine the block in miner server ///
+//Mineblock  Web Handler to verify and mine the block in miner server ///
 func Mineblock(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("In Mine Block")
@@ -967,7 +980,7 @@ func Mineblock(w http.ResponseWriter, r *http.Request) {
 
 // Clients Web Server //
 
-/// Web Handler to register user into DB ///
+//RegisterHandler   Web Handler to register user into DB ///
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
@@ -1020,7 +1033,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/// Web Handler to login user using JWT Authentication ///
+//LoginHandler   Web Handler to login user using JWT Authentication ///
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
@@ -1090,7 +1103,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/// Web Handler to show dashboard to the user ///
+//ProfileHandler   Web Handler to show dashboard to the user ///
 func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
@@ -1136,7 +1149,7 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/// Web Handler to show UnVerified Blocks in blockchain to the user ///
+//UnverifiedBlocksHandler  Web Handler to show UnVerified Blocks in blockchain to the user ///
 func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
@@ -1271,7 +1284,7 @@ func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/// Web Handler to generate CV for the user ///
+//GenerateCVHandler  Web Handler to generate CV for the user ///
 func GenerateCVHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
@@ -1337,7 +1350,7 @@ func GenerateCVHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/// Web Handler to add projects into the blockchain ///
+//AddProjectHandler Web Handler to add projects into the blockchain ///
 func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -1480,7 +1493,7 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/// Web Handler to add courses into the blockchain ///
+//AddCourseHandler Web Handler to add courses into the blockchain ///
 func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -1617,13 +1630,13 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/// Web Handler to logout the user ///
+//LogoutHandler   Web Handler to logout the user ///
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	tokenString = ""
 	http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
 }
 
-/// Web Handler to show homepage ///
+//Index  Web Handler to show homepage ///
 func Index(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles("../Website/homepage.html") //parse the html file homepage.html
 	if err != nil {                                           // if there is an error
@@ -1635,7 +1648,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/// Web Handler to show details ///
+//Details   Web Handler to show details ///
 func Details(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles("../Website/discover.html") //parse the html file homepage.html
 	if err != nil {                                           // if there is an error

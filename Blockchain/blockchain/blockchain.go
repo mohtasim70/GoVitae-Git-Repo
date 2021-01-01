@@ -145,6 +145,7 @@ func ReadBlockchainFile() {
 	ListBlocks(chainHead)
 }
 
+//WriteBlockchainFile Writing into file
 func WriteBlockchainFile(chainHead []Block) {
 
 	file, _ := json.MarshalIndent(chainHead, "", " ")
@@ -153,7 +154,7 @@ func WriteBlockchainFile(chainHead []Block) {
 
 }
 
-// Getting blockchain Data in Array
+//GetBlockhainArray   Getting blockchain Data in Array
 func GetBlockhainArray(chainHead *Block) []Block {
 	var data []Block
 	i := 0
@@ -176,7 +177,7 @@ func GetBlockhainArray(chainHead *Block) []Block {
 
 }
 
-//256bit
+//CalculateHash Generates 256bit hash of block using content inside
 func CalculateHash(inputBlock *Block) string {
 
 	var temp string
@@ -195,8 +196,7 @@ func CalculateHash(inputBlock *Block) string {
 	return sum
 }
 
-// Insert Verified Course //
-
+//InsertCourse Insert Verified Course in chain //
 func InsertCourse(myBlock Block) *Block {
 
 	myBlock.CurrentHash = CalculateHash(&myBlock)
@@ -241,8 +241,7 @@ func InsertProject(myBlock Block) *Block {
 
 }
 
-// Unverified Course Chain //
-
+//InsertCourseUnverified Unverified Course Chain //
 func InsertCourseUnverified(myBlock Block) *Block {
 
 	myBlock.CurrentHash = CalculateHash(&myBlock)
@@ -264,8 +263,7 @@ func InsertCourseUnverified(myBlock Block) *Block {
 
 }
 
-// Unverified Project Chain //
-
+//InsertProjectUnverified  Unverified Project Chain //
 func InsertProjectUnverified(myBlock Block) *Block {
 
 	myBlock.CurrentHash = CalculateHash(&myBlock)
@@ -443,8 +441,10 @@ func getCourse(ChainHead *Block) []Block {
 	//	fmt.Println("Yo")
 	return courses
 }
+
+//WriteString for writing info to satoshi
 func WriteString(conn net.Conn, myListeningAddress Client) {
-	Satoshiconn = conn
+	Satoshiconn = conn //Saves Satoshi
 	gobEncoder := gob.NewEncoder(conn)
 	err := gobEncoder.Encode(myListeningAddress)
 	if err != nil {
@@ -452,6 +452,7 @@ func WriteString(conn net.Conn, myListeningAddress Client) {
 	}
 }
 
+//SendChain not used yet
 func SendChain(conn net.Conn) {
 	gobEncoder := gob.NewEncoder(conn)
 	err := gobEncoder.Encode(chainHead)
@@ -464,6 +465,7 @@ var Satoshiconn net.Conn
 var clientsSlice []Client
 var rwchan = make(chan string)
 
+// Satoshi handles client using this
 func handleConnection(conn net.Conn, addchan chan Client) {
 	// newClient := Connected{
 	// 	Conn: conn,
@@ -478,7 +480,7 @@ func handleConnection(conn net.Conn, addchan chan Client) {
 
 	// newClient.ListeningAddress = ListeningAddress
 	fmt.Println("inHandle: ", Clientz.ListeningAddress)
-	addchan <- Clientz
+	addchan <- Clientz //Blocks until client is added to its list
 	//WaitForQuorum()
 
 }
@@ -493,7 +495,7 @@ var Minedblock Block
 
 var newchan = make(chan *Block)
 
-//Handles connection of n peer
+//Handles connection of node and miner
 func handlePeer(conn net.Conn) {
 
 	//	Clientz := Client{}
@@ -512,6 +514,7 @@ func handlePeer(conn net.Conn) {
 
 }
 
+//ReceiveMinerChain    Not Usedd
 func ReceiveMinerChain(conn net.Conn) *Block {
 	fmt.Println("In func")
 	var block *Block
@@ -533,21 +536,7 @@ func ReceiveMinerChain(conn net.Conn) *Block {
 	if err2 != nil {
 		log.Println(err2)
 	}
-	// newchan <- chainHead
-	// <-newchan
-	// for i := 0; i < len(localData); i++ {
-	// 	if clientsSlice[i].Types == false && localData[i].Conn != conn {
-	// 		gobEncoder := gob.NewEncoder(localData[i].Conn)
-	// 		//fmt.Println("BroadCheck: ", localData[i])
-	// 		err1 := gobEncoder.Encode(chainHead)
-	// 		fmt.Println("Broadcasting New Chain to Miners:: ", localData[i].Conn)
-	// 		if err1 != nil {
-	// 			log.Println("Errpr in broadcasting Chain to Miners", err1)
-	// 		}
-	// 	}
-	// }
 
-	//chainHead = InsertCourse(block)
 	return block
 }
 
@@ -566,7 +555,7 @@ func ReceiveEverything(conn net.Conn) { //Admin
 		ListBlocks(stuu.ChainHead)
 		fmt.Println("Received head chain")
 		ListBlocks(chainHead)
-		if Length(chainHead) <= Length(stuu.ChainHead) {
+		if Length(chainHead) <= Length(stuu.ChainHead) { //Checks and retains the longer blockchain
 			fmt.Println("Received new chain")
 			chainHead = stuu.ChainHead
 			stuff.ChainHead = chainHead
@@ -611,7 +600,7 @@ func ReceiveChain1(conn net.Conn) *Block {
 
 var j int
 
-//not used
+//not usedddd
 func broadcastPeerData() {
 
 	for i := 0; i < len(localData); i++ {
@@ -668,7 +657,7 @@ func broadcastEverything() {
 
 }
 
-//ReadPeers Reading peers
+//ReadPeers Reading peers    (Not Usedd yett)
 func ReadPeers(conn net.Conn) []Client {
 	//	for {
 	//	mutex.Lock()
@@ -686,7 +675,7 @@ func ReadPeers(conn net.Conn) []Client {
 	return nodesSlice
 }
 
-//ReadPeers1 not useddd
+//ReadPeers1    not useddd
 func ReadPeers1(conn net.Conn) []Client {
 	for {
 		//	mutex.Lock()
@@ -707,7 +696,7 @@ func ReadPeers1(conn net.Conn) []Client {
 	//	return nodesSlice
 }
 
-//ReadPeersMinerChain not useddddd
+//ReadPeersMinerChain       not useddddd
 func ReadPeersMinerChain(conn net.Conn) []Client {
 	for {
 		//	mutex.Lock()
@@ -796,24 +785,24 @@ func StartListening(ListeningAddress string, node string) {
 				log.Println(err, "Yooooo")
 				continue
 			}
-			sendBlockchain(conn, chainHead)
+			sendBlockchain(conn, chainHead) //sends chain the first time to each user that connects
 			conns := Connected{
 				Conn: conn,
 			}
 
-			go handleConnection(conn, addchan) //Reads Clients Satoshi
-			clientsSlice = append(clientsSlice, <-addchan)
+			go handleConnection(conn, addchan)             //Reads Clients Satoshi
+			clientsSlice = append(clientsSlice, <-addchan) //adds client to list
 			stuff.ClientsSlice = clientsSlice
 			fmt.Println("stuffCl: ", stuff.ClientsSlice)
 			fmt.Println("clS: ", clientsSlice)
-			localData = append(localData, conns)
+			localData = append(localData, conns) //adds connection
 			//fmt.Println("BroadCheck: ", localData[i])
 			//		broadcastPeerData()
 			//		broadcastEverything()
 
-			go func() { //Broadcasting data after every 10 seconds to each node/miner connected
+			go func() { //Broadcasting data after every x seconds to each node/miner connected
 				for {
-					time.Sleep(10 * time.Second)
+					time.Sleep(8 * time.Second)
 					mutex.Lock()
 					for i := 0; i < len(localData); i++ {
 						//		fmt.Println("ss", nodesSlice[i].Types)
@@ -831,7 +820,7 @@ func StartListening(ListeningAddress string, node string) {
 				}
 			}()
 
-			go ReceiveEverything(conn)
+			go ReceiveEverything(conn) //Receives chaina nd anything fromn nodes/miner connected
 
 			ListBlocks(chainHead)
 
@@ -874,7 +863,7 @@ func StartListening(ListeningAddress string, node string) {
 			}
 			localData = append(localData, conns)
 
-			go handlePeer(conn)
+			go handlePeer(conn) //Handles nodes connected
 
 			Minedblock = <-blockchan
 
@@ -950,7 +939,7 @@ func Mineblock(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(mineHash)
 	blockHash := CalculateHash(&Minedblock)
 	fmt.Println(blockHash)
-	if blockHash == mineHash {
+	if blockHash == mineHash { //Checks if hash is same as the block
 		Minedblock.Status = "Verified"
 		chainHead = InsertCourse(Minedblock)
 		stuff.ChainHead = chainHead

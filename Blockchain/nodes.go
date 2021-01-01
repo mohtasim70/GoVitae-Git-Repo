@@ -21,8 +21,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	go b.RunWebServer(webAddress)
-	go b.StartListening(myListeningAddress, "others")
+	go b.RunWebServer(webAddress)                     //Runs webserver
+	go b.StartListening(myListeningAddress, "others") //Starts own server
 
 	log.Println("Sending my listening address to Satoshis")
 	chainHead := b.ReceiveChain(conn)
@@ -32,15 +32,15 @@ func main() {
 		ListeningAddress: myListeningAddress,
 		Types:            true,
 	}
-	b.WriteString(conn, Peers)
+	b.WriteString(conn, Peers) //Writes its address
 
 	//go b.ReceiveChain(conn)
 
-	go b.ReadPeersMinerChainEverything(conn)
+	go b.ReadPeersMinerChainEverything(conn) // Reads information from Satoshi every second
 
-	go func() {
+	go func() { //Go routine for reading the chain that miner sends
 		for {
-			if b.Mined == true {
+			if b.Mined == true { // checks if the block sent is mined or not
 				fmt.Println("trueue")
 				var stuu b.Combo
 				fmt.Println("In Read Peers fffwd")

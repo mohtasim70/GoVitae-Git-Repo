@@ -19,21 +19,21 @@ func main() {
 		log.Fatal(err)
 	}
 	b.Doit = true
-	go b.RunWebServerMiner(webAddress)
-	go b.StartListening(myListeningAddress, "miner")
+	go b.RunWebServerMiner(webAddress)               //Starts own web server
+	go b.StartListening(myListeningAddress, "miner") //Starts its own server
 
 	log.Println("Sending my listening address to Satoshi")
 
-	b.ReceiveChain(conn)
+	b.ReceiveChain(conn) //Receives chain the first time from Satoshi
 
 	Peers := b.Client{
 		ListeningAddress: myListeningAddress,
 		Types:            false,
 		Mail:             mail,
 	}
-	b.WriteString(conn, Peers)
+	b.WriteString(conn, Peers) //Sends its info including his mail to Satoshi
 
-	go b.ReadPeersMinerChainEverything(conn)
+	go b.ReadPeersMinerChainEverything(conn) //Reads info from Satoshi
 
 	//go b.ReadPeersMinerChain(conn)
 

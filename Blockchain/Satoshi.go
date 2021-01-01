@@ -10,8 +10,8 @@ func main() {
 
 	satoshiAddress := os.Args[1]
 
-	go b.RunWebServerSatoshi()
-	go b.StartListening(satoshiAddress, "satoshi")
+	go b.RunWebServerSatoshi()                     //Own web server
+	go b.StartListening(satoshiAddress, "satoshi") //Listens to Clients(Nodes and Miners)
 
 	select {}
 

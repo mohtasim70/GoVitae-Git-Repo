@@ -14,10 +14,11 @@ func main() {
 	webAddress := os.Args[3]
 	mail := os.Args[4]
 
-	conn, err := net.Dial("tcp", "localhost:"+satoshiAddress)
+	conn, err := net.Dial("tcp", ":"+satoshiAddress)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	b.Doit = true
 	go b.RunWebServerMiner(webAddress)               //Starts own web server
 	go b.StartListening(myListeningAddress, "miner") //Starts its own server

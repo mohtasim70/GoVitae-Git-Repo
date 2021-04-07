@@ -789,7 +789,7 @@ func ReadBlockPeers(conn net.Conn) Block {
 //StartListening Server for Satoshi node and miner
 func StartListening(ListeningAddress string, node string) {
 	if node == "satoshi" {
-		ln, err := net.Listen("tcp", "localhost:"+ListeningAddress)
+		ln, err := net.Listen("tcp", ":"+ListeningAddress)
 		if err != nil {
 			log.Fatal(err)
 			fmt.Println("Faital")
@@ -847,7 +847,7 @@ func StartListening(ListeningAddress string, node string) {
 
 		}
 	} else if node == "others" { //For nodes own server
-		ln, err := net.Listen("tcp", "localhost:"+ListeningAddress)
+		ln, err := net.Listen("tcp", ":"+ListeningAddress)
 		if err != nil {
 			log.Fatal(err)
 			fmt.Println("Faital")
@@ -1038,7 +1038,58 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
+		satoshiAddress := "2500"
+		//	webAddress := "1200"
+		myListeningAddress := "6001"
+
+		conn, err := net.Dial("tcp", "localhost:"+satoshiAddress)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		go StartListening(myListeningAddress, "others") //Starts own server
+
+		log.Println("Sending my listening address to Satoshis")
+		chainHead := ReceiveChain(conn)
+		ListBlocks(chainHead)
+
+		Peers := Client{
+			ListeningAddress: myListeningAddress,
+			Types:            true,
+		}
+		WriteString(conn, Peers) //Writes its address
+
+		//go b.ReceiveChain(conn)
+
+		go ReadPeersMinerChainEverything(conn) // Reads information from Satoshi every second
+
+		go func() { //Go routine for reading the chain that miner sends
+			for {
+				if Mined == true { // checks if the block sent is mined or not
+					fmt.Println("trueue")
+					var stuu Combo
+					fmt.Println("In Read Peers fffwd")
+					gobEncoder := gob.NewDecoder(MinerConn)
+					err := gobEncoder.Decode(&stuu)
+					if err != nil {
+						log.Println(err, "FFF")
+					}
+					fmt.Println("Read StuuPeers: ", stuu.ClientsSlice)
+					ListBlocks(stuu.ChainHead)
+					// if Length(stuu.ChainHead) >= Length(chainHead) {
+					// 	chainHead = stuu.ChainHead
+					// 	stuff.ChainHead = chainHead
+					// 	fmt.Println("Read Chain: ")
+					// 	ListBlocks(chainHead)
+					// }
+					Mined = false
+				}
+
+			}
+
+		}()
 	}
+
 }
 
 //LoginHandler   Web Handler to login user using JWT Authentication ///
@@ -1109,6 +1160,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, urlLogin+"/dashboard", http.StatusSeeOther)
 		json.NewEncoder(w).Encode(result)
 	}
+
 }
 
 //ProfileHandler   Web Handler to show dashboard to the user ///

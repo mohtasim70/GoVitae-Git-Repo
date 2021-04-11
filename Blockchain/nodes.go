@@ -1,16 +1,14 @@
 package main
 
 import (
-	"os"
-
 	b "./blockchain"
 )
 
 func main() {
 
-	//satoshiAddress := os.Args[1]
-	//	myListeningAddress := os.Args[2]
-	webAddress := os.Args[1]
+	// satoshiAddress := os.Args[1]
+	// myListeningAddress := os.Args[2]
+	webAddress := "3334"
 	//
 	// conn, err := net.Dial("tcp", "localhost:"+satoshiAddress)
 	// if err != nil {
@@ -33,7 +31,7 @@ func main() {
 	// //go b.ReceiveChain(conn)
 	//
 	// go b.ReadPeersMinerChainEverything(conn) // Reads information from Satoshi every second
-	//
+
 	// go func() { //Go routine for reading the chain that miner sends
 	// 	for {
 	// 		if b.Mined == true { // checks if the block sent is mined or not

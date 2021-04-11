@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/gob"
 	"encoding/hex"
 	"encoding/json"
@@ -20,10 +21,14 @@ import (
 
 	db "../Database"
 	model "../Models"
+	gmail "google.golang.org/api/gmail/v1"
+	"google.golang.org/api/option"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	gomail "gopkg.in/mail.v2"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -122,8 +127,10 @@ type Client struct {
 
 //Combo Stores blockchain and clientsconnected
 type Combo struct {
-	ClientsSlice []Client
-	ChainHead    *Block
+	ClientsSlice       []Client
+	ChainHead          *Block
+	UnverifiedCourses  *Block
+	UnverifiedProjects *Block
 }
 
 //Connected just for connection
@@ -170,6 +177,64 @@ func WriteBlockchainFile(chainHead []Block) {
 	_ = ioutil.WriteFile("blockchainFile.json", file, 0644)
 	fmt.Println("file")
 
+}
+func SaveUVFile() {
+
+	file, err := os.Open("unverified.json")
+	if err != nil {
+		log.Println("Can't read file")
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	decoder.Token()
+	block := Block{}
+	// Appends decoded object to dataArr until every object gets parsed
+	for decoder.More() {
+		decoder.Decode(&block)
+		//	chainHead = InsertCourse(block)
+		if block.Project.CourseName != "" {
+			chainHead = InsertProjectUnverified(block)
+		}
+		if block.Course.Name != "" {
+			chainHead = InsertCourseUnverified(block)
+		}
+
+	}
+	stuff.ChainHead = chainHead
+	ListBlocks(chainHead)
+}
+
+//WriteUVFile Writing into file
+func WriteUVFile(chainHead []Block) {
+
+	file, _ := json.MarshalIndent(chainHead, "", " ")
+	_ = ioutil.WriteFile("unverified.json", file, 0644)
+	fmt.Println("file")
+
+}
+func ReadHash(hash string) Block {
+
+	file, err := os.Open("unverified.json")
+	if err != nil {
+		log.Println("Can't read file")
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	decoder.Token()
+	block := Block{}
+	// Appends decoded object to dataArr until every object gets parsed
+	for decoder.More() {
+		decoder.Decode(&block)
+		//	chainHead = InsertCourse(block)
+		if block.CurrentHash == hash {
+			return block
+		}
+	}
+	//	stuff.ChainHead = chainHead
+	return block
+	//	ListBlocks(chainHead)
 }
 
 //GetBlockhainArray   Getting blockchain Data in Array
@@ -268,6 +333,7 @@ func InsertCourseUnverified(myBlock Block) *Block {
 		myBlock.PrevHash = "null"
 		unverifiedChain = &myBlock
 		//	fmt.Println("Genesis Block Inserted")
+
 		return unverifiedChain
 	}
 	count = count + 1
@@ -570,20 +636,23 @@ func ReceiveEverything(conn net.Conn) { //Admin
 		err := gobEncoder.Decode(&stuu)
 		if err != nil {
 			log.Println(err)
+			return
 		}
 		fmt.Println("Received Stuff chain")
 
-		ListBlocks(stuu.ChainHead)
+		//ListBlocks(stuu.ChainHead)
 		fmt.Println("Received head chain")
 		ListBlocks(chainHead)
-		if Length(chainHead) <= Length(stuu.ChainHead) { //Checks and retains the longer blockchain
-			fmt.Println("Received new chain")
-			chainHead = stuu.ChainHead
-			stuff.ChainHead = chainHead
-			data := GetBlockhainArray(chainHead)
-			WriteBlockchainFile(data)
-		} else {
-			fmt.Println("Received old chain")
+		if stuu.ChainHead != nil {
+			if Length(chainHead) <= Length(stuu.ChainHead) { //Checks and retains the longer blockchain
+				fmt.Println("Received new chain")
+				chainHead = stuu.ChainHead
+				stuff.ChainHead = chainHead
+				data := GetBlockhainArray(chainHead)
+				WriteBlockchainFile(data)
+			} else {
+				fmt.Println("Received old chain")
+			}
 		}
 		ListBlocks(chainHead)
 
@@ -952,35 +1021,54 @@ var Doit bool
 
 //Mineblock  Web Handler to verify and mine the block in miner server ///
 func Mineblock(w http.ResponseWriter, r *http.Request) {
-
+	Satoshiconn, err := net.Dial("tcp", ":"+"2500")
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Println("In Mine Block")
 	Doit = true
 	params := mux.Vars(r)
 	mineHash := params["hash"]
 	fmt.Println(mineHash)
-	blockHash := CalculateHash(&Minedblock)
-	fmt.Println(blockHash)
+
+	ReceiveChain(Satoshiconn) //Receives chain the first time from Satoshi
+
+	Peers := Client{
+		Types: false,
+	}
+	WriteString(Satoshiconn, Peers) //Sends its info including his mail to Satoshi
+
+	go ReadPeersMinerChainEverything(Satoshiconn) //Reads info from Satoshi
+	//	blockHash := CalculateHash(&Minedblock)
+	//	ListBlocks(unverifiedChain)
+	//	blockHash := CalculateHash(unverifiedChain)
+	block := ReadHash(mineHash)
+	blockHash := CalculateHash(&block)
+
+	fmt.Println("Yoo", blockHash)
 	if blockHash == mineHash { //Checks if hash is same as the block
+
 		Minedblock.Status = "Verified"
-		chainHead = InsertCourse(Minedblock)
+		chainHead = InsertCourse(block)
 		stuff.ChainHead = chainHead
 		fmt.Println("In Mining")
 		ListBlocks(chainHead)
+		fmt.Println("Trrr")
 
 		gobEncoder := gob.NewEncoder(Satoshiconn)
 		err2 := gobEncoder.Encode(stuff)
 		if err2 != nil {
-			log.Println("InError Write Chain: ", err2)
+			log.Println("In Error Write Chain: ", err2)
 		}
 		log.Println("Sent to Satoshi: ")
 
-		gobEncoder2 := gob.NewEncoder(testConn)
-		//fmt.Println("BroadCheck: ", localData[i])
-		err1 := gobEncoder2.Encode(stuff)
-		fmt.Println("Bro Chain sent to peer:: ", testConn)
-		if err1 != nil {
-			log.Println("Errpr in brosti Chain", err1)
-		}
+		// gobEncoder2 := gob.NewEncoder(testConn)
+		// //fmt.Println("BroadCheck: ", localData[i])
+		// err1 := gobEncoder2.Encode(stuff)
+		// fmt.Println("Bro Chain sent to peer:: ", testConn)
+		// if err1 != nil {
+		// 	log.Println("Errpr in brosti Chain", err1)
+		// }
 	}
 	//	broadcastChain()
 
@@ -1039,8 +1127,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
 		satoshiAddress := "2500"
-		//	webAddress := "1200"
-		myListeningAddress := "6001"
+		myListeningAddress := "6002"
 
 		conn, err := net.Dial("tcp", "localhost:"+satoshiAddress)
 		if err != nil {
@@ -1063,31 +1150,31 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 		go ReadPeersMinerChainEverything(conn) // Reads information from Satoshi every second
 
-		go func() { //Go routine for reading the chain that miner sends
-			for {
-				if Mined == true { // checks if the block sent is mined or not
-					fmt.Println("trueue")
-					var stuu Combo
-					fmt.Println("In Read Peers fffwd")
-					gobEncoder := gob.NewDecoder(MinerConn)
-					err := gobEncoder.Decode(&stuu)
-					if err != nil {
-						log.Println(err, "FFF")
-					}
-					fmt.Println("Read StuuPeers: ", stuu.ClientsSlice)
-					ListBlocks(stuu.ChainHead)
-					// if Length(stuu.ChainHead) >= Length(chainHead) {
-					// 	chainHead = stuu.ChainHead
-					// 	stuff.ChainHead = chainHead
-					// 	fmt.Println("Read Chain: ")
-					// 	ListBlocks(chainHead)
-					// }
-					Mined = false
-				}
-
-			}
-
-		}()
+		// go func() { //Go routine for reading the chain that miner sends
+		// 	for {
+		// 		if Mined == true { // checks if the block sent is mined or not
+		// 			fmt.Println("trueue")
+		// 			var stuu Combo
+		// 			fmt.Println("In Read Peers fffwd")
+		// 			gobEncoder := gob.NewDecoder(MinerConn)
+		// 			err := gobEncoder.Decode(&stuu)
+		// 			if err != nil {
+		// 				log.Println(err, "FFF")
+		// 			}
+		// 			fmt.Println("Read StuuPeers: ", stuu.ClientsSlice)
+		// 			ListBlocks(stuu.ChainHead)
+		// 			// if Length(stuu.ChainHead) >= Length(chainHead) {
+		// 			// 	chainHead = stuu.ChainHead
+		// 			// 	stuff.ChainHead = chainHead
+		// 			// 	fmt.Println("Read Chain: ")
+		// 			// 	ListBlocks(chainHead)
+		// 			// }
+		// 			Mined = false
+		// 		}
+		//
+		// 	}
+		//
+		// }()
 	}
 
 }
@@ -1247,7 +1334,8 @@ func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			tempHead2 = tempHead2.PrevPointer
 		}
-
+		fmt.Println("In Unverif")
+		ListBlocks(unverifiedChain)
 		tempHead3 := unverifiedChain
 		for tempHead3 != nil {
 			if tempHead3.Username == result.Username {
@@ -1272,9 +1360,16 @@ func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 		tempStatus := []string{}
 
 		for tempHead != nil {
+			fmt.Println("1st If")
 			if tempHead.Username == result.Username {
+				fmt.Println("2nd If")
+
 				if tempHead.Status == "Pending" {
+					fmt.Println("3rd If")
+
 					if tempHead.Course.Name == "" {
+						fmt.Println("4th If")
+
 						tempStatus = append(tempStatus, tempHead.Status)
 						tempProject = append(tempProject, tempHead.Project)
 						tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
@@ -1410,6 +1505,65 @@ func GenerateCVHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+var GmailService *gmail.Service
+
+func OAuthGmailService() {
+	config := oauth2.Config{
+		ClientID:     "275469437806-nqp90b6739i86oiupk45236jinc1h2eh.apps.googleusercontent.com",
+		ClientSecret: "GEULiFVDqfZkdQswdLlERnR3",
+		Endpoint:     google.Endpoint,
+		RedirectURL:  "http://localhost",
+	}
+
+	token := oauth2.Token{
+		AccessToken:  "your_access_token",
+		RefreshToken: "your_refresh_token",
+		TokenType:    "Bearer",
+		Expiry:       time.Now(),
+	}
+
+	var tokenSource = config.TokenSource(context.Background(), &token)
+
+	srv, err := gmail.NewService(context.Background(), option.WithTokenSource(tokenSource))
+	if err != nil {
+		log.Printf("Unable to retrieve Gmail client: %v", err)
+	}
+
+	GmailService = srv
+	if GmailService != nil {
+		fmt.Println("Email service is initialized ")
+	}
+}
+
+func SendEmailOAUTH2(to string, data Block) (bool, error) {
+
+	// emailBody, err := parseTemplate(template, data)
+	// if err != nil {
+	// 	return false, errors.New("unable to parse email template")
+	// }
+
+	var message gmail.Message
+
+	emailTo := "To: " + to + "\r\n"
+
+	subject := "Subject: " + "Test Email form Gmail API using OAuth" + "\n"
+
+	mime := "MIME-version: 1.0;\nContent-Type: text/plain; charset=\"UTF-8\";\n\n"
+
+	msg := []byte(emailTo + subject + mime + "\n" + data.Project.CourseName)
+
+	message.Raw = base64.URLEncoding.EncodeToString(msg)
+
+	// Send the message
+	_, err := GmailService.Users.Messages.Send("me", &message).Do()
+	if err != nil {
+		return false, err
+	}
+	fmt.Println("In handler7")
+
+	return true, nil
+}
+
 //AddProjectHandler Web Handler to add projects into the blockchain ///
 func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
@@ -1497,57 +1651,60 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 		// }
 
 		unverifiedChain = InsertProjectUnverified(MyBlock)
-		ListBlocks(chainHead)
+		ListBlocks(unverifiedChain)
 
+		uv := GetBlockhainArray(unverifiedChain)
+		WriteUVFile(uv)
 		//	fmt.Println("FFFFFFFFFF", len(nodesSlice))
-		for i := 0; i < len(nodesSlice); i++ {
-			//	fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
-			if nodesSlice[i].Mail == MyBlock.Email {
-				conn, err := net.Dial("tcp", "localhost:"+nodesSlice[i].ListeningAddress)
-				if err != nil {
-					log.Fatal(err)
-				}
-				MinerConn = conn
-				gobEncoder := gob.NewEncoder(conn)
-				fmt.Println("blok:ahsh: ", CalculateHash(&MyBlock))
-				err2 := gobEncoder.Encode(MyBlock)
-				if err2 != nil {
-					log.Println("In Write Chain: ", err2)
-				}
-				m := gomail.NewMessage()
+		//	for i := 0; i < len(nodesSlice); i++ {
+		//	fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
+		//		if nodesSlice[i].Mail == MyBlock.Email {
+		// conn, err := net.Dial("tcp", "localhost:"+nodesSlice[i].ListeningAddress)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// MinerConn = conn
+		// gobEncoder := gob.NewEncoder(conn)
+		// fmt.Println("blok:ahsh: ", CalculateHash(&MyBlock))
+		// err2 := gobEncoder.Encode(MyBlock)
+		// if err2 != nil {
+		// 	log.Println("In Write Chain: ", err2)
+		// }
+		//	SendEmailOAUTH2(MyBlock.Email, MyBlock)
+		m := gomail.NewMessage()
 
-				// Set E-Mail sender
-				m.SetHeader("From", pUserEmail)
+		// Set E-Mail sender
+		m.SetHeader("From", "mohtasimasad@gmail.com")
 
-				// Set E-Mail receivers
-				m.SetHeader("To", MyBlock.Email)
+		// Set E-Mail receivers
+		m.SetHeader("To", MyBlock.Email)
 
-				// Set E-Mail subject
-				m.SetHeader("Subject", "Verification Content")
+		// Set E-Mail subject
+		m.SetHeader("Subject", "Verification Content")
 
-				// Set E-Mail body. You can set plain text or html with text/html
+		// Set E-Mail body. You can set plain text or html with text/html
 
-				///////////// Add files to send to the mailer /////////////////
-				m.SetBody("text/plain", "Project Name: "+MyBlock.Project.Name+"  Project Details: "+MyBlock.Project.Details+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mine/"+CalculateHash(&MyBlock))
+		///////////// Add files to send to the mailer /////////////////
+		m.SetBody("text/plain", "Project Name: "+MyBlock.Project.Name+"  Project Details: "+MyBlock.Project.Details+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mine/"+CalculateHash(&MyBlock))
 
-				// Settings for SMTP server
-				d := gomail.NewDialer("smtp.gmail.com", 587, pUserEmail, pUserPass)
+		// Settings for SMTP server
+		d := gomail.NewDialer("smtp.gmail.com", 587, pUserEmail, pUserPass)
 
-				// This is only needed when SSL/TLS certificate is not valid on server.
-				// In production this should be set to false.
-				d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+		// This is only needed when SSL/TLS certificate is not valid on server.
+		// In production this should be set to false.
+		d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
-				// Now send E-Mail
-				if err := d.DialAndSend(m); err != nil {
-					fmt.Println(err, "mailerr")
-					panic(err)
-				}
-				Mined = true
-				fmt.Println("Email Sent", Mined, nodesSlice[i].ListeningAddress)
-
-				break
-			}
+		// Now send E-Mail
+		if err := d.DialAndSend(m); err != nil {
+			fmt.Println(err, "mailerr")
+			panic(err)
 		}
+		Mined = true
+		//	fmt.Println("Email Sent", Mined, nodesSlice[i].ListeningAddress)
+
+		//break
+		//		}
+		//		}
 		http.Redirect(w, r, urlLogin+"/dashboard", http.StatusSeeOther)
 	}
 
@@ -1638,53 +1795,56 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 		unverifiedChain = InsertCourseUnverified(MyBlock)
 		ListBlocks(chainHead)
 
+		uv := GetBlockhainArray(unverifiedChain)
+		WriteUVFile(uv)
+
 		//	fmt.Println("FFFFFFFFFF", len(nodesSlice))
-		for i := 0; i < len(nodesSlice); i++ {
-			//	fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
-			if nodesSlice[i].Mail == MyBlock.Email {
-				conn, err := net.Dial("tcp", "localhost:"+nodesSlice[i].ListeningAddress)
-				if err != nil {
-					log.Fatal(err)
-				}
-				MinerConn = conn
-				gobEncoder := gob.NewEncoder(conn)
-				fmt.Println("blok:ahsh: ", CalculateHash(&MyBlock))
-				err2 := gobEncoder.Encode(MyBlock)
-				if err2 != nil {
-					log.Println("In Write Chain: ", err2)
-				}
-				m := gomail.NewMessage()
+		//		for i := 0; i < len(nodesSlice); i++ {
+		//	fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
+		//		if nodesSlice[i].Mail == MyBlock.Email {
+		// conn, err := net.Dial("tcp", "localhost:"+nodesSlice[i].ListeningAddress)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// MinerConn = conn
+		// gobEncoder := gob.NewEncoder(conn)
+		// fmt.Println("blok:ahsh: ", CalculateHash(&MyBlock))
+		// err2 := gobEncoder.Encode(MyBlock)
+		// if err2 != nil {
+		// 	log.Println("In Write Chain: ", err2)
+		// }
+		m := gomail.NewMessage()
 
-				// Set E-Mail sender
-				m.SetHeader("From", cUserEmail)
+		// Set E-Mail sender
+		m.SetHeader("From", cUserEmail)
 
-				// Set E-Mail receivers
-				m.SetHeader("To", MyBlock.Email)
+		// Set E-Mail receivers
+		m.SetHeader("To", MyBlock.Email)
 
-				// Set E-Mail subject
-				m.SetHeader("Subject", "Verification Content")
+		// Set E-Mail subject
+		m.SetHeader("Subject", "Verification Content")
 
-				// Set E-Mail body. You can set plain text or html with text/html
-				m.SetBody("text/plain", "Course Name: "+MyBlock.Course.Name+"  Course Code: "+MyBlock.Course.Code+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mine/"+CalculateHash(&MyBlock))
+		// Set E-Mail body. You can set plain text or html with text/html
+		m.SetBody("text/plain", "Course Name: "+MyBlock.Course.Name+"  Course Code: "+MyBlock.Course.Code+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mine/"+CalculateHash(&MyBlock))
 
-				// Settings for SMTP server
-				d := gomail.NewDialer("smtp.gmail.com", 587, cUserEmail, cUserPass)
+		// Settings for SMTP server
+		d := gomail.NewDialer("smtp.gmail.com", 587, cUserEmail, cUserPass)
 
-				// This is only needed when SSL/TLS certificate is not valid on server.
-				// In production this should be set to false.
-				d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+		// This is only needed when SSL/TLS certificate is not valid on server.
+		// In production this should be set to false.
+		d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
-				// Now send E-Mail
-				if err := d.DialAndSend(m); err != nil {
-					fmt.Println(err, "mailerr")
-					panic(err)
-				}
-				Mined = true
-				fmt.Println("Email Sent", Mined, nodesSlice[i].ListeningAddress)
-
-				break
-			}
+		// Now send E-Mail
+		if err := d.DialAndSend(m); err != nil {
+			fmt.Println(err, "mailerr")
+			panic(err)
 		}
+		Mined = true
+		//	fmt.Println("Email Sent", Mined, nodesSlice[i].ListeningAddress)
+
+		//		break
+		//		}
+		//		}
 		http.Redirect(w, r, urlLogin+"/dashboard", http.StatusSeeOther)
 	}
 

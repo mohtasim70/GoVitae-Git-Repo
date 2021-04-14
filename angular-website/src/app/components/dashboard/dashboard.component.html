@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Sidebar Dashboard Template</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" charset="utf-8"></script>
+  </head>
+  <body>
+
+    <input type="checkbox" id="check">
+    <!--header area start-->
+    <header>
+      <label for="check">
+        <i class="fas fa-bars" id="sidebar_btn"></i>
+      </label>
+      <div class="left_area">
+        <h3>Go<span>Vitae</span></h3>
+      </div>
+      <div class="right_area">
+        <a (click)="logout()" class="logout_btn">Logout</a>
+      </div>
+    </header>
+    <!--header area end-->
+    <!--mobile navigation bar start-->
+    <div class="mobile_nav">
+      <div class="nav_bar">
+        <img src="../../../assets/img/profile.png" class="mobile_profile_image" alt="">
+        <i class="fa fa-bars nav_btn"></i>
+      </div>
+      <div class="mobile_nav_items">
+        <a href="/dashboard"><i class="fas fa-desktop"></i><span>Dashboard</span></a>
+        <a href="/addCourse"><i class="fas fa-cogs"></i><span>Add Course</span></a>
+        <a href="/addProject"><i class="fas fa-cogs"></i><span>Add Project</span></a>
+        <a href="/generateCV"><i class="fas fa-th"></i><span>Generate CV</span></a>
+        <a href="/unverifiedBlocks"><i class="fas fa-link"></i><span>Unverified Blocks</span></a>
+      </div>
+    </div>
+    <!--mobile navigation bar end-->
+    <!--sidebar start-->
+    <div class="sidebar">
+      <div class="profile_info">
+        <img src="../../../assets/img/profile.png" class="profile_image" alt="">
+        <h4 *ngIf="User != null">{{User.username}}</h4>
+      </div>
+      <a href="/dashboard"><i class="fas fa-desktop"></i><span>Dashboard</span></a>
+      <a href="/addCourse"><i class="fas fa-cogs"></i><span>Add Course</span></a>
+      <a href="/addProject"><i class="fas fa-cogs"></i><span>Add Project</span></a>
+      <a href="/generateCV"><i class="fas fa-th"></i><span>Generate CV</span></a>
+      <a href="/unverifiedBlocks"><i class="fas fa-link"></i><span>Unverified Blocks</span></a>
+    </div>
+    <!--sidebar end-->
+
+    <div class="content">
+      <h1>
+        Welcome to CV Verification System.
+      </h1>
+    </div>
+  </body>
+</html>

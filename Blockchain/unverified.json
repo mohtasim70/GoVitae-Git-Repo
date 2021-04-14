@@ -1,65 +1,23 @@
 [
  {
   "Course": {
-   "Code": "",
-   "Name": "",
-   "CreditHours": 0,
-   "Grade": ""
+   "courseCode": "CS-202",
+   "courseName": "Database",
+   "courseCHrs": 3,
+   "courseGrade": "A+"
   },
   "Project": {
-   "Name": "Satoshsi Coin",
-   "Details": "My own cryptocurrency",
-   "FileName": "Mohtasim's Resume (41).pdf",
-   "CourseName": "IBC"
+   "projectName": "",
+   "projectDetails": "",
+   "projectFile": "",
+   "projectCourse": ""
   },
   "PrevPointer": null,
   "PrevHash": "",
   "CurrentHash": "",
   "BlockNo": 0,
   "Status": "Pending",
-  "Email": "mohtasimasad@gmail.com",
-  "Username": ""
- },
- {
-  "Course": {
-   "Code": "",
-   "Name": "",
-   "CreditHours": 0,
-   "Grade": ""
-  },
-  "Project": {
-   "Name": "Satoshsi Coin",
-   "Details": "My own cryptocurrency",
-   "FileName": "Mohtasim's Resume (41).pdf",
-   "CourseName": "IBC"
-  },
-  "PrevPointer": null,
-  "PrevHash": "",
-  "CurrentHash": "",
-  "BlockNo": 0,
-  "Status": "Pending",
-  "Email": "mohtasimasad@gmail.com",
-  "Username": ""
- },
- {
-  "Course": {
-   "Code": "",
-   "Name": "",
-   "CreditHours": 0,
-   "Grade": ""
-  },
-  "Project": {
-   "Name": "Satoshsi Coin",
-   "Details": "My own cryptocurrency",
-   "FileName": "Mohtasim's Resume (41).pdf",
-   "CourseName": "IBC"
-  },
-  "PrevPointer": null,
-  "PrevHash": "",
-  "CurrentHash": "",
-  "BlockNo": 0,
-  "Status": "Pending",
-  "Email": "mohtasimasad@gmail.com",
+  "Email": "temptemp5522@gmail.com",
   "Username": ""
  }
 ]

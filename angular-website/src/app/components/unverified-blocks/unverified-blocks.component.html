@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Sidebar Dashboard Template</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" charset="utf-8"></script>
+  </head>
+  <body>
+
+    <input type="checkbox" id="check">
+    <!--header area start-->
+    <header>
+      <label for="check">
+        <i class="fas fa-bars" id="sidebar_btn"></i>
+      </label>
+      <div class="left_area">
+        <h3>Go<span>Vitae</span></h3>
+      </div>
+      <div class="right_area">
+        <a (click)="logout()" class="logout_btn">Logout</a>
+      </div>
+    </header>
+    <!--header area end-->
+    <!--mobile navigation bar start-->
+    <div class="mobile_nav">
+      <div class="nav_bar">
+        <img src="../../../assets/img/profile.png" class="mobile_profile_image" alt="">
+        <i class="fa fa-bars nav_btn"></i>
+      </div>
+      <div class="mobile_nav_items">
+        <a href="/dashboard"><i class="fas fa-desktop"></i><span>Dashboard</span></a>
+        <a href="/addCourse"><i class="fas fa-cogs"></i><span>Add Course</span></a>
+        <a href="/addProject"><i class="fas fa-cogs"></i><span>Add Project</span></a>
+        <a href="/generateCV"><i class="fas fa-th"></i><span>Generate CV</span></a>
+        <a href="/unverifiedBlocks"><i class="fas fa-link"></i><span>Unverified Blocks</span></a>
+      </div>
+    </div>
+    <!--mobile navigation bar end-->
+    <!--sidebar start-->
+    <div class="sidebar">
+      <div class="profile_info">
+        <img src="../../../assets/img/profile.png" class="profile_image" alt="">
+        <h4 *ngIf="User != null">{{User.username}}</h4>
+      </div>
+      <a href="/dashboard"><i class="fas fa-desktop"></i><span>Dashboard</span></a>
+      <a href="/addCourse"><i class="fas fa-cogs"></i><span>Add Course</span></a>
+      <a href="/addProject"><i class="fas fa-cogs"></i><span>Add Project</span></a>
+      <a href="/generateCV"><i class="fas fa-th"></i><span>Generate CV</span></a>
+      <a href="/unverifiedBlocks"><i class="fas fa-link"></i><span>Unverified Blocks</span></a>
+    </div>
+    <!--sidebar end-->
+
+    <div class="content">
+      <div class="container">
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+                <h5 class="text-center" style="margin-bottom: 60px;">Unverifed Blocks</h5>
+            </div>
+        </div>
+        <div class="row" *ngIf="Blocks != null">
+          <div class="col-md-8 offset-md-2">
+              <div *ngIf="Blocks.blockNo == null">
+                <h1 class="noBlocks">There are no Unverified Blocks!</h1>
+              </div>
+              <div *ngFor="let block of Blocks.blockNo; let i = index;">
+                <div class="card carder">
+                  <div class="card-title">
+                    <h6>Block No: {{Blocks.blockNo[i]}}</h6>
+                    <span class="hashes">Current Hash:</span><h2>{{Blocks.currHash[i]}}</h2>
+                    <span class="hashes">Previous Hash:</span><h2>{{Blocks.prevHash[i]}}</h2>
+                  </div>
+                  <div class="card-body" *ngIf="Blocks.courses[i].courseName != ''">
+                      <h6 style="margin-bottom: 25px;" class="courses">Course</h6>
+                      <span style="font-weight: 600; color: #00b199;">Code:</span>&nbsp;&nbsp;{{Blocks.courses[i].courseCode}}<br>
+                      <span style="font-weight: 600; color: #00b199;">Name:</span>&nbsp;&nbsp;{{Blocks.courses[i].courseName}}<br>
+                      <span style="font-weight: 600; color: #00b199;">Credit Hours:</span>&nbsp;&nbsp;{{Blocks.courses[i].courseCHrs}}<br>
+                      <span style="font-weight: 600; color: #00b199;">Grade:</span>&nbsp;&nbsp;{{Blocks.courses[i].courseGrade}}
+                  </div>
+                  <div class="card-body" *ngIf="Blocks.projects[i].projectName != ''">
+                    <h6 style="margin-bottom: 25px;" class="courses">Project</h6>
+                    <span style="font-weight: 600; color: #00b199;">Name:</span>&nbsp;&nbsp;{{Blocks.projects[i].projectName}}<br>
+                    <span style="font-weight: 600; color: #00b199;">Details:</span>&nbsp;&nbsp;{{Blocks.projects[i].projectDetails}}<br>
+                    <span style="font-weight: 600; color: #00b199;">Filename:</span>&nbsp;&nbsp;{{Blocks.projects[i].projectFile}}<br>
+                    <span style="font-weight: 600; color: #00b199;">Course:</span>&nbsp;&nbsp;{{Blocks.projects[i].projectCourse}}
+                </div>
+                  <h2 class="endBlock"><span style="font-weight: 700;">Verifier:&nbsp;</span> {{Blocks.email[i]}}&nbsp;&nbsp; · &nbsp;&nbsp;<span style="font-weight: 700;">Status:&nbsp;</span> {{Blocks.status[i]}}</h2>
+                </div>
+                <img *ngIf="i < Blocks.blockNo.length - 1" src="../../../assets/img/chain.png" class="chainer" height="280">
+                <div *ngIf="i == Blocks.blockNo.length - 1" style="margin-top: 70px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

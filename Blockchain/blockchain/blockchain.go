@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"crypto/tls"
-	"encoding/base64"
 	"encoding/gob"
 	"encoding/hex"
 	"encoding/json"
@@ -15,23 +14,25 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"strconv"
 	"sync"
 	"time"
 
 	db "../Database"
 	model "../Models"
-	gmail "google.golang.org/api/gmail/v1"
-	"google.golang.org/api/option"
+
+	//gmail "google.golang.org/api/gmail/v1"
+	//"google.golang.org/api/option"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
+
+	//"golang.org/x/oauth2"
+	//"golang.org/x/oauth2/google"
 	gomail "gopkg.in/mail.v2"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	//"github.com/gorilla/websocket"
 )
@@ -42,18 +43,40 @@ var unverifiedChain *Block
 
 //Course Structure for course content
 type Course struct {
-	Code        string
-	Name        string
-	CreditHours int
-	Grade       string
+	Code        string `json:"courseCode"`
+	Name        string `json:"courseName"`
+	CreditHours int    `json:"courseCHrs"`
+	Grade       string `json:"courseGrade"`
+}
+
+// CourseWeb for detailed course content
+type CourseWeb struct {
+	Code        string `json:"courseCode"`
+	Name        string `json:"courseName"`
+	CreditHours int    `json:"courseCHrs"`
+	Grade       string `json:"courseGrade"`
+	VEmail      string `json:"courseEmail"`
+	SEmail      string `json:"userEmail"`
+	SPass       string `json:"userPass"`
 }
 
 //Project Struct for project contents
 type Project struct {
-	Name       string
-	Details    string
-	FileName   string
-	CourseName string
+	Name       string `json:"projectName"`
+	Details    string `json:"projectDetails"`
+	FileName   string `json:"projectFile"`
+	CourseName string `json:"projectCourse"`
+}
+
+// CourseWeb for detailed project content
+type ProjectWeb struct {
+	Name       string `json:"projectName"`
+	Details    string `json:"projectDetails"`
+	FileName   string `json:"projectFile"`
+	CourseName string `json:"projectCourse"`
+	VEmail     string `json:"projectEmail"`
+	SEmail     string `json:"userEmail"`
+	SPass      string `json:"userPass"`
 }
 
 //Block stores block information which includes hash
@@ -106,16 +129,16 @@ type ListTheBlock struct {
 
 //UnverifyBlock displaying unverified blocks
 type UnverifyBlock struct {
-	Course      []Course
-	Project     []Project
-	PrevPointer []*Block
-	PrevHash    []string
-	CurrentHash []string
-	BlockNo     []int
-	Status      []string
-	Email       []string
-	Username    string
-	UserEmail   string
+	Course      []Course  `json:"courses"`
+	Project     []Project `json:"projects"`
+	PrevPointer []*Block  `json:"prevPointer"`
+	PrevHash    []string  `json:"prevHash"`
+	CurrentHash []string  `json:"currHash"`
+	BlockNo     []int     `json:"blockNo"`
+	Status      []string  `json:"status"`
+	Email       []string  `json:"email"`
+	Username    string    `json:"username"`
+	UserEmail   string    `json:"userEmail"`
 }
 
 //Client stores info of client connected to Satoshi
@@ -1078,54 +1101,31 @@ func Mineblock(w http.ResponseWriter, r *http.Request) {
 
 //RegisterHandler   Web Handler to register user into DB ///
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method == "GET" {
-		t, err := template.ParseFiles("../Website/register.html") //parse the html file homepage.html
-		if err != nil {                                           // if there is an error
-			log.Print("template parsing error: ", err) // log it
-		}
-
-		err = t.Execute(w, nil) //execute the template and pass it the HomePageVars struct to fill in the gaps
-		if err != nil {         // if there is an error
-			log.Print("template executing error: ", err) //log it
-		}
-	}
 	if r.Method == "POST" {
-		r.ParseForm()
-		userName := r.Form.Get("username")
-		fName := r.Form.Get("firstname")
-		lName := r.Form.Get("lastname")
-		password := r.Form.Get("password")
-		emailAddr := r.Form.Get("email")
-		w.Header().Set("Content-Type", "application/json")
-		user := model.User{
-			Username:  userName,
-			FirstName: fName,
-			LastName:  lName,
-			Password:  password,
-			Email:     emailAddr,
-		}
+		var newUser model.User
+		_ = json.NewDecoder(r.Body).Decode(&newUser)
+		fmt.Println(newUser)
 
 		collection, err := db.GetDBCollection()
 
 		var result model.User
-		err = collection.FindOne(context.TODO(), bson.D{primitive.E{Key: "username", Value: user.Username}}).Decode(&result)
+		err = collection.FindOne(context.TODO(), bson.D{primitive.E{Key: "username", Value: newUser.Username}}).Decode(&result)
 
 		if err != nil {
 			if err.Error() == "mongo: no documents in result" {
-				hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), 5)
+				hash, err := bcrypt.GenerateFromPassword([]byte(newUser.Password), 5)
 				if err != nil { // if there is an error
 					log.Print("Error ", err) //log it
 				}
-				user.Password = string(hash)
+				newUser.Password = string(hash)
 
-				_, err = collection.InsertOne(context.TODO(), user)
+				_, err = collection.InsertOne(context.TODO(), newUser)
 				if err != nil { // if there is an error
 					log.Print("Error ", err) //log it
 				}
 			}
 		}
-		http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
+		//http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
 		satoshiAddress := "2500"
 		myListeningAddress := "6002"
 
@@ -1181,27 +1181,10 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 //LoginHandler   Web Handler to login user using JWT Authentication ///
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method == "GET" {
-		t, err := template.ParseFiles("../Website/login.html") //parse the html file homepage.html
-		if err != nil {                                        // if there is an error
-			log.Print("template parsing error: ", err) // log it
-		}
-
-		err = t.Execute(w, nil) //execute the template and pass it the HomePageVars struct to fill in the gaps
-		if err != nil {         // if there is an error
-			log.Print("template executing error: ", err) //log it
-		}
-	}
 	if r.Method == "POST" {
-		r.ParseForm()
-		userName := r.Form.Get("username")
-		password := r.Form.Get("password")
-		w.Header().Set("Content-Type", "application/json")
-		user := model.User{
-			Username: userName,
-			Password: password,
-		}
+		var newUser model.User
+		_ = json.NewDecoder(r.Body).Decode(&newUser)
+		fmt.Println(newUser)
 
 		collection, err := db.GetDBCollection()
 
@@ -1211,18 +1194,20 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		var result model.User
 		var res model.ResponseResult
 
-		err = collection.FindOne(context.TODO(), bson.D{primitive.E{Key: "username", Value: user.Username}}).Decode(&result)
+		err = collection.FindOne(context.TODO(), bson.D{primitive.E{Key: "username", Value: newUser.Username}}).Decode(&result)
 
 		if err != nil {
 			res.Error = "Invalid username"
+			fmt.Println("Invalid username")
 			json.NewEncoder(w).Encode(res)
 			return
 		}
 
-		err = bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(user.Password))
+		err = bcrypt.CompareHashAndPassword([]byte(result.Password), []byte(newUser.Password))
 
 		if err != nil {
 			res.Error = "Invalid password"
+			fmt.Println("Invalid password")
 			json.NewEncoder(w).Encode(res)
 			return
 		}
@@ -1237,6 +1222,21 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		tokenString, err = token.SignedString([]byte("secret"))
 
 		if err != nil {
+			fmt.Println(err)
+		}
+
+		json, err := json.Marshal(struct {
+			Token string `json:"token"`
+		}{
+			tokenString,
+		})
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		w.Write(json)
+		/*if err != nil {
 			res.Error = "Error while generating token,Try again"
 			json.NewEncoder(w).Encode(res)
 			return
@@ -1245,9 +1245,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		result.Token = tokenString
 		result.Password = ""
 		http.Redirect(w, r, urlLogin+"/dashboard", http.StatusSeeOther)
-		json.NewEncoder(w).Encode(result)
+		json.NewEncoder(w).Encode(result)*/
 	}
-
 }
 
 //ProfileHandler   Web Handler to show dashboard to the user ///
@@ -1262,8 +1261,11 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	})
 	if token == nil {
 		fmt.Println(" ---- Access Denied ----")
-		http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
-		return
+		//http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
+		//return
+	}
+	if err != nil {
+		fmt.Println(err)
 	}
 	var result model.User
 	var res model.ResponseResult
@@ -1279,24 +1281,55 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 			Email:     result.Email,
 			Password:  "",
 		}
-		t, err := template.ParseFiles("../Website/index.html") //parse the html file homepage.html
-		if err != nil {                                        // if there is an error
-			log.Print("template parsing error: ", err) // log it
+
+		json, err := json.Marshal(struct {
+			Result model.User `json:"result"`
+		}{
+			result,
+		})
+
+		if err != nil {
+			fmt.Println(err)
 		}
 
-		err = t.Execute(w, currUser) //execute the template and pass it the HomePageVars struct to fill in the gaps
-		if err != nil {              // if there is an error
-			log.Print("template executing error: ", err) //log it
-		}
+		w.Write(json)
 	} else {
 		res.Error = err.Error()
 		json.NewEncoder(w).Encode(res)
 		return
 	}
-
 }
 
-//UnverifiedBlocksHandler  Web Handler to show UnVerified Blocks in blockchain to the user ///
+//AllUsers  Web Handler to get all the users registered in the system ///
+func GetAllUsers(w http.ResponseWriter, r *http.Request) {
+	var newUser model.User
+	_ = json.NewDecoder(r.Body).Decode(&newUser)
+	fmt.Println(newUser)
+
+	collection, err := db.GetDBCollection()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cursor, err := collection.Find(context.TODO(), bson.M{})
+
+	var episodes []bson.M
+
+	if err = cursor.All(context.TODO(), &episodes); err != nil {
+		log.Fatal(err)
+	}
+
+	json, err := json.Marshal(episodes)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	w.Write(json)
+}
+
+//UnverifiedBlocksHandler Web Handler to show UnVerified Blocks in blockchain to the user ///
 func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Don't forget to validate the alg is what you expect:
@@ -1359,6 +1392,11 @@ func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 		tempEmail := []string{}
 		tempStatus := []string{}
 
+		extCourse := new(Course)
+		extProject := new(Project)
+
+		ListBlocks(tempHead)
+
 		for tempHead != nil {
 			fmt.Println("1st If")
 			if tempHead.Username == result.Username {
@@ -1368,15 +1406,17 @@ func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 					fmt.Println("3rd If")
 
 					if tempHead.Course.Name == "" {
-						fmt.Println("4th If")
+						fmt.Println("4th If Course")
 
 						tempStatus = append(tempStatus, tempHead.Status)
 						tempProject = append(tempProject, tempHead.Project)
+						tempCourse = append(tempCourse, *extCourse)
 						tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
 						tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
 						tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
 						tempEmail = append(tempEmail, tempHead.Email)
 						viewTheBlock = &UnverifyBlock{
+							Course:      tempCourse,
 							Project:     tempProject,
 							BlockNo:     tempBlockNo,
 							CurrentHash: tempCurrHash,
@@ -1394,7 +1434,9 @@ func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 						fmt.Println(viewTheBlock.Status)
 					}
 					if tempHead.Project.Name == "" {
+						fmt.Println("4th If Project")
 						tempStatus = append(tempStatus, tempHead.Status)
+						tempProject = append(tempProject, *extProject)
 						tempCourse = append(tempCourse, tempHead.Course)
 						tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
 						tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
@@ -1402,6 +1444,7 @@ func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 						tempEmail = append(tempEmail, tempHead.Email)
 						viewTheBlock = &UnverifyBlock{
 							Course:      tempCourse,
+							Project:     tempProject,
 							BlockNo:     tempBlockNo,
 							CurrentHash: tempCurrHash,
 							PrevHash:    tempPrevHash,
@@ -1417,20 +1460,23 @@ func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 						fmt.Println(viewTheBlock.Email)
 						fmt.Println(viewTheBlock.Status)
 					}
+					fmt.Println(viewTheBlock)
 				}
 			}
 			tempHead = tempHead.PrevPointer
 		}
 
-		t, err := template.ParseFiles("../Website/showBlocks.html") //parse the html file homepage.html
-		if err != nil {                                             // if there is an error
-			log.Print("template parsing error: ", err) // log it
+		json, err := json.Marshal(struct {
+			Result UnverifyBlock `json:"unVerifyBlock"`
+		}{
+			*viewTheBlock,
+		})
+
+		if err != nil {
+			fmt.Println(err)
 		}
 
-		err = t.Execute(w, viewTheBlock) //execute the template and pass it the HomePageVars struct to fill in the gaps
-		if err != nil {                  // if there is an error
-			log.Print("template executing error: ", err) //log it
-		}
+		w.Write(json)
 	} else {
 		res.Error = err.Error()
 		json.NewEncoder(w).Encode(res)
@@ -1505,7 +1551,7 @@ func GenerateCVHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-var GmailService *gmail.Service
+/*var GmailService *gmail.Service
 
 func OAuthGmailService() {
 	config := oauth2.Config{
@@ -1562,82 +1608,31 @@ func SendEmailOAUTH2(to string, data Block) (bool, error) {
 	fmt.Println("In handler7")
 
 	return true, nil
-}
+}*/
 
 //AddProjectHandler Web Handler to add projects into the blockchain ///
 func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			// Don't forget to validate the alg is what you expect:
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				fmt.Println(" ---- Access Denied ----")
-				return nil, fmt.Errorf("Unexpected signing method")
-			}
-			return []byte("secret"), nil
-		})
-		if token == nil {
-			fmt.Println(" ---- Access Denied ----")
-			http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
-			return
-		}
-		var result model.User
-		var res model.ResponseResult
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			result.Username = claims["username"].(string)
-			result.FirstName = claims["firstname"].(string)
-			result.LastName = claims["lastname"].(string)
-			result.Email = claims["email"].(string)
-			currUser = model.User{
-				Username:  result.Username,
-				FirstName: result.FirstName,
-				LastName:  result.LastName,
-				Email:     result.Email,
-				Password:  "",
-			}
-			t, err := template.ParseFiles("../Website/addProject.html") //parse the html file homepage.html
-			if err != nil {                                             // if there is an error
-				log.Print("template parsing error: ", err) // log it
-			}
-
-			err = t.Execute(w, currUser) //execute the template and pass it the HomePageVars struct to fill in the gaps
-			if err != nil {              // if there is an error
-				log.Print("template executing error: ", err) //log it
-			}
-		} else {
-			res.Error = err.Error()
-			json.NewEncoder(w).Encode(res)
-			return
-		}
-	}
 	if r.Method == "POST" {
-		r.ParseForm()
-		r.ParseMultipartForm(10 << 20)
-		pName := r.Form.Get("projectName")
-		pDetails := r.Form.Get("projectDetails")
-		pFile, pHandler, pErr := r.FormFile("fileInput")
-		pCourse := r.Form.Get("courseName")
-		pEmail := r.Form.Get("courseEmail")
-		pUserEmail := r.Form.Get("userEmail")
-		pUserPass := r.Form.Get("userPass")
+		var tempProject ProjectWeb
+		_ = json.NewDecoder(r.Body).Decode(&tempProject)
+		fmt.Println(tempProject)
+		currUsername := currUser.Username
+
+		var newProject Project
+		newProject.Name = tempProject.Name
+		newProject.Details = tempProject.Details
+		newProject.FileName = tempProject.FileName
+		newProject.CourseName = tempProject.CourseName
 
 		// Use pFile for sending files to mailer //
 
-		fmt.Println(pFile, pErr)
+		//fmt.Println(pFile, pErr)
 
 		/////////////////////////////////
 
-		currUsername := currUser.Username
-
-		AddProject := Project{
-			Name:       pName,
-			Details:    pDetails,
-			FileName:   pHandler.Filename,
-			CourseName: pCourse,
-		}
-
 		MyBlock := Block{
-			Project:  AddProject,
-			Email:    pEmail,
+			Project:  newProject,
+			Email:    tempProject.VEmail,
 			Username: currUsername,
 			Status:   "Pending",
 		}
@@ -1650,6 +1645,7 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 		// 	log.Println("In Write Chain: ", err2)
 		// }
 
+		fmt.Println(MyBlock)
 		unverifiedChain = InsertProjectUnverified(MyBlock)
 		ListBlocks(unverifiedChain)
 
@@ -1674,7 +1670,7 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 		m := gomail.NewMessage()
 
 		// Set E-Mail sender
-		m.SetHeader("From", "mohtasimasad@gmail.com")
+		m.SetHeader("From", tempProject.SEmail)
 
 		// Set E-Mail receivers
 		m.SetHeader("To", MyBlock.Email)
@@ -1688,7 +1684,7 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 		m.SetBody("text/plain", "Project Name: "+MyBlock.Project.Name+"  Project Details: "+MyBlock.Project.Details+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mine/"+CalculateHash(&MyBlock))
 
 		// Settings for SMTP server
-		d := gomail.NewDialer("smtp.gmail.com", 587, pUserEmail, pUserPass)
+		d := gomail.NewDialer("smtp.gmail.com", 587, tempProject.SEmail, tempProject.SPass)
 
 		// This is only needed when SSL/TLS certificate is not valid on server.
 		// In production this should be set to false.
@@ -1712,74 +1708,21 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 //AddCourseHandler Web Handler to add courses into the blockchain ///
 func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			// Don't forget to validate the alg is what you expect:
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				fmt.Println(" ---- Access Denied ----")
-				return nil, fmt.Errorf("Unexpected signing method")
-			}
-			return []byte("secret"), nil
-		})
-		if token == nil {
-			fmt.Println(" ---- Access Denied ----")
-			http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
-			return
-		}
-		var result model.User
-		var res model.ResponseResult
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			result.Username = claims["username"].(string)
-			result.FirstName = claims["firstname"].(string)
-			result.LastName = claims["lastname"].(string)
-			result.Email = claims["email"].(string)
-			currUser = model.User{
-				Username:  result.Username,
-				FirstName: result.FirstName,
-				LastName:  result.LastName,
-				Email:     result.Email,
-				Password:  "",
-			}
-			t, err := template.ParseFiles("../Website/addCourse.html") //parse the html file homepage.html
-			if err != nil {                                            // if there is an error
-				log.Print("template parsing error: ", err) // log it
-			}
-
-			err = t.Execute(w, currUser) //execute the template and pass it the HomePageVars struct to fill in the gaps
-			if err != nil {              // if there is an error
-				log.Print("template executing error: ", err) //log it
-			}
-		} else {
-			res.Error = err.Error()
-			json.NewEncoder(w).Encode(res)
-			return
-		}
-	}
 	if r.Method == "POST" {
-		r.ParseForm()
-		cCode := r.Form.Get("courseCode")
-		cName := r.Form.Get("courseName")
-		cGrade := r.Form.Get("courseGrade")
-		cEmail := r.Form.Get("courseEmail")
-		cUserEmail := r.Form.Get("userEmail")
-		cUserPass := r.Form.Get("userPass")
-
-		a, err := strconv.Atoi(r.FormValue("courseCHrs"))
-		if err != nil {
-		}
-		cCHrs := a
+		var tempCourse CourseWeb
+		_ = json.NewDecoder(r.Body).Decode(&tempCourse)
+		fmt.Println(tempCourse)
 		currUsername := currUser.Username
 
-		AddCourse := Course{
-			Code:        cCode,
-			Name:        cName,
-			CreditHours: cCHrs,
-			Grade:       cGrade,
-		}
+		var newCourse Course
+		newCourse.Code = tempCourse.Code
+		newCourse.Name = tempCourse.Name
+		newCourse.CreditHours = tempCourse.CreditHours
+		newCourse.Grade = tempCourse.Grade
 
 		MyBlock := Block{
-			Course:   AddCourse,
-			Email:    cEmail,
+			Course:   newCourse,
+			Email:    tempCourse.VEmail,
 			Username: currUsername,
 			Status:   "Pending",
 		}
@@ -1792,6 +1735,7 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 		// 	log.Println("In Write Chain: ", err2)
 		// }
 
+		fmt.Println(MyBlock)
 		unverifiedChain = InsertCourseUnverified(MyBlock)
 		ListBlocks(chainHead)
 
@@ -1816,7 +1760,7 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 		m := gomail.NewMessage()
 
 		// Set E-Mail sender
-		m.SetHeader("From", cUserEmail)
+		m.SetHeader("From", tempCourse.SEmail)
 
 		// Set E-Mail receivers
 		m.SetHeader("To", MyBlock.Email)
@@ -1828,7 +1772,7 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 		m.SetBody("text/plain", "Course Name: "+MyBlock.Course.Name+"  Course Code: "+MyBlock.Course.Code+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mine/"+CalculateHash(&MyBlock))
 
 		// Settings for SMTP server
-		d := gomail.NewDialer("smtp.gmail.com", 587, cUserEmail, cUserPass)
+		d := gomail.NewDialer("smtp.gmail.com", 587, tempCourse.SEmail, tempCourse.SPass)
 
 		// This is only needed when SSL/TLS certificate is not valid on server.
 		// In production this should be set to false.
@@ -1845,7 +1789,7 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 		//		break
 		//		}
 		//		}
-		http.Redirect(w, r, urlLogin+"/dashboard", http.StatusSeeOther)
+		//http.Redirect(w, r, urlLogin+"/dashboard", http.StatusSeeOther)
 	}
 
 }
@@ -1892,14 +1836,14 @@ func RunWebServer(port string) {
 	//	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("../mountain"))))
 	//r.HandleFunc("/ws", HandleConnections)
 	r.HandleFunc("/addProject", AddProjectHandler)
-	r.HandleFunc("/showBlocks", UnverifiedBlocksHandler)
+	r.HandleFunc("/getBlocks", UnverifiedBlocksHandler)
 	r.HandleFunc("/generateCV", GenerateCVHandler)
 	r.HandleFunc("/addCourse", AddCourseHandler)
 	r.HandleFunc("/register", RegisterHandler)
 	r.HandleFunc("/login", LoginHandler)
 	r.HandleFunc("/logout", LogoutHandler)
-	r.HandleFunc("/dashboard", ProfileHandler).
-		Methods("GET")
+	r.HandleFunc("/getUser", ProfileHandler)
+	r.HandleFunc("/getAllUsers", GetAllUsers)
 
 	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("../Website/css"))))
 	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("../Website/js"))))
@@ -1907,8 +1851,8 @@ func RunWebServer(port string) {
 	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", http.FileServer(http.Dir("../Website/images"))))
 	r.PathPrefix("/fonts/").Handler(http.StripPrefix("/fonts/", http.FileServer(http.Dir("../Website/fonts"))))
 
-	urlLogin = "http://localhost:" + port
-	http.ListenAndServe("localhost:"+port, r)
+	urlLogin = "localhost:" + port
+	http.ListenAndServe(urlLogin, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))
 
 }
 
@@ -1920,7 +1864,7 @@ func RunWebServerMiner(port string) {
 
 	// r.Method("POST", "/blockInsert", Handler(getHandler))
 	//r.HandleFunc("/ws", HandleConnections)
-	http.ListenAndServe("localhost:"+port, r)
+	http.ListenAndServe("localhost:"+port, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))
 
 }
 
@@ -1931,6 +1875,6 @@ func RunWebServerSatoshi() {
 	r.HandleFunc("/showBlocks", showBlocksHandler).Methods("GET")
 	//r.HandleFunc("/ws", HandleConnections)
 
-	http.ListenAndServe("localhost"+":3333", r)
+	http.ListenAndServe("localhost:3333", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))
 
 }

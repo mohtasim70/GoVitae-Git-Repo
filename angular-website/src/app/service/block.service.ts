@@ -58,6 +58,15 @@ export class BlockService {
     return this.http.request(req);
   }
 
+  // Generate CV Function //
+
+  generateCV(): Observable<any> {
+    let url = `${this.adminURL}/generateCV`;
+
+    const req = new HttpRequest('GET', url);
+    return this.http.request(req);
+  }
+
   // Get Unverified Blocks Function //
 
   getBlocks(): Observable<any> {

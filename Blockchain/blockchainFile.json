@@ -1,43 +1,43 @@
 [
  {
   "Course": {
-   "Code": "",
-   "Name": "",
-   "CreditHours": 0,
-   "Grade": ""
+   "courseCode": "",
+   "courseName": "",
+   "courseCHrs": 0,
+   "courseGrade": ""
   },
   "Project": {
-   "Name": "Satoshi Coin",
-   "Details": "My own cryptocurrency",
-   "FileName": "Mohtasim's Resume (36).pdf",
-   "CourseName": "IBC"
+   "projectName": "afs",
+   "projectDetails": "afsfsa",
+   "projectFile": "C:\\fakepath\\BS (CS) CV Template 2021.docx",
+   "projectCourse": "afsafs"
   },
   "PrevPointer": null,
   "PrevHash": "",
   "CurrentHash": "",
   "BlockNo": 0,
-  "Status": "Pending",
-  "Email": "mohtasimasad@gmail.com",
-  "Username": ""
+  "Status": "Verified",
+  "Email": "temptemp5522@gmail.com",
+  "Username": "Mueed"
  },
  {
   "Course": {
-   "Code": "",
-   "Name": "",
-   "CreditHours": 0,
-   "Grade": ""
+   "courseCode": "",
+   "courseName": "",
+   "courseCHrs": 0,
+   "courseGrade": ""
   },
   "Project": {
-   "Name": "Satoshi Coin",
-   "Details": "My own cryptocurrency",
-   "FileName": "Mohtasim's Resume (36).pdf",
-   "CourseName": "IBC"
+   "projectName": "afs",
+   "projectDetails": "afsfsa",
+   "projectFile": "C:\\fakepath\\BS (CS) CV Template 2021.docx",
+   "projectCourse": "afsafs"
   },
   "PrevPointer": null,
   "PrevHash": "",
   "CurrentHash": "",
   "BlockNo": 0,
-  "Status": "",
+  "Status": "Verified",
   "Email": "",
   "Username": ""
  }

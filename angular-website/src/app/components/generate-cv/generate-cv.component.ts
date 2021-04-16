@@ -11,6 +11,7 @@ import * as $ from 'jquery';
 })
 export class GenerateCVComponent implements OnInit {
 
+  CV: any;
   User: any;
   submitted = false;
   playerForm: FormGroup;
@@ -24,11 +25,27 @@ export class GenerateCVComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.getCV();
     this.getUser();
     $(document).ready(function(){
       $('.nav_btn').click(function(){
         $('.mobile_nav_items').toggleClass('active');
       });
+    });
+  }
+
+  getCV() {
+    this.blockService.generateCV().subscribe(
+    (res) => {
+      if (res['status'] == 200)
+      {
+        console.log(res);
+        this.CV = res['body']['cv'];
+        console.log(this.CV);
+      }
+    }, (error) => {
+      console.log(error);
+      console.exception("ss");
     });
   }
   

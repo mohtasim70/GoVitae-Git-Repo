@@ -55,7 +55,44 @@
     <div class="content">
       <div class="container">
         <div class="row">
-          <div class="col-md-9 offset-md-3">
+          <div class="col-md-6 offset-md-3">
+              <h5 class="text-center" style="margin-bottom: 60px;">Verified CV</h5>
+          </div>
+      </div>
+        <div class="row">
+          <div class="col-md-10 offset-md-1">
+            <div *ngIf="CV != null">
+              <div *ngIf="CV.Course.length <= 0 && CV.Project.length <= 0">
+                <h1 class="noBlocks">No verified content exists!</h1>
+              </div>
+              <div *ngIf="CV.Course.length > 0 || CV.Project.length > 0" class="card carder">
+                <h2 class="fullName">{{CV.Firstname}} {{CV.Lastname}}</h2>
+                <h3 class="fullEmail">{{CV.Email}}</h3>
+                <div *ngIf="CV.Course.length > 0">
+                  <h4 class="fullHead">Courses</h4>
+                  <div *ngFor="let course of CV.Course; let j = index;" class="row">
+                    <div class="col-8">
+                      <h6>{{course.courseCode}} · {{course.courseName}} · {{course.courseCHrs}} CHrs</h6>
+                    </div>
+                    <div class="col-4">
+                      <h6><span style="font-weight: 500;">Grade:</span> {{course.courseGrade}}</h6>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="CV.Project.length > 0">
+                  <h4 class="fullHead">Projects</h4>
+                  <div *ngFor="let project of CV.Project; let j = index;" class="row">
+                    <div class="col-7">
+                      <h6>{{project.projectName}}</h6>
+                      <h6 class="projectDesc">{{project.projectDetails}}</h6>
+                    </div>
+                    <div class="col-4 offset-1">
+                      <h6><span style="font-weight: 500;">Course:</span> {{project.projectCourse}}</h6>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div> 
           </div>
         </div>
       </div>

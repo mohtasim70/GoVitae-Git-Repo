@@ -232,6 +232,24 @@ h2 {
 	text-align: center;
 }
 
+.fullHead {
+  padding: 20px;
+  border-bottom: 1px solid #0f9c89;
+  width: 30%;
+  font-weight: 600;
+  margin-top: 30px;
+  color: #22242A;
+  margin-bottom: 15px;
+  font-size: 24px;
+}
+
+h6 {
+  font-weight: 400;
+  font-size: 18px;
+  margin-top: 15px;
+  color: #22242A;
+}
+
 h5 {
     margin-top: 40px;
     color: #00BFA6;
@@ -241,6 +259,38 @@ h5 {
     border: 1px dotted #057062;
     border-radius: 35px;
     padding: 20px;
+}
+
+.fullName {
+  margin-top: 5px;
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.fullEmail {
+  font-size: 24px;
+  text-align: center;
+  font-weight: 400;
+  margin-top: 5px;
+}
+
+.carder {
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.1);
+}
+
+.projectDesc {
+  margin-top: 0px;
+  font-size: 14px;
+  color: #646464;
+  font-weight: 300;
+}
+
+.noBlocks {
+  font-size: 40px;
+  text-align: center;
+  margin-top: 130px;
 }
   
 .mobLogo {

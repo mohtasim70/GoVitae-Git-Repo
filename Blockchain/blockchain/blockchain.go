@@ -250,6 +250,7 @@ func ReadHash(hash string) Block {
 	// Appends decoded object to dataArr until every object gets parsed
 	for decoder.More() {
 		decoder.Decode(&block)
+		fmt.Println("FileBlock", block)
 		//	chainHead = InsertCourse(block)
 		if block.CurrentHash == hash {
 			return block
@@ -271,6 +272,7 @@ func GetBlockhainArray(chainHead *Block) []Block {
 			block.Course = chainHead.Course
 		}
 		block.Status = chainHead.Status
+		block.Username = chainHead.Username
 		if (chainHead.Project != Project{}) {
 			block.Project = chainHead.Project
 		}
@@ -308,13 +310,15 @@ func InsertCourse(myBlock Block) *Block {
 	myBlock.CurrentHash = CalculateHash(&myBlock)
 	fmt.Println("Course Hash, ", CalculateHash(&myBlock))
 	if chainHead == nil {
+		myBlock.Status = "Verified"
 		myBlock.BlockNo = count
 		myBlock.PrevHash = "null"
 		chainHead = &myBlock
-		//	fmt.Println("Genesis Block Inserted")
+		fmt.Println("Genesis Course Block Inserted!")
 		return chainHead
 	}
 	count = count + 1
+	myBlock.Status = "Verified"
 	myBlock.PrevPointer = chainHead
 	myBlock.PrevHash = chainHead.CurrentHash
 	myBlock.BlockNo = count
@@ -333,7 +337,7 @@ func InsertProject(myBlock Block) *Block {
 		myBlock.BlockNo = count
 		myBlock.PrevHash = "null"
 		chainHead = &myBlock
-		//	fmt.Println("Genesis Block Inserted")
+		fmt.Println("Genesis Project Block Inserted!")
 		return chainHead
 	}
 	count = count + 1
@@ -355,7 +359,7 @@ func InsertCourseUnverified(myBlock Block) *Block {
 		myBlock.BlockNo = count
 		myBlock.PrevHash = "null"
 		unverifiedChain = &myBlock
-		//	fmt.Println("Genesis Block Inserted")
+		fmt.Println("Genesis Course Unverified Block Inserted!")
 
 		return unverifiedChain
 	}
@@ -364,7 +368,7 @@ func InsertCourseUnverified(myBlock Block) *Block {
 	myBlock.PrevHash = unverifiedChain.CurrentHash
 	myBlock.BlockNo = count
 
-	fmt.Println("Course UnVerified Block Inserted!")
+	fmt.Println("Course Unverified Block Inserted!")
 	return &myBlock
 
 }
@@ -378,7 +382,7 @@ func InsertProjectUnverified(myBlock Block) *Block {
 		myBlock.BlockNo = count
 		myBlock.PrevHash = "null"
 		unverifiedChain = &myBlock
-		//	fmt.Println("Genesis Block Inserted")
+		fmt.Println("Genesis Project Unverified Block Inserted!")
 		return unverifiedChain
 	}
 	count = count + 1
@@ -386,7 +390,7 @@ func InsertProjectUnverified(myBlock Block) *Block {
 	myBlock.PrevHash = unverifiedChain.CurrentHash
 	myBlock.BlockNo = count
 
-	fmt.Println("Project UnVerified Block Inserted!")
+	fmt.Println("Project Unverified Block Inserted!")
 	return &myBlock
 
 }
@@ -1075,6 +1079,7 @@ func Mineblock(w http.ResponseWriter, r *http.Request) {
 		chainHead = InsertCourse(block)
 		stuff.ChainHead = chainHead
 		fmt.Println("In Mining")
+		fmt.Println(chainHead)
 		ListBlocks(chainHead)
 		fmt.Println("Trrr")
 
@@ -1359,6 +1364,8 @@ func UnverifiedBlocksHandler(w http.ResponseWriter, r *http.Request) {
 			Password:  "",
 		}
 
+		fmt.Println(unverifiedChain)
+		fmt.Println(chainHead)
 		tempHead2 := chainHead
 		tempCurrHash2 := []string{}
 		for tempHead2 != nil {
@@ -1517,10 +1524,16 @@ func GenerateCVHandler(w http.ResponseWriter, r *http.Request) {
 		tempHead := chainHead
 		tempCourse := []Course{}
 		tempProject := []Project{}
+
+		fmt.Println("Blockchain", tempHead)
 		for tempHead != nil {
 			if tempHead.Username == result.Username {
-				tempCourse = append(tempCourse, tempHead.Course)
-				tempProject = append(tempProject, tempHead.Project)
+				if tempHead.Course.Code != "" {
+					tempCourse = append(tempCourse, tempHead.Course)
+				}
+				if tempHead.Project.Name != "" {
+					tempProject = append(tempProject, tempHead.Project)
+				}
 			}
 			tempHead = tempHead.PrevPointer
 		}
@@ -1534,15 +1547,17 @@ func GenerateCVHandler(w http.ResponseWriter, r *http.Request) {
 			Username:  result.Username,
 		}
 
-		t, err := template.ParseFiles("../Website/generateCV.html") //parse the html file homepage.html
-		if err != nil {                                             // if there is an error
-			log.Print("template parsing error: ", err) // log it
+		json, err := json.Marshal(struct {
+			Result CV `json:"cv"`
+		}{
+			cv,
+		})
+
+		if err != nil {
+			fmt.Println(err)
 		}
 
-		err = t.Execute(w, cv) //execute the template and pass it the HomePageVars struct to fill in the gaps
-		if err != nil {        // if there is an error
-			log.Print("template executing error: ", err) //log it
-		}
+		w.Write(json)
 	} else {
 		res.Error = err.Error()
 		json.NewEncoder(w).Encode(res)

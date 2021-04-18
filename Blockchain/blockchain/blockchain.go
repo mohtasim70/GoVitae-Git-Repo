@@ -252,7 +252,8 @@ func ReadHash(hash string) Block {
 		decoder.Decode(&block)
 		fmt.Println("FileBlock", block)
 		//	chainHead = InsertCourse(block)
-		if block.CurrentHash == hash {
+		filehas := CalculateHash(&block)
+		if filehas == hash {
 			return block
 		}
 	}
@@ -1065,7 +1066,7 @@ func Mineblock(w http.ResponseWriter, r *http.Request) {
 	}
 	WriteString(Satoshiconn, Peers) //Sends its info including his mail to Satoshi
 
-	go ReadPeersMinerChainEverything(Satoshiconn) //Reads info from Satoshi
+	// go ReadPeersMinerChainEverything(Satoshiconn) //Reads info from Satoshi
 	//	blockHash := CalculateHash(&Minedblock)
 	//	ListBlocks(unverifiedChain)
 	//	blockHash := CalculateHash(unverifiedChain)
@@ -1097,6 +1098,8 @@ func Mineblock(w http.ResponseWriter, r *http.Request) {
 		// if err1 != nil {
 		// 	log.Println("Errpr in brosti Chain", err1)
 		// }
+	} else {
+		fmt.Println("Wrong Hash")
 	}
 	//	broadcastChain()
 
@@ -1717,6 +1720,88 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 		//		}
 		//		}
 		http.Redirect(w, r, urlLogin+"/dashboard", http.StatusSeeOther)
+	}
+
+}
+
+//Search dede
+type Search struct {
+	CourseCode        string `json:"CourseCode"`
+	CourseGrade       string `json:"CourseGrade"`
+	ProjectCourseName string `json:"ProjectCourseName"`
+	CourseName        string `json:"CourseName"`
+}
+
+//Result dede
+type Result struct {
+	Username string `json:"Username"`
+	Course   Course `json:"Course"`
+}
+
+func SearchRequiredUsers(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		var search Search
+		_ = json.NewDecoder(r.Body).Decode(&search)
+		fmt.Println(search)
+		// currUsername := currUser.Username
+		file, err := os.Open("blockchainFile.json")
+		if err != nil {
+			log.Println("Can't read file")
+		}
+		defer file.Close()
+
+		decoder := json.NewDecoder(file)
+		decoder.Token()
+		block := Block{}
+		// Appends decoded object to dataArr until every object gets parsed
+		var users []Result
+		for decoder.More() {
+			decoder.Decode(&block)
+			if block.Course.Name == search.CourseName && block.Course.Grade == search.CourseGrade {
+				resul := Result{
+					Username: block.Username,
+					Course:   block.Course,
+				}
+				users = append(users, resul)
+			}
+		}
+		// ReadBlockchainFile()
+		// tempHead:=chainHead
+		// for tempHead != nil {
+		// 	if tempHead.Username == result.Username {
+		// 		if tempHead.Course.Code != "" {
+		// 			tempCourse = append(tempCourse, tempHead.Course)
+		// 		}
+		// 		if tempHead.Project.Name != "" {
+		// 			tempProject = append(tempProject, tempHead.Project)
+		// 		}
+		// 	}
+		// 	tempHead = tempHead.PrevPointer
+		// }
+		// cv := CV{
+		// 	Email:     result.Email,
+		// 	Firstname: result.FirstName,
+		// 	Lastname:  result.LastName,
+		// 	Course:    tempCourse,
+		// 	Project:   tempProject,
+		// 	Username:  result.Username,
+		// }
+
+		json, err := json.Marshal(struct {
+			Result []Result `json:"users"`
+		}{
+			users,
+		})
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		w.Write(json)
+	} else {
+		// // res.Error = err.Error()
+		// json.NewEncoder(w).Encode(res)
+		return
 	}
 
 }

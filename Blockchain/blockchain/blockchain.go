@@ -1133,56 +1133,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		//http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
-		satoshiAddress := "2500"
-		myListeningAddress := "6002"
-
-		conn, err := net.Dial("tcp", "localhost:"+satoshiAddress)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		go StartListening(myListeningAddress, "others") //Starts own server
-
-		log.Println("Sending my listening address to Satoshis")
-		chainHead := ReceiveChain(conn)
-		ListBlocks(chainHead)
-
-		Peers := Client{
-			ListeningAddress: myListeningAddress,
-			Types:            true,
-		}
-		WriteString(conn, Peers) //Writes its address
-
-		//go b.ReceiveChain(conn)
-
-		go ReadPeersMinerChainEverything(conn) // Reads information from Satoshi every second
-
-		// go func() { //Go routine for reading the chain that miner sends
-		// 	for {
-		// 		if Mined == true { // checks if the block sent is mined or not
-		// 			fmt.Println("trueue")
-		// 			var stuu Combo
-		// 			fmt.Println("In Read Peers fffwd")
-		// 			gobEncoder := gob.NewDecoder(MinerConn)
-		// 			err := gobEncoder.Decode(&stuu)
-		// 			if err != nil {
-		// 				log.Println(err, "FFF")
-		// 			}
-		// 			fmt.Println("Read StuuPeers: ", stuu.ClientsSlice)
-		// 			ListBlocks(stuu.ChainHead)
-		// 			// if Length(stuu.ChainHead) >= Length(chainHead) {
-		// 			// 	chainHead = stuu.ChainHead
-		// 			// 	stuff.ChainHead = chainHead
-		// 			// 	fmt.Println("Read Chain: ")
-		// 			// 	ListBlocks(chainHead)
-		// 			// }
-		// 			Mined = false
-		// 		}
-		//
-		// 	}
-		//
-		// }()
 	}
 
 }
@@ -1243,17 +1193,58 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 		}
 
-		w.Write(json)
-		/*if err != nil {
-			res.Error = "Error while generating token,Try again"
-			json.NewEncoder(w).Encode(res)
-			return
+		//http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
+		satoshiAddress := "2500"
+		myListeningAddress := "6002"
+
+		conn, err := net.Dial("tcp", "localhost:"+satoshiAddress)
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		result.Token = tokenString
-		result.Password = ""
-		http.Redirect(w, r, urlLogin+"/dashboard", http.StatusSeeOther)
-		json.NewEncoder(w).Encode(result)*/
+		go StartListening(myListeningAddress, "others") //Starts own server
+
+		log.Println("Sending my listening address to Satoshis")
+		chainHead := ReceiveChain(conn)
+		ListBlocks(chainHead)
+
+		Peers := Client{
+			ListeningAddress: myListeningAddress,
+			Types:            true,
+		}
+		WriteString(conn, Peers) //Writes its address
+
+		//go b.ReceiveChain(conn)
+
+		go ReadPeersMinerChainEverything(conn) // Reads information from Satoshi every second
+
+		// go func() { //Go routine for reading the chain that miner sends
+		// 	for {
+		// 		if Mined == true { // checks if the block sent is mined or not
+		// 			fmt.Println("trueue")
+		// 			var stuu Combo
+		// 			fmt.Println("In Read Peers fffwd")
+		// 			gobEncoder := gob.NewDecoder(MinerConn)
+		// 			err := gobEncoder.Decode(&stuu)
+		// 			if err != nil {
+		// 				log.Println(err, "FFF")
+		// 			}
+		// 			fmt.Println("Read StuuPeers: ", stuu.ClientsSlice)
+		// 			ListBlocks(stuu.ChainHead)
+		// 			// if Length(stuu.ChainHead) >= Length(chainHead) {
+		// 			// 	chainHead = stuu.ChainHead
+		// 			// 	stuff.ChainHead = chainHead
+		// 			// 	fmt.Println("Read Chain: ")
+		// 			// 	ListBlocks(chainHead)
+		// 			// }
+		// 			Mined = false
+		// 		}
+		//
+		// 	}
+		//
+		// }()
+
+		w.Write(json)
 	}
 }
 
@@ -1729,13 +1720,72 @@ type Search struct {
 	CourseCode        string `json:"CourseCode"`
 	CourseGrade       string `json:"CourseGrade"`
 	ProjectCourseName string `json:"ProjectCourseName"`
-	CourseName        string `json:"CourseName"`
+	CourseName        string `json:"courseName"`
 }
 
 //Result dede
 type Result struct {
 	Username string `json:"Username"`
 	Course   Course `json:"Course"`
+}
+
+func SearchVerifyContent(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		// currUsername := currUser.Username
+		file, err := os.Open("blockchainFile.json")
+		if err != nil {
+			log.Println("Can't read file")
+		}
+		defer file.Close()
+
+		decoder := json.NewDecoder(file)
+		decoder.Token()
+		block := Block{}
+		// Appends decoded object to dataArr until every object gets parsed
+		var allCourses []Course
+		for decoder.More() {
+			decoder.Decode(&block)
+			allCourses = append(allCourses, block.Course)
+		}
+		// ReadBlockchainFile()
+		// tempHead:=chainHead
+		// for tempHead != nil {
+		// 	if tempHead.Username == result.Username {
+		// 		if tempHead.Course.Code != "" {
+		// 			tempCourse = append(tempCourse, tempHead.Course)
+		// 		}
+		// 		if tempHead.Project.Name != "" {
+		// 			tempProject = append(tempProject, tempHead.Project)
+		// 		}
+		// 	}
+		// 	tempHead = tempHead.PrevPointer
+		// }
+		// cv := CV{
+		// 	Email:     result.Email,
+		// 	Firstname: result.FirstName,
+		// 	Lastname:  result.LastName,
+		// 	Course:    tempCourse,
+		// 	Project:   tempProject,
+		// 	Username:  result.Username,
+		// }
+
+		json, err := json.Marshal(struct {
+			Result []Course `json:"courses"`
+		}{
+			allCourses,
+		})
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		w.Write(json)
+	} else {
+		// // res.Error = err.Error()
+		// json.NewEncoder(w).Encode(res)
+		return
+	}
+
 }
 
 func SearchRequiredUsers(w http.ResponseWriter, r *http.Request) {
@@ -1757,7 +1807,7 @@ func SearchRequiredUsers(w http.ResponseWriter, r *http.Request) {
 		var users []Result
 		for decoder.More() {
 			decoder.Decode(&block)
-			if block.Course.Name == search.CourseName && block.Course.Grade == search.CourseGrade {
+			if block.Course.Name == search.CourseName || block.Course.Grade == search.CourseName {
 				resul := Result{
 					Username: block.Username,
 					Course:   block.Course,
@@ -1973,6 +2023,8 @@ func RunWebServerSatoshi() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/showBlocks", showBlocksHandler).Methods("GET")
+	r.HandleFunc("/getVerifyContent", SearchVerifyContent)
+	r.HandleFunc("/getVerifiedCVs", SearchRequiredUsers)
 	//r.HandleFunc("/ws", HandleConnections)
 
 	http.ListenAndServe("localhost:3333", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))

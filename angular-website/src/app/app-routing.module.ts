@@ -7,6 +7,8 @@ import { AddProjectComponent } from './components/add-project/add-project.compon
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { UnverifiedBlocksComponent } from './components/unverified-blocks/unverified-blocks.component';
 import { GenerateCVComponent } from './components/generate-cv/generate-cv.component';
+import { HomeComponent } from './components/home/home.component';
+import { SearchCVComponent } from './components/search-cv/search-cv.component';
  
 const routes: Routes = [
   {path: 'addCourse', component: AddCourseComponent},
@@ -15,6 +17,8 @@ const routes: Routes = [
   {path: 'generateCV', component: GenerateCVComponent},
   {path: 'register', component: RegisterComponent},
   {path: 'login', component: LoginComponent},
+  {path: '', component: HomeComponent},
+  {path: 'searchCV', component: SearchCVComponent},
   {path: 'dashboard', component: DashboardComponent},
 ];
 

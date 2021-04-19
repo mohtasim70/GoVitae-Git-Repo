@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 export class BlockService {
 
   adminURL:string = "http://localhost:3334";
+  mainURL:string = "http://localhost:3333";
 
   constructor(private http: HttpClient, public router: Router) { }
 
@@ -91,6 +92,24 @@ export class BlockService {
     let url = `${this.adminURL}/getAllUsers`;
 
     const req = new HttpRequest('GET', url);
+    return this.http.request(req);
+  }
+
+  // Get Verified Content Function //
+
+  getVerifiedContent() {
+    let url = `${this.mainURL}/getVerifyContent`;
+
+    const req = new HttpRequest('GET', url);
+    return this.http.request(req);
+  }
+
+  // Get Verified CVs Function //
+
+  getVerifiedCVs(data) {
+    let url = `${this.mainURL}/getVerifiedCVs`;
+
+    const req = new HttpRequest('POST', url, data);
     return this.http.request(req);
   }
 

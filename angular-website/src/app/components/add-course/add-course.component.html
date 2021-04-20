@@ -72,15 +72,23 @@
                     </div>
                   </div>
                   <div class="form-group">
-                    <input type="number" placeholder="Course Credit Hours" formControlName="courseCHrs" required [ngClass]="{ 'is-invalid': submitted && myForm.courseCHrs.errors }">
+                    <select name="courseCHrs" formControlName="courseCHrs" required [ngClass]="{ 'is-invalid': submitted && myForm.courseGrade.errors }">
+                      <option value="">Course Credit Hours</option>
+                      <option *ngFor="let credit of credits" value="{{credit}}">{{credit}}
+                      </option>
+                    </select>
                     <div *ngIf="submitted && myForm.courseCHrs.errors" class="invalid-feedback">
                       <div style="margin-left: 20px;" *ngIf="myForm.courseCHrs.errors.required">Course Credit Hours is required.</div>
                     </div>
                   </div>
                   <div class="form-group">
-                    <input type="text" placeholder="Course Grade" formControlName="courseGrade" required [ngClass]="{ 'is-invalid': submitted && myForm.courseGrade.errors }">
-                    <div *ngIf="submitted && myForm.courseGrade.errors" class="invalid-feedback">
-                      <div style="margin-left: 20px;" *ngIf="myForm.courseGrade.errors.required">Course Grade is required.</div>
+                    <select name="courseGrade" formControlName="courseGrade" required [ngClass]="{ 'is-invalid': submitted && myForm.courseGrade.errors }">
+                      <option value="">Course Grade</option>
+                      <option *ngFor="let grade of grades" value="{{grade}}">{{grade}}
+                      </option>
+                    </select>
+                    <div *ngIf="submitted && myForm.courseCHrs.errors" class="invalid-feedback">
+                      <div style="margin-left: 20px;" *ngIf="myForm.courseCHrs.errors.required">Course Credit Hours is required.</div>
                     </div>
                   </div>
                   <div class="form-group">

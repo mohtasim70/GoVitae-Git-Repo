@@ -7,7 +7,7 @@ import (
 func main() {
 	//	satoshiAddress := os.Args[1]
 	//	myListeningAddress := os.Args[3]
-	webAddress := "3335"
+	//webAddress := "3335"
 	// mail := os.Args[4]
 	//
 	// conn, err := net.Dial("tcp", ":"+satoshiAddress)
@@ -16,7 +16,7 @@ func main() {
 	// }
 
 	b.Doit = true
-	go b.RunWebServerMiner(webAddress) //Starts own web server
+	//go b.RunWebServerMiner(webAddress) //Starts own web server
 	//	go b.StartListening(myListeningAddress, "miner") //Starts its own server
 
 	// log.Println("Sending my listening address to Satoshi")

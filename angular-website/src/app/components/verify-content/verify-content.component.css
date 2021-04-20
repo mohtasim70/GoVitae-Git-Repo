@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap');
+
+h1 {
+    text-align: center;
+    margin-top: 100px;
+    color: #059784;
+}
+
+.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+    margin-top: 110px;
+  }

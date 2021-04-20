@@ -178,7 +178,7 @@ form {
   box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.1);
 }
 
-input {
+input, textarea {
   width: 100%;
   text-align: center;
   outline: none;
@@ -188,27 +188,13 @@ input {
   border-radius: 25px;
   transition: all 0.3s ease;
   margin-bottom: 15px;
+  color: grey;
 }
 
-input:focus {
+input:focus, textarea:focus {
+  color: #019c88;
   border-color: #00BFA6;
 }
-
-textarea {
-    width: 100%;
-    text-align: center;
-    outline: none;
-    font-size: 17px;
-    padding: 15px;
-    border: 1px solid lightgrey;
-    border-radius: 25px;
-    transition: all 0.3s ease;
-    margin-bottom: 15px;
-  }
-  
-  textarea:focus {
-    border-color: #00BFA6;
-  }
 
 label {
   color: #00BFA6;

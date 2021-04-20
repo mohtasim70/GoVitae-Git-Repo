@@ -1,121 +1,58 @@
 [
  {
   "Course": {
-   "courseCode": "",
-   "courseName": "",
-   "courseCHrs": 0,
-   "courseGrade": ""
-  },
-  "Project": {
-   "projectName": "Lala",
-   "projectDetails": "allalla",
-   "projectFile": "C:\\fakepath\\Assignment1_PDC.pdf",
-   "projectCourse": "AP"
-  },
-  "PrevPointer": null,
-  "PrevHash": "",
-  "CurrentHash": "",
-  "BlockNo": 0,
-  "Status": "Verified",
-  "Email": "mohtasimasad@gmail.com",
-  "Username": "cum"
- },
- {
-  "Course": {
-   "courseCode": "wewe",
-   "courseName": "edw",
-   "courseCHrs": 333,
-   "courseGrade": "BB"
-  },
-  "Project": {
-   "projectName": "Lala",
-   "projectDetails": "allalla",
-   "projectFile": "C:\\fakepath\\Assignment1_PDC.pdf",
-   "projectCourse": "AP"
-  },
-  "PrevPointer": null,
-  "PrevHash": "",
-  "CurrentHash": "",
-  "BlockNo": 0,
-  "Status": "Verified",
-  "Email": "mohtasimasad@gmail.com",
-  "Username": "cum"
- },
- {
-  "Course": {
-   "courseCode": "cumswed",
-   "courseName": "PPO",
-   "courseCHrs": 33,
-   "courseGrade": "A"
-  },
-  "Project": {
-   "projectName": "Lala",
-   "projectDetails": "allalla",
-   "projectFile": "C:\\fakepath\\Assignment1_PDC.pdf",
-   "projectCourse": "AP"
-  },
-  "PrevPointer": null,
-  "PrevHash": "",
-  "CurrentHash": "",
-  "BlockNo": 0,
-  "Status": "Verified",
-  "Email": "mohtasimasad@gmail.com",
-  "Username": "cum"
- },
- {
-  "Course": {
-   "courseCode": "sdwd",
-   "courseName": "swed",
+   "courseCode": "CS-404",
+   "courseName": "Operating Systems",
    "courseCHrs": 3,
-   "courseGrade": "A"
+   "courseGrade": "C"
   },
   "Project": {
-   "projectName": "Lala",
-   "projectDetails": "allalla",
-   "projectFile": "C:\\fakepath\\Assignment1_PDC.pdf",
-   "projectCourse": "AP"
+   "projectName": "",
+   "projectDetails": "",
+   "projectFile": "",
+   "projectCourse": ""
   },
   "PrevPointer": null,
   "PrevHash": "",
   "CurrentHash": "",
   "BlockNo": 0,
   "Status": "Verified",
-  "Email": "mohtasimasad@gmail.com",
-  "Username": "ty"
+  "Email": "temptemp5522@gmail.com",
+  "Username": "Mueed"
  },
  {
   "Course": {
-   "courseCode": "Kudos",
-   "courseName": "DM",
+   "courseCode": "CS-202",
+   "courseName": "Database Systems",
    "courseCHrs": 3,
-   "courseGrade": "A"
+   "courseGrade": "A-"
   },
   "Project": {
-   "projectName": "Lala",
-   "projectDetails": "allalla",
-   "projectFile": "C:\\fakepath\\Assignment1_PDC.pdf",
-   "projectCourse": "AP"
+   "projectName": "",
+   "projectDetails": "",
+   "projectFile": "",
+   "projectCourse": ""
   },
   "PrevPointer": null,
   "PrevHash": "",
   "CurrentHash": "",
   "BlockNo": 0,
   "Status": "Verified",
-  "Email": "mohtasimasad@gmail.com",
-  "Username": "ty"
+  "Email": "temptemp5522@gmail.com",
+  "Username": "Mueed"
  },
  {
   "Course": {
-   "courseCode": "Kudos",
-   "courseName": "DM",
+   "courseCode": "CS-202",
+   "courseName": "Database Systems",
    "courseCHrs": 3,
-   "courseGrade": "A"
+   "courseGrade": "A-"
   },
   "Project": {
-   "projectName": "Lala",
-   "projectDetails": "allalla",
-   "projectFile": "C:\\fakepath\\Assignment1_PDC.pdf",
-   "projectCourse": "AP"
+   "projectName": "",
+   "projectDetails": "",
+   "projectFile": "",
+   "projectCourse": ""
   },
   "PrevPointer": null,
   "PrevHash": "",

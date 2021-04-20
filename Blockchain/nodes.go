@@ -8,14 +8,14 @@ func main() {
 
 	// satoshiAddress := os.Args[1]
 	// myListeningAddress := os.Args[2]
-	webAddress := "3334"
+	//webAddress := "3334"
 	//
 	// conn, err := net.Dial("tcp", "localhost:"+satoshiAddress)
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
 
-	go b.RunWebServer(webAddress) //Runs webserver
+	go b.RunWebServer() //Runs webserver
 	// go b.StartListening(myListeningAddress, "others") //Starts own server
 	//
 	// log.Println("Sending my listening address to Satoshis")

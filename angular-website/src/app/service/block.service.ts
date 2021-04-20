@@ -9,15 +9,16 @@ import { Router } from '@angular/router';
 })
 export class BlockService {
 
-  adminURL:string = "http://localhost:3334";
-  mainURL:string = "http://localhost:3333";
+  adminURL:string = "";
+  mainURL:string = "";
+  minerURL:string = "";
 
   constructor(private http: HttpClient, public router: Router) { }
 
   // Register Function //
 
   register(data): Observable<any> {
-    let url = `${this.adminURL}/register`;
+    let url = `${this.adminURL}/registerUser`;
 
     const req = new HttpRequest('POST', url, data);
     return this.http.request(req);
@@ -26,7 +27,7 @@ export class BlockService {
   // Login Function //
 
   login(data): Observable<any> {
-    let url = `${this.adminURL}/login`;
+    let url = `${this.adminURL}/loginUser`;
 
     const req = new HttpRequest('POST', url, data);
     return this.http.request(req);
@@ -44,7 +45,7 @@ export class BlockService {
   // Add Course Function //
 
   addCourse(data): Observable<any> {
-    let url = `${this.adminURL}/addCourse`;
+    let url = `${this.adminURL}/addCourseUser`;
 
     const req = new HttpRequest('POST', url, data);
     return this.http.request(req);
@@ -53,7 +54,7 @@ export class BlockService {
   // Add Project Function //
 
   addProject(data): Observable<any> {
-    let url = `${this.adminURL}/addProject`;
+    let url = `${this.adminURL}/addProjectUser`;
 
     const req = new HttpRequest('POST', url, data);
     return this.http.request(req);
@@ -62,7 +63,7 @@ export class BlockService {
   // Generate CV Function //
 
   generateCV(): Observable<any> {
-    let url = `${this.adminURL}/generateCV`;
+    let url = `${this.adminURL}/generateCVUser`;
 
     const req = new HttpRequest('GET', url);
     return this.http.request(req);
@@ -71,7 +72,7 @@ export class BlockService {
   // Get Unverified Blocks Function //
 
   getBlocks(): Observable<any> {
-    let url = `${this.adminURL}/getBlocks`;
+    let url = `${this.adminURL}/getBlocksUser`;
 
     const req = new HttpRequest('GET', url);
     return this.http.request(req);
@@ -110,6 +111,15 @@ export class BlockService {
     let url = `${this.mainURL}/getVerifiedCVs`;
 
     const req = new HttpRequest('POST', url, data);
+    return this.http.request(req);
+  }
+
+  // Mine Block Function //
+
+  mineBlock(hash) {
+    let url = `${this.minerURL}/mineBlockMiner/${hash}`;
+
+    const req = new HttpRequest('GET', url);
     return this.http.request(req);
   }
 

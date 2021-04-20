@@ -1,65 +1,44 @@
 [
  {
   "Course": {
-   "courseCode": "",
-   "courseName": "",
-   "courseCHrs": 0,
-   "courseGrade": ""
+   "courseCode": "CS-404",
+   "courseName": "Operating Systems",
+   "courseCHrs": 3,
+   "courseGrade": "C"
   },
   "Project": {
-   "projectName": "Lala",
-   "projectDetails": "allalla",
-   "projectFile": "C:\\fakepath\\Assignment1_PDC.pdf",
-   "projectCourse": "AP"
+   "projectName": "",
+   "projectDetails": "",
+   "projectFile": "",
+   "projectCourse": ""
   },
   "PrevPointer": null,
   "PrevHash": "",
   "CurrentHash": "",
   "BlockNo": 0,
   "Status": "Pending",
-  "Email": "mohtasimasad@gmail.com",
-  "Username": "cum"
+  "Email": "temptemp5522@gmail.com",
+  "Username": "Mueed"
  },
  {
   "Course": {
-   "courseCode": "wewe",
-   "courseName": "edw",
-   "courseCHrs": 333,
-   "courseGrade": "BB"
+   "courseCode": "CS-202",
+   "courseName": "Database Systems",
+   "courseCHrs": 3,
+   "courseGrade": "A-"
   },
   "Project": {
-   "projectName": "Lala",
-   "projectDetails": "allalla",
-   "projectFile": "C:\\fakepath\\Assignment1_PDC.pdf",
-   "projectCourse": "AP"
+   "projectName": "",
+   "projectDetails": "",
+   "projectFile": "",
+   "projectCourse": ""
   },
   "PrevPointer": null,
   "PrevHash": "",
   "CurrentHash": "",
   "BlockNo": 0,
-  "Status": "Pending",
-  "Email": "mohtasimasad@gmail.com",
-  "Username": "cum"
- },
- {
-  "Course": {
-   "courseCode": "cumswed",
-   "courseName": "PPO",
-   "courseCHrs": 33,
-   "courseGrade": "A"
-  },
-  "Project": {
-   "projectName": "Lala",
-   "projectDetails": "allalla",
-   "projectFile": "C:\\fakepath\\Assignment1_PDC.pdf",
-   "projectCourse": "AP"
-  },
-  "PrevPointer": null,
-  "PrevHash": "",
-  "CurrentHash": "",
-  "BlockNo": 0,
-  "Status": "Pending",
-  "Email": "mohtasimasad@gmail.com",
-  "Username": "cum"
+  "Status": "Verified",
+  "Email": "temptemp5522@gmail.com",
+  "Username": "Mueed"
  }
 ]

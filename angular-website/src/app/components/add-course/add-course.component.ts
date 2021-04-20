@@ -14,6 +14,8 @@ export class AddCourseComponent implements OnInit {
   User: any;
   submitted = false;
   playerForm: FormGroup;
+  grades = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'D'];
+  credits = [1, 2, 3, 4];
 
   constructor(
     public fb: FormBuilder,
@@ -77,6 +79,7 @@ export class AddCourseComponent implements OnInit {
     if (!this.playerForm.valid) {
       return false;
     } else {
+      this.playerForm.controls.courseCHrs.setValue(parseInt(this.playerForm.controls.courseCHrs.value))
       this.blockService.addCourse(this.playerForm.value).subscribe(
         (res) => {
             this.ngZone.run(() => this.router.navigateByUrl('/dashboard'))

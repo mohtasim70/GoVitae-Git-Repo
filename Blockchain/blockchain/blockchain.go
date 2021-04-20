@@ -1706,7 +1706,7 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 		// Set E-Mail body. You can set plain text or html with text/html
 
 		///////////// Add files to send to the mailer /////////////////
-		m.SetBody("text/plain", "Project Name: "+MyBlock.Project.Name+"  Project Details: "+MyBlock.Project.Details+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mine/"+CalculateHash(&MyBlock))
+		m.SetBody("text/plain", "Project Name: "+MyBlock.Project.Name+"  Project Details: "+MyBlock.Project.Details+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mineBlock/"+CalculateHash(&MyBlock))
 
 		// Settings for SMTP server
 		d := gomail.NewDialer("smtp.gmail.com", 587, tempProject.SEmail, tempProject.SPass)
@@ -1935,7 +1935,7 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 		m.SetHeader("Subject", "Verification Content")
 
 		// Set E-Mail body. You can set plain text or html with text/html
-		m.SetBody("text/plain", "Course Name: "+MyBlock.Course.Name+"  Course Code: "+MyBlock.Course.Code+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mine/"+CalculateHash(&MyBlock))
+		m.SetBody("text/plain", "Course Name: "+MyBlock.Course.Name+"  Course Code: "+MyBlock.Course.Code+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mineBlock/"+CalculateHash(&MyBlock))
 
 		// Settings for SMTP server
 		d := gomail.NewDialer("smtp.gmail.com", 587, tempCourse.SEmail, tempCourse.SPass)
@@ -1990,59 +1990,38 @@ func Details(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//RunWebServer Running WebServer of User
-func RunWebServer(port string) {
-	// router.HandleFunc("/ws", server.HandleConnections)
+//--- serverHandler (Serving Angular files as static for deployment) ---//
+var folderDist = "./public"
+var webPort = "4000"
 
+func serverHandler(w http.ResponseWriter, r *http.Request) {
+	if _, err := os.Stat(folderDist + r.URL.Path); err != nil {
+		http.ServeFile(w, r, folderDist+"/index.html")
+		return
+	}
+	fmt.Println((r.URL.Path))
+	http.ServeFile(w, r, folderDist+r.URL.Path)
+}
+
+//----------------------------------------------------------------------//
+
+//--- RunWebServer (Running Web Server) ---//
+func RunWebServer() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", Index)
-	r.HandleFunc("/details", Details)
-	//r.HandleFunc("/", setHandler).Methods("GET")
-	//r.HandleFunc("/blockInsert", getHandler).Methods("POST")
-	//	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("../mountain"))))
-	//r.HandleFunc("/ws", HandleConnections)
-	r.HandleFunc("/addProject", AddProjectHandler)
-	r.HandleFunc("/getBlocks", UnverifiedBlocksHandler)
-	r.HandleFunc("/generateCV", GenerateCVHandler)
-	r.HandleFunc("/addCourse", AddCourseHandler)
-	r.HandleFunc("/register", RegisterHandler)
-	r.HandleFunc("/login", LoginHandler)
+	r.HandleFunc("/addProjectUser", AddProjectHandler)
+	r.HandleFunc("/getBlocksUser", UnverifiedBlocksHandler)
+	r.HandleFunc("/generateCVUser", GenerateCVHandler)
+	r.HandleFunc("/addCourseUser", AddCourseHandler)
+	r.HandleFunc("/registerUser", RegisterHandler)
+	r.HandleFunc("/loginUser", LoginHandler)
 	r.HandleFunc("/logout", LogoutHandler)
 	r.HandleFunc("/getUser", ProfileHandler)
 	r.HandleFunc("/getAllUsers", GetAllUsers)
-
-	r.PathPrefix("/css/").Handler(http.StripPrefix("/css/", http.FileServer(http.Dir("../Website/css"))))
-	r.PathPrefix("/js/").Handler(http.StripPrefix("/js/", http.FileServer(http.Dir("../Website/js"))))
-	r.PathPrefix("/vendor/").Handler(http.StripPrefix("/vendor/", http.FileServer(http.Dir("../Website/vendor"))))
-	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", http.FileServer(http.Dir("../Website/images"))))
-	r.PathPrefix("/fonts/").Handler(http.StripPrefix("/fonts/", http.FileServer(http.Dir("../Website/fonts"))))
-
-	urlLogin = "localhost:" + port
-	http.ListenAndServe(urlLogin, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))
-
-}
-
-//RunWebServerMiner : Miners server
-func RunWebServerMiner(port string) {
-
-	r := mux.NewRouter()
-	r.HandleFunc("/mine/{hash}", Mineblock).Methods("GET")
-
-	// r.Method("POST", "/blockInsert", Handler(getHandler))
-	//r.HandleFunc("/ws", HandleConnections)
-	http.ListenAndServe("localhost:"+port, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))
-
-}
-
-//RunWebServerSatoshi Satoshi Web Server //
-func RunWebServerSatoshi() {
-
-	r := mux.NewRouter()
-	r.HandleFunc("/showBlocks", showBlocksHandler).Methods("GET")
 	r.HandleFunc("/getVerifyContent", SearchVerifyContent)
 	r.HandleFunc("/getVerifiedCVs", SearchRequiredUsers)
-	//r.HandleFunc("/ws", HandleConnections)
+	r.HandleFunc("/mineBlockMiner/{hash}", Mineblock)
 
-	http.ListenAndServe("localhost:3333", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))
-
+	r.NotFoundHandler = r.NewRoute().HandlerFunc(serverHandler).GetHandler()
+	http.Handle("/", r)
+	http.ListenAndServe("localhost:"+webPort, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))
 }

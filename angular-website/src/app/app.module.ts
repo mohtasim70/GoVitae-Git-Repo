@@ -16,6 +16,7 @@ import { UnverifiedBlocksComponent } from './components/unverified-blocks/unveri
 import { GenerateCVComponent } from './components/generate-cv/generate-cv.component';
 import { HomeComponent } from './components/home/home.component';
 import { SearchCVComponent } from './components/search-cv/search-cv.component';
+import { VerifyContentComponent } from './components/verify-content/verify-content.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,8 @@ import { SearchCVComponent } from './components/search-cv/search-cv.component';
     UnverifiedBlocksComponent,
     GenerateCVComponent,
     HomeComponent,
-    SearchCVComponent
+    SearchCVComponent,
+    VerifyContentComponent
   ],
   imports: [
     BrowserModule,

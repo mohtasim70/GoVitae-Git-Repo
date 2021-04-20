@@ -195,8 +195,8 @@ func ReadBlockchainFile() {
 
 //WriteBlockchainFile Writing into file
 func WriteBlockchainFile(chainHead []Block) {
-
-	file, _ := json.MarshalIndent(chainHead, "", " ")
+	arr := removeDuplicateValues(chainHead)
+	file, _ := json.MarshalIndent(arr, "", " ")
 	_ = ioutil.WriteFile("blockchainFile.json", file, 0644)
 	fmt.Println("file")
 
@@ -284,6 +284,21 @@ func GetBlockhainArray(chainHead *Block) []Block {
 	}
 	return data
 
+}
+func removeDuplicateValues(intSlice []Block) []Block {
+	keys := make(map[Block]bool)
+	list := []Block{}
+
+	// If the key(values of the slice) is not equal
+	// to the already present value in new slice (list)
+	// then we append it. else we jump on another element.
+	for _, entry := range intSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
 }
 
 //CalculateHash Generates 256bit hash of block using content inside
@@ -677,6 +692,7 @@ func ReceiveEverything(conn net.Conn) { //Admin
 				chainHead = stuu.ChainHead
 				stuff.ChainHead = chainHead
 				data := GetBlockhainArray(chainHead)
+				data = removeDuplicateValues(data)
 				WriteBlockchainFile(data)
 			} else {
 				fmt.Println("Received old chain")

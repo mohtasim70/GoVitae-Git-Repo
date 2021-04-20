@@ -52,8 +52,9 @@
     </div>
     <!--sidebar end-->
 
-    <div class="content">
+    <div id="pdf" class="content">
       <div class="container">
+
         <div class="row">
           <div class="col-md-6 offset-md-3">
               <h5 class="text-center" style="margin-bottom: 60px;">Verified CV</h5>
@@ -92,8 +93,11 @@
                   </div>
                 </div>
               </div>
-            </div> 
+            </div>
           </div>
+        </div>
+        <div class="form-group">
+          <button (click)="downloadAsPDF()" class="btn btn-lg buttonAdd">Generate PDF</button>
         </div>
       </div>
     </div>

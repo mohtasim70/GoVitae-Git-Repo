@@ -1730,7 +1730,7 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 		sender := tempProject.SEmail
 		subject := "You got new content to verify!"
 		body := "Project Name: " + MyBlock.Project.Name + "Project Details: " + MyBlock.Project.Details + "Project Course Name: " + MyBlock.Project.CourseName + "\n" + "Click here to verify this content: " + "https://fierce-thicket-76988.herokuapp.com" + "/mineBlock/" + CalculateHash(&MyBlock)
-		recipient := tempProject.SEmail
+		recipient := MyBlock.Email
 
 		// The message object allows you to add attachments and Bcc recipients
 		message := mg.NewMessage(sender, subject, body, recipient)
@@ -1998,7 +1998,7 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 		sender := tempCourse.SEmail
 		subject := "You got new content to verify!"
 		body := "Course Name: " + MyBlock.Course.Name + "  Course Code: " + MyBlock.Course.Code + "  Course Grade: " + MyBlock.Course.Grade + "\n" + "Click here to verify this content: " + "https://fierce-thicket-76988.herokuapp.com" + "/mineBlock/" + CalculateHash(&MyBlock)
-		recipient := tempCourse.SEmail
+		recipient := MyBlock.Email
 
 		// The message object allows you to add attachments and Bcc recipients
 		message := mg.NewMessage(sender, subject, body, recipient)

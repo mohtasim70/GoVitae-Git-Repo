@@ -33,12 +33,24 @@ github.com/gorilla/handlers
 github.com/gorilla/mux
 # github.com/jmespath/go-jmespath v0.4.0
 github.com/jmespath/go-jmespath
+# github.com/json-iterator/go v1.1.10
+github.com/json-iterator/go
 # github.com/klauspost/compress v1.9.5
 github.com/klauspost/compress/fse
 github.com/klauspost/compress/huff0
 github.com/klauspost/compress/snappy
 github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
+# github.com/mailgun/mailgun-go v2.0.0+incompatible
+## explicit
+# github.com/mailgun/mailgun-go/v4 v4.5.1
+## explicit
+github.com/mailgun/mailgun-go/v4
+github.com/mailgun/mailgun-go/v4/events
+# github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421
+github.com/modern-go/concurrent
+# github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742
+github.com/modern-go/reflect2
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/xdg-go/pbkdf2 v1.0.0

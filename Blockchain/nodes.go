@@ -1,7 +1,7 @@
 package main
 
 import (
-	b "./blockchain"
+	b "github.com/HamzaPY/FYP/blockchain"
 )
 
 func main() {
@@ -14,6 +14,12 @@ func main() {
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
+
+	satoshiAddress := "2500"
+	// GmailService : Gmail client for sending email
+
+	//go b.RunWebServerSatoshi()                     //Own web server
+	go b.StartListening(satoshiAddress, "satoshi") //Listens to Clients(Nodes and Miners)
 
 	go b.RunWebServer() //Runs webserver
 	// go b.StartListening(myListeningAddress, "others") //Starts own server

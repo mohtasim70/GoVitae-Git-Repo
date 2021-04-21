@@ -17,8 +17,8 @@ import (
 	"sync"
 	"time"
 
-	db "../Database"
-	model "../Models"
+	db "github.com/HamzaPY/FYP/Database"
+	model "github.com/HamzaPY/FYP/Models"
 
 	//gmail "google.golang.org/api/gmail/v1"
 	//"google.golang.org/api/option"
@@ -1213,7 +1213,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		satoshiAddress := "2500"
 		myListeningAddress := "6002"
 
-		conn, err := net.Dial("tcp", "localhost:"+satoshiAddress)
+		conn, err := net.Dial("tcp", ":"+satoshiAddress)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1996,7 +1996,6 @@ func Details(w http.ResponseWriter, r *http.Request) {
 
 //--- serverHandler (Serving Angular files as static for deployment) ---//
 var folderDist = "./public"
-var webPort = "4000"
 
 func serverHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := os.Stat(folderDist + r.URL.Path); err != nil {
@@ -2026,6 +2025,8 @@ func RunWebServer() {
 	r.HandleFunc("/mineBlockMiner/{hash}", Mineblock)
 
 	r.NotFoundHandler = r.NewRoute().HandlerFunc(serverHandler).GetHandler()
+	webPort := os.Getenv("PORT")
+	fmt.Println(webPort)
 	http.Handle("/", r)
-	http.ListenAndServe("localhost:"+webPort, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))
+	http.ListenAndServe(":"+webPort, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))
 }

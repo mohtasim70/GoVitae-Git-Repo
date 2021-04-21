@@ -38,7 +38,8 @@
             <div class="col-sm-12 col-md-10 offset-1">
               <div class="text-center">
                 <h2 style="margin-bottom: 40px;">Verified Candidates</h2>
-                <table class="table table-bordered">
+                <h4 *ngIf="CVs == null" style="font-size: 20px; margin-top: 20px;">No Candidates Found!</h4>
+                <table *ngIf="CVs != null" class="table table-bordered">
                     <tr>
                       <th>Name of Candidate</th>
                       <th>Course Code</th>

@@ -9,16 +9,14 @@ import { Router } from '@angular/router';
 })
 export class BlockService {
 
-  adminURL:string = "";
   mainURL:string = "";
-  minerURL:string = "";
 
   constructor(private http: HttpClient, public router: Router) { }
 
   // Register Function //
 
   register(data): Observable<any> {
-    let url = `${this.adminURL}/registerUser`;
+    let url = `${this.mainURL}/registerUser`;
 
     const req = new HttpRequest('POST', url, data);
     return this.http.request(req);
@@ -27,7 +25,7 @@ export class BlockService {
   // Login Function //
 
   login(data): Observable<any> {
-    let url = `${this.adminURL}/loginUser`;
+    let url = `${this.mainURL}/loginUser`;
 
     const req = new HttpRequest('POST', url, data);
     return this.http.request(req);
@@ -45,7 +43,7 @@ export class BlockService {
   // Add Course Function //
 
   addCourse(data): Observable<any> {
-    let url = `${this.adminURL}/addCourseUser`;
+    let url = `${this.mainURL}/addCourseUser`;
 
     const req = new HttpRequest('POST', url, data);
     return this.http.request(req);
@@ -54,7 +52,7 @@ export class BlockService {
   // Add Project Function //
 
   addProject(data): Observable<any> {
-    let url = `${this.adminURL}/addProjectUser`;
+    let url = `${this.mainURL}/addProjectUser`;
 
     const req = new HttpRequest('POST', url, data);
     return this.http.request(req);
@@ -63,7 +61,7 @@ export class BlockService {
   // Generate CV Function //
 
   generateCV(): Observable<any> {
-    let url = `${this.adminURL}/generateCVUser`;
+    let url = `${this.mainURL}/generateCVUser`;
 
     const req = new HttpRequest('GET', url);
     return this.http.request(req);
@@ -72,7 +70,7 @@ export class BlockService {
   // Get Unverified Blocks Function //
 
   getBlocks(): Observable<any> {
-    let url = `${this.adminURL}/getBlocksUser`;
+    let url = `${this.mainURL}/getBlocksUser`;
 
     const req = new HttpRequest('GET', url);
     return this.http.request(req);
@@ -81,7 +79,7 @@ export class BlockService {
   // Get User Function //
 
   getUser() {
-    let url = `${this.adminURL}/getUser`;
+    let url = `${this.mainURL}/getUser`;
 
     const req = new HttpRequest('GET', url);
     return this.http.request(req);
@@ -90,7 +88,7 @@ export class BlockService {
   // Get All Users Function //
 
   getAllUsers() {
-    let url = `${this.adminURL}/getAllUsers`;
+    let url = `${this.mainURL}/getAllUsers`;
 
     const req = new HttpRequest('GET', url);
     return this.http.request(req);
@@ -117,7 +115,7 @@ export class BlockService {
   // Mine Block Function //
 
   mineBlock(hash) {
-    let url = `${this.minerURL}/mineBlockMiner/${hash}`;
+    let url = `${this.mainURL}/mineBlockMiner/${hash}`;
 
     const req = new HttpRequest('GET', url);
     return this.http.request(req);

@@ -2,6 +2,69 @@
  {
   "Course": {
    "courseCode": "CS-404",
+   "courseName": "Blockchain",
+   "courseCHrs": 3,
+   "courseGrade": "B-"
+  },
+  "Project": {
+   "projectName": "",
+   "projectDetails": "",
+   "projectFile": "",
+   "projectCourse": ""
+  },
+  "PrevPointer": null,
+  "PrevHash": "",
+  "CurrentHash": "",
+  "BlockNo": 0,
+  "Status": "Verified",
+  "Email": "temptemp5522@gmail.com",
+  "Username": "Mueed"
+ },
+ {
+  "Course": {
+   "courseCode": "CS-202",
+   "courseName": "Database Systems",
+   "courseCHrs": 3,
+   "courseGrade": "A-"
+  },
+  "Project": {
+   "projectName": "",
+   "projectDetails": "",
+   "projectFile": "",
+   "projectCourse": ""
+  },
+  "PrevPointer": null,
+  "PrevHash": "",
+  "CurrentHash": "",
+  "BlockNo": 0,
+  "Status": "Verified",
+  "Email": "",
+  "Username": ""
+ },
+ {
+  "Course": {
+   "courseCode": "CS-202",
+   "courseName": "Database Systems",
+   "courseCHrs": 3,
+   "courseGrade": "A-"
+  },
+  "Project": {
+   "projectName": "",
+   "projectDetails": "",
+   "projectFile": "",
+   "projectCourse": ""
+  },
+  "PrevPointer": null,
+  "PrevHash": "",
+  "CurrentHash": "",
+  "BlockNo": 0,
+  "Status": "Verified",
+  "Email": "temptemp5522@gmail.com",
+  "Username": "Mueed"
+ },
+ {
+  "Course": {
+   "courseCode": "CS-404",
    "courseName": "Operating Systems",
    "courseCHrs": 3,
    "courseGrade": "C"
@@ -22,31 +85,10 @@
  },
  {
   "Course": {
-   "courseCode": "CS-202",
-   "courseName": "Database Systems",
+   "courseCode": "CS-404",
+   "courseName": "Operating Systems",
    "courseCHrs": 3,
-   "courseGrade": "A-"
-  },
-  "Project": {
-   "projectName": "",
-   "projectDetails": "",
-   "projectFile": "",
-   "projectCourse": ""
-  },
-  "PrevPointer": null,
-  "PrevHash": "",
-  "CurrentHash": "",
-  "BlockNo": 0,
-  "Status": "Verified",
-  "Email": "temptemp5522@gmail.com",
-  "Username": "Mueed"
- },
- {
-  "Course": {
-   "courseCode": "CS-202",
-   "courseName": "Database Systems",
-   "courseCHrs": 3,
-   "courseGrade": "A-"
+   "courseGrade": "C"
   },
   "Project": {
    "projectName": "",

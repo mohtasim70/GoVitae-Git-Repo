@@ -19,6 +19,7 @@ import (
 
 	db "github.com/HamzaPY/FYP/Database"
 	model "github.com/HamzaPY/FYP/Models"
+	gomail "gopkg.in/mail.v2"
 
 	//gmail "google.golang.org/api/gmail/v1"
 	//"google.golang.org/api/option"
@@ -29,7 +30,6 @@ import (
 
 	//"golang.org/x/oauth2"
 	//"golang.org/x/oauth2/google"
-	gomail "gopkg.in/mail.v2"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/handlers"
@@ -1692,6 +1692,36 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 		// 	log.Println("In Write Chain: ", err2)
 		// }
 		//	SendEmailOAUTH2(MyBlock.Email, MyBlock)
+
+		//SMTPPPPPPPPPPPPPPPPPPPPPPPP
+		// from := tempProject.SEmail
+		// password := tempProject.SPass
+		//
+		// // Receiver email address.
+		// to := []string{
+		// 	MyBlock.Email,
+		// }
+		//
+		// // smtp server configuration.
+		// smtpHost := "smtp.gmail.com"
+		// smtpPort := "587"
+		//
+		// // Message.
+		// message := []byte("Project Name: " + MyBlock.Project.Name + "  Project Details: " + MyBlock.Project.Details + "  Course Grade: " + MyBlock.Course.Grade + "\n" + "Click here to verify this content: " + "localhost:" + "4000" + "/mineBlock/" + CalculateHash(&MyBlock))
+		//
+		// // Authentication.
+		// auth := smtp.PlainAuth("", from, password, smtpHost)
+		//
+		// // Sending email.
+		// err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
+		//
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	return
+		// }
+		// fmt.Println("Email Sent Successfully!")
+		//SMTPPPPPPPPPPPPPPPPPPPPPPPP
+
 		m := gomail.NewMessage()
 
 		// Set E-Mail sender
@@ -1927,6 +1957,35 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 		// if err2 != nil {
 		// 	log.Println("In Write Chain: ", err2)
 		// }
+		//SMPTPP
+		// from := tempCourse.SEmail
+		// password := tempCourse.SPass
+		//
+		// // Receiver email address.
+		// to := []string{
+		// 	MyBlock.Email,
+		// }
+		//
+		// // smtp server configuration.
+		// smtpHost := "smtp.gmail.com"
+		// smtpPort := "587"
+		//
+		// // Message.
+		// message := []byte("Course Name: " + MyBlock.Course.Name + "  Course Code: " + MyBlock.Course.Code + "  Course Grade: " + MyBlock.Course.Grade + "\n" + "Click here to verify this content: " + "localhost:" + "4000" + "/mineBlock/" + CalculateHash(&MyBlock))
+		//
+		// // Authentication.
+		// auth := smtp.PlainAuth("", from, password, smtpHost)
+		//
+		// // Sending email.
+		// err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
+		//
+		// if err != nil {
+		// 	fmt.Println(err)
+		// 	return
+		// }
+		// fmt.Println("Email Sent Successfully!")
+		//SMPTPP
+
 		m := gomail.NewMessage()
 
 		// Set E-Mail sender
@@ -1946,7 +2005,7 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 
 		// This is only needed when SSL/TLS certificate is not valid on server.
 		// In production this should be set to false.
-		d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+		d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
 
 		// Now send E-Mail
 		if err := d.DialAndSend(m); err != nil {

@@ -17,6 +17,7 @@ import { GenerateCVComponent } from './components/generate-cv/generate-cv.compon
 import { HomeComponent } from './components/home/home.component';
 import { SearchCVComponent } from './components/search-cv/search-cv.component';
 import { VerifyContentComponent } from './components/verify-content/verify-content.component';
+import { RunServerComponent } from './components/run-server/run-server.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,8 @@ import { VerifyContentComponent } from './components/verify-content/verify-conte
     GenerateCVComponent,
     HomeComponent,
     SearchCVComponent,
-    VerifyContentComponent
+    VerifyContentComponent,
+    RunServerComponent
   ],
   imports: [
     BrowserModule,

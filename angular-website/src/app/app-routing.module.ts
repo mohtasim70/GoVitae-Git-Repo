@@ -10,6 +10,7 @@ import { GenerateCVComponent } from './components/generate-cv/generate-cv.compon
 import { HomeComponent } from './components/home/home.component';
 import { SearchCVComponent } from './components/search-cv/search-cv.component';
 import { VerifyContentComponent } from './components/verify-content/verify-content.component';
+import { RunServerComponent } from './components/run-server/run-server.component';
  
 const routes: Routes = [
   {path: 'addCourse', component: AddCourseComponent},
@@ -19,6 +20,7 @@ const routes: Routes = [
   {path: 'register', component: RegisterComponent},
   {path: 'login', component: LoginComponent},
   {path: '', component: HomeComponent},
+  {path: 'runServer', component: RunServerComponent},
   {path: 'mineBlock/:hash', component: VerifyContentComponent},
   {path: 'searchCV', component: SearchCVComponent},
   {path: 'dashboard', component: DashboardComponent},

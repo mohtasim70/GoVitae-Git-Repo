@@ -121,6 +121,15 @@ export class BlockService {
     return this.http.request(req);
   }
 
+  // Run Satoshi Server Function //
+
+  runServer() {
+    let url = `${this.mainURL}/runServerSatoshi`;
+
+    const req = new HttpRequest('GET', url);
+    return this.http.request(req);
+  }
+
   // Get Logged In User //
 
   get isLoggedIn(): boolean {

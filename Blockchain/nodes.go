@@ -15,11 +15,11 @@ func main() {
 	// 	log.Fatal(err)
 	// }
 
-	satoshiAddress := "2500"
+	//satoshiAddress := "2500"
 	// GmailService : Gmail client for sending email
 
 	//go b.RunWebServerSatoshi()                     //Own web server
-	go b.StartListening(satoshiAddress, "satoshi") //Listens to Clients(Nodes and Miners)
+	//go b.StartListening(satoshiAddress, "satoshi") //Listens to Clients(Nodes and Miners)
 
 	go b.RunWebServer() //Runs webserver
 	// go b.StartListening(myListeningAddress, "others") //Starts own server

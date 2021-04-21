@@ -902,7 +902,7 @@ func ReadBlockPeers(conn net.Conn) Block {
 //StartListening Server for Satoshi node and miner
 func StartListening(ListeningAddress string, node string) {
 	if node == "satoshi" {
-		ln, err := net.Listen("tcp", ":"+ListeningAddress)
+		ln, err := net.Listen("tcp", "192.168.10.12:"+ListeningAddress)
 		if err != nil {
 			log.Fatal(err)
 			fmt.Println("Faital")
@@ -1213,7 +1213,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		satoshiAddress := "2500"
 		myListeningAddress := "6002"
 
-		conn, err := net.Dial("tcp", ":"+satoshiAddress)
+		conn, err := net.Dial("tcp", "192.168.10.12:"+satoshiAddress)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -1906,6 +1906,11 @@ func SearchRequiredUsers(w http.ResponseWriter, r *http.Request) {
 
 }
 
+//--- RunSatoshiServer (Running the Satoshi main server) ---//
+func RunSatoshiServer(w http.ResponseWriter, r *http.Request) {
+	go StartListening("2500", "satoshi")
+}
+
 //AddCourseHandler Web Handler to add courses into the blockchain ///
 func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
@@ -2082,10 +2087,11 @@ func RunWebServer() {
 	r.HandleFunc("/getVerifyContent", SearchVerifyContent)
 	r.HandleFunc("/getVerifiedCVs", SearchRequiredUsers)
 	r.HandleFunc("/mineBlockMiner/{hash}", Mineblock)
+	r.HandleFunc("/runServerSatoshi", RunSatoshiServer)
 
 	r.NotFoundHandler = r.NewRoute().HandlerFunc(serverHandler).GetHandler()
 	webPort := os.Getenv("PORT")
 	fmt.Println(webPort)
 	http.Handle("/", r)
-	http.ListenAndServe(":"+webPort, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))
+	http.ListenAndServe(":"+"4000", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))
 }

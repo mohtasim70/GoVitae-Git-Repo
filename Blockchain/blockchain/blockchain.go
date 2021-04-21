@@ -1706,7 +1706,7 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 		// Set E-Mail body. You can set plain text or html with text/html
 
 		///////////// Add files to send to the mailer /////////////////
-		m.SetBody("text/plain", "Project Name: "+MyBlock.Project.Name+"  Project Details: "+MyBlock.Project.Details+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mineBlock/"+CalculateHash(&MyBlock))
+		m.SetBody("text/plain", "Project Name: "+MyBlock.Project.Name+"  Project Details: "+MyBlock.Project.Details+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"4000"+"/mineBlock/"+CalculateHash(&MyBlock))
 
 		// Settings for SMTP server
 		d := gomail.NewDialer("smtp.gmail.com", 587, tempProject.SEmail, tempProject.SPass)
@@ -1761,7 +1761,9 @@ func SearchVerifyContent(w http.ResponseWriter, r *http.Request) {
 		var allCourses []Course
 		for decoder.More() {
 			decoder.Decode(&block)
-			allCourses = append(allCourses, block.Course)
+			if block.Username != "" {
+				allCourses = append(allCourses, block.Course)
+			}
 		}
 		// ReadBlockchainFile()
 		// tempHead:=chainHead
@@ -1824,11 +1826,13 @@ func SearchRequiredUsers(w http.ResponseWriter, r *http.Request) {
 		for decoder.More() {
 			decoder.Decode(&block)
 			if block.Course.Name == search.CourseName || block.Course.Grade == search.CourseName {
-				resul := Result{
-					Username: block.Username,
-					Course:   block.Course,
+				if block.Username != "" {
+					resul := Result{
+						Username: block.Username,
+						Course:   block.Course,
+					}
+					users = append(users, resul)
 				}
-				users = append(users, resul)
 			}
 		}
 		// ReadBlockchainFile()
@@ -1935,7 +1939,7 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 		m.SetHeader("Subject", "Verification Content")
 
 		// Set E-Mail body. You can set plain text or html with text/html
-		m.SetBody("text/plain", "Course Name: "+MyBlock.Course.Name+"  Course Code: "+MyBlock.Course.Code+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"3335"+"/mineBlock/"+CalculateHash(&MyBlock))
+		m.SetBody("text/plain", "Course Name: "+MyBlock.Course.Name+"  Course Code: "+MyBlock.Course.Code+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"4000"+"/mineBlock/"+CalculateHash(&MyBlock))
 
 		// Settings for SMTP server
 		d := gomail.NewDialer("smtp.gmail.com", 587, tempCourse.SEmail, tempCourse.SPass)

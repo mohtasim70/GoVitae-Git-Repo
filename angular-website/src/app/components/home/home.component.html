@@ -1,0 +1,195 @@
+<body>
+<header>
+    <nav class="navbar navbar-expand-md">
+        <div class="container">
+            <a class="navbar-brand" href="/"><img src="../../../assets/img/logo.jpg" height="70" width="140" style="border-radius: 50%;"></a>
+      <button class="navbar-toggler navbar-light" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>      
+      <div class="collapse navbar-collapse" id="collapsibleNavbar">
+        <ul class="navbar-nav navbar-right">
+          <li class="nav-item">
+            <a class="nav-link" href="/login">Log in</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/register">Sign up</a>
+          </li>
+        </ul>
+    </div>
+    </div>
+    </nav>
+</header>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-6" style="margin-top: 110px;">
+          <h1>GoVitae</h1>
+          <p>A Blockchain based CV verification System</p>
+          <div id="showName" class="ng-autocomplete">
+            <ng-autocomplete [data]="Courses" [searchKeyword]="keyword" (selected)='selectEvent($event)' placeholder="Find Verified Candidates"
+                (inputChanged)='onChangeSearch($event)' (inputFocused)='onFocused($event)' [itemTemplate]="itemTemplate"
+                [notFoundTemplate]="notFoundTemplate">
+            </ng-autocomplete>
+        
+            <ng-template #itemTemplate let-item>
+                <a [innerHTML]="item.courseName" style="color: black;"></a>
+            </ng-template>
+        
+            <ng-template #notFoundTemplate let-notFound>
+                <div [innerHTML]="notFound"></div>
+            </ng-template>
+          </div>
+          <select id="showGrade" class="grader" name="grader" (change)="gradeType($event.target.value)">
+            <option value="">Choose Grade</option>
+            <option *ngFor="let grade of grades" value="{{grade}}">{{grade}}
+            </option>
+          </select>
+          <br>
+          <button class="btn finder" (click)="searchCV()">Find</button>  
+        </div>
+        <div class="col-6">
+          <img src="../../../assets/img/home.svg" width="600" height="600" style="margin-top: -30px;">
+        </div>
+      </div>
+    </div>
+
+  <div class="section-container">
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-12 col-md-8 col-md-offset-2">
+          <div class="text-center">
+            <h2>The Product</h2>
+            <p style = "text-align: justify; margin-top: 50px; line-height: 30px;">
+            Our application is created to facilitate verification of CV for companies,
+            Our project’s phenomena is that user cv content will be inserted in the node of a blockchain
+            . The approved stakeholders will be
+            able to search all the work done by users. Our project is using the
+            private, permissioned and a custom built Blockchain framework to achieve the mentioned goal.
+            Blockchain technology will provide us a decentralized and secure P-2-P system.
+            The reason for using this technology is to provide authenticity, transparency to the work done by
+            the user. Major plus point is the time saving and transparent record
+            keeping for the user and the employers.
+            <br>
+          </div>
+       </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-container">
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-12 col-md-8 col-md-offset-2">
+          <div class="text-center">
+            <h2>The Focus</h2>
+          </div>
+       </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="section-container">
+    <div class="container">
+      <div class="row">
+          <div class="col-xs-12">
+
+
+            <div id="carousel-example-generic" class="carousel carousel-fade slide" data-ride="carousel">
+
+                <div class="carousel-inner" role="listbox">
+
+                    <div class="item active">
+                        <img   class="img-responsive" src="../../../assets/img/transparency.svg" alt="First slide">
+                        <div class="carousel-caption card-shadow reveal">
+
+                          <h3>Transparency </h3>
+                          <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+                            <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                            <span class="sr-only">Previous</span>
+                          </a>
+                          <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
+                            <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                            <span class="sr-only">Next</span>
+                          </a>
+                          <p> :) </p>
+                          <a href="" class="btn btn-primary" title="">
+                            Discover
+                          </a>
+                        </div>
+                    </div>
+                    <div class="item">
+                        <img style="width:200% ; height:200%;" class="img-responsive" src="../../../assets/img/time.png" alt="First slide">
+                        <div class="carousel-caption card-shadow reveal">
+
+                          <h3>Time efficient</h3>
+                            <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+                              <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                              <span class="sr-only">Previous</span>
+                            </a>
+                            <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
+                              <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                              <span class="sr-only">Next</span>
+                            </a>
+                          <p>
+                                :)
+                          </p>
+
+                          <a href="" class="btn btn-primary" title="">
+                            Discover
+                          </a>
+                        </div>
+                    </div>
+
+
+
+                <div class="item">
+                        <img style="width:200% ; height:200%;" class="img-responsive" src="../../../assets/img/professional.jpg" alt="First slide">
+                        <div class="carousel-caption card-shadow reveal">
+
+                          <h3>Professional</h3>
+                            <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+                              <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                              <span class="sr-only">Previous</span>
+                            </a>
+                            <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
+                              <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                              <span class="sr-only">Next</span>
+                            </a>
+                          <p>
+                          :)
+                          </p>
+
+                          <a href="" class="btn btn-primary" title="">
+                            Discover
+                          </a>
+                        </div>
+                    </div>
+
+
+
+                </div>
+
+            </div>
+
+
+          </div>
+
+        </div>
+
+    </div>
+  </div>
+
+
+<footer style="background-color: #00BFA6; margin-top: 50px; padding: 50px;">
+  <div class="container">
+    <div class="row">
+      <div class="text-center">
+        <h3>GoVitae</h3>
+        <p><a href="http://nu.edu.pk/" title="">FAST NUCES, Islamabad</a></p>
+        <img  class="text-center" src="../../../assets/img/nu.JPG" style="border-radius:50%; width:10%; height: 50%" alt="First slide"> 
+      </div>
+    </div>
+  </div>
+</footer>
+</body>

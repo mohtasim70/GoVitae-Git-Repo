@@ -1,0 +1,38 @@
+<body>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6 blockImg">
+          <img src="../../../assets/img/block.svg" height="500" width="500">
+        </div>
+        <div class="col-md-5 col-sm-12 offset-md-1 blockLogin">
+          <div class="wrapper">
+            <div class="title">
+              <img style="margin-top: 10px;" src="../../../assets/img/GoVitae.jpg" height="115" width="210">
+            </div>
+            <form  [formGroup]="registerForm" class="create-form" (ngSubmit)="onSubmit()">
+              <div class="field">
+                <input type="text" formControlName="username" required [ngClass]="{ 'is-invalid': submitted && myForm.username.errors }">
+                <div *ngIf="submitted && myForm.username.errors" class="invalid-feedback">
+                  <div style="margin-left: 20px;" *ngIf="myForm.username.errors.required">Username is required.</div>
+                </div>
+                <label>Username</label>
+              </div>
+               <div class="field" style="margin-top: 30px;">
+                <input type="password" formControlName="password" required [ngClass]="{ 'is-invalid': submitted && myForm.password.errors }">
+                <div *ngIf="submitted && myForm.password.errors" class="invalid-feedback">
+                  <div style="margin-left: 20px;" *ngIf="myForm.password.errors.required">Password is required.</div>
+                </div>
+                <label>Password</label>
+              </div>
+              <div class="field">
+                <input type="submit" value="Login">
+              </div>
+              <div class="signup-link">
+                Not a member? <a href="/register">Register now</a>
+              </div>
+            </form>
+          </div>
+        </div>
+     </div>
+    </div>
+</body>

@@ -1,0 +1,60 @@
+<body>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6 blockImg">
+            <img src="../../../assets/img/blockR.svg" height="500" width="500">
+          </div>
+          <div class="col-md-5 col-sm-12 offset-md-1 blockLogin">
+            <div class="wrapper">
+              <div class="title">
+                <img style="margin-top: 10px;" src="../../../assets/img/GoVitae.jpg" height="115" width="210">
+              </div>
+              <form  [formGroup]="registerForm" class="create-form" (ngSubmit)="onSubmit()">
+                <div class="field">
+                  <input type="text" formControlName="username" required [ngClass]="{ 'is-invalid': submitted && myForm.username.errors }">
+                  <div *ngIf="submitted && myForm.username.errors" class="invalid-feedback">
+                    <div style="margin-left: 20px;" *ngIf="myForm.username.errors.required">Username is required.</div>
+                  </div>
+                  <label>Username</label>
+                </div>
+                <div class="field" style="margin-top: 30px;">
+                  <input type="text" formControlName="firstname" required [ngClass]="{ 'is-invalid': submitted && myForm.firstname.errors }">
+                  <div *ngIf="submitted && myForm.firstname.errors" class="invalid-feedback">
+                    <div style="margin-left: 20px;" *ngIf="myForm.firstname.errors.required">First Name is required.</div>
+                  </div>
+                  <label>First Name</label>
+                </div>
+                <div class="field" style="margin-top: 30px;">
+                  <input type="text" formControlName="lastname" required [ngClass]="{ 'is-invalid': submitted && myForm.lastname.errors }">
+                  <div *ngIf="submitted && myForm.lastname.errors" class="invalid-feedback">
+                    <div style="margin-left: 20px;" *ngIf="myForm.lastname.errors.required">Last Name is required.</div>
+                  </div>
+                  <label>Last Name</label>
+                </div>
+                <div class="field" style="margin-top: 30px;">
+                  <input type="email" formControlName="email" required [ngClass]="{ 'is-invalid': submitted && myForm.email.errors }">
+                  <div *ngIf="submitted && myForm.email.errors" class="invalid-feedback">
+                    <div style="margin-left: 20px;" *ngIf="myForm.email.errors.required">Email Address is required.</div>
+                    <div style="margin-left: 20px;" *ngIf="myForm.email.errors.email">Email must be a valid email address.</div>
+                  </div>
+                  <label>Email Address</label>
+                </div>
+                <div class="field" style="margin-top: 30px;">
+                  <input type="password" formControlName="password" required [ngClass]="{ 'is-invalid': submitted && myForm.password.errors }">
+                  <div *ngIf="submitted && myForm.password.errors" class="invalid-feedback">
+                    <div style="margin-left: 20px;" *ngIf="myForm.password.errors.required">Password is required.</div>
+                  </div>
+                  <label>Password</label>
+                </div>
+                <div class="field">
+                  <input type="submit" value="Register">
+                </div>
+                <div class="signup-link">
+                  Already a member? <a href="/login">Login now</a>
+                </div>
+              </form>
+            </div>
+          </div>
+       </div>
+      </div>
+</body>

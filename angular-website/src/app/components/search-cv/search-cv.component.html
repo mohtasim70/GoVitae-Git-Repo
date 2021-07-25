@@ -1,0 +1,65 @@
+<body>
+    <header>
+        <nav class="navbar navbar-expand-md">
+            <div class="container">
+                <a class="navbar-brand" href="/"><img src="../../../assets/img/logo.jpg"  height="70" width="140" style="border-radius: 50%;"></a>
+          <button class="navbar-toggler navbar-light" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+          </button>      
+          <div class="collapse navbar-collapse" id="collapsibleNavbar">
+            <ul class="navbar-nav navbar-right">
+              <li class="nav-item">
+                <a class="nav-link" href="/login">Log in</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/register">Sign up</a>
+              </li>
+            </ul>
+        </div>
+        </div>
+        </nav>
+    </header>
+    
+      <div class="section-container">
+        <div class="container">
+          <div class="row">
+            <div class="col-sm-12 col-md-10 offset-1">
+              <div class="text-center">
+                <h2 style="margin-bottom: 40px;">Verified Candidates</h2>
+                <h4 *ngIf="CVs == null" style="font-size: 25px; margin-top: 20px;">No Candidates Found!</h4>
+                <table *ngIf="CVs != null" class="table table-bordered">
+                    <tr>
+                      <th>Name of Candidate</th>
+                      <th>Course Code</th>
+                      <th>Course Name</th>
+                      <th>Course Credit Hours</th>
+                      <th>Course Grade</th>
+                    </tr>
+                    <tr *ngFor="let cv of CVs; let i = index;">
+                      <td>{{cv.Username}}</td>
+                      <td>{{cv.Course.courseCode}}</td>
+                      <td>{{cv.Course.courseName}}</td>
+                      <td>{{cv.Course.courseCHrs}}</td>
+                      <td>{{cv.Course.courseGrade}}</td>
+                    </tr>
+                </table>
+              </div>
+           </div>
+          </div>
+        </div>
+      </div>
+    
+    
+      <footer style="background-color: #00BFA6; margin-top: 100px; padding: 50px;">
+        <div class="container">
+          <div class="row">
+            <div class="text-center">
+              <h3>GoVitae</h3>
+              <p><a href="http://nu.edu.pk/" title="">FAST NUCES, Islamabad</a></p>
+              <img  class="text-center" src="../../../assets/img/nu.JPG" style="border-radius:50%; width:10%; height: 50%" alt="First slide"> 
+            </div>
+          </div>
+        </div>
+      </footer>
+    </body>
+    

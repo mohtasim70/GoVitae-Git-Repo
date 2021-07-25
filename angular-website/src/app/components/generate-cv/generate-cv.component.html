@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Sidebar Dashboard Template</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" charset="utf-8"></script>
+  </head>
+  <body>
+
+    <input type="checkbox" id="check">
+    <!--header area start-->
+    <header>
+      <label for="check">
+        <i class="fas fa-bars" id="sidebar_btn"></i>
+      </label>
+      <div class="left_area">
+        <h3>Go<span>Vitae</span></h3>
+      </div>
+      <div class="right_area">
+        <a (click)="logout()" class="logout_btn">Logout</a>
+      </div>
+    </header>
+    <!--header area end-->
+    <!--mobile navigation bar start-->
+    <div class="mobile_nav">
+      <div class="nav_bar">
+        <img src="../../../assets/img/profile.png" class="mobile_profile_image" alt="">
+        <i class="fa fa-bars nav_btn"></i>
+      </div>
+      <div class="mobile_nav_items">
+        <a href="/dashboard"><i class="fas fa-desktop"></i><span>Dashboard</span></a>
+        <a href="/addCourse"><i class="fas fa-cogs"></i><span>Add Course</span></a>
+        <a href="/addProject"><i class="fas fa-cogs"></i><span>Add Project</span></a>
+        <a href="/generateCV"><i class="fas fa-th"></i><span>Generate CV</span></a>
+        <a href="/unverifiedBlocks"><i class="fas fa-link"></i><span>Unverified Blocks</span></a>
+      </div>
+    </div>
+    <!--mobile navigation bar end-->
+    <!--sidebar start-->
+    <div class="sidebar">
+      <div class="profile_info">
+        <img src="../../../assets/img/profile.png" class="profile_image" alt="">
+        <h4 *ngIf="User != null">{{User.username}}</h4>
+      </div>
+      <a href="/dashboard"><i class="fas fa-desktop"></i><span>Dashboard</span></a>
+      <a href="/addCourse"><i class="fas fa-cogs"></i><span>Add Course</span></a>
+      <a href="/addProject"><i class="fas fa-cogs"></i><span>Add Project</span></a>
+      <a href="/generateCV"><i class="fas fa-th"></i><span>Generate CV</span></a>
+      <a href="/unverifiedBlocks"><i class="fas fa-link"></i><span>Unverified Blocks</span></a>
+    </div>
+    <!--sidebar end-->
+
+    <div class="content" id="pdf">
+      <div class="container">
+
+        <div class="row">
+          <div class="col-md-6 offset-md-3">
+              <h5 class="text-center" style="margin-bottom: 60px;">Verified CV</h5>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-10 offset-md-1">
+            <div *ngIf="CV != null">
+              <div *ngIf="CV.Course.length <= 0 && CV.Project.length <= 0">
+                <h1 class="noBlocks">No verified content exists!</h1>
+              </div>
+              <div *ngIf="CV.Course.length > 0 || CV.Project.length > 0" class="card carder" id="carder">
+                <h2 class="fullName">{{CV.Firstname}} {{CV.Lastname}}</h2>
+                <h3 class="fullEmail">{{CV.Email}}</h3>
+                <div *ngIf="CV.Course.length > 0">
+                  <h4 class="fullHead">Courses</h4>
+                  <div *ngFor="let course of CV.Course; let j = index;" class="row">
+                    <div class="col-6">
+                      <h6>{{course.courseCode}} · {{course.courseName}} · {{course.courseCHrs}} CHrs</h6>
+                    </div>
+                    <div class="col-4">
+                      <h6><span style="font-weight: 500;">Grade:</span> {{course.courseGrade}}</h6>
+                    </div>
+                    <div class="col-2">
+                      <h6 data-placement="top" title="Tap to View Block!"><fa-icon style="cursor: pointer;" (click)="getTheBlock()" [icon]="faLink"></fa-icon></h6>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="CV.Project.length > 0">
+                  <h4 class="fullHead">Projects</h4>
+                  <div *ngFor="let project of CV.Project; let j = index;" class="row">
+                    <div class="col-7">
+                      <h6>{{project.projectName}}</h6>
+                      <h6 class="projectDesc">{{project.projectDetails}}</h6>
+                    </div>
+                    <div class="col-4 offset-1">
+                      <h6><span style="font-weight: 500;">Course:</span> {{project.projectCourse}}</h6>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-8 offset-4">
+            <button (click)="downloadAsPDF()" class="btn btn-lg buttonAdd" id="buttonAdd">Generate PDF</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

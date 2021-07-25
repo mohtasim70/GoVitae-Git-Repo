@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const connectionString = "mongodb://localhost:27017"
+const connectionString = "mongodb+srv://Hamza:353C98e0@cluster0.dfwnv.mongodb.net/test?retryWrites=true&w=majority"
 
 // Database Name
 const dbName = "test"

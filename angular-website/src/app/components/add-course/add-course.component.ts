@@ -63,8 +63,7 @@ export class AddCourseComponent implements OnInit {
       courseCHrs: ['', [Validators.required]],
       courseGrade: ['', [Validators.required]],
       courseEmail: ['', [Validators.required]],
-      userEmail: ['', [Validators.required]],
-      userPass: ['', [Validators.required]]
+      userEmail: ['', [Validators.required]]
     })
   }
   

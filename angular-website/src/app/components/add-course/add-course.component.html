@@ -103,12 +103,6 @@
                       <div style="margin-left: 20px;" *ngIf="myForm.userEmail.errors.required">Sender Email is required.</div>
                     </div>
                   </div>
-                  <div class="form-group">
-                    <input type="password" placeholder="Email of Password" formControlName="userPass" required [ngClass]="{ 'is-invalid': submitted && myForm.userPass.errors }">
-                    <div *ngIf="submitted && myForm.userPass.errors" class="invalid-feedback">
-                      <div style="margin-left: 20px;" *ngIf="myForm.userPass.errors.required">Sender Password is required.</div>
-                    </div>
-                </div>
       
                 <div class="form-group">
                   <button type="submit" class="btn btn-lg buttonAdd">Add Course</button>

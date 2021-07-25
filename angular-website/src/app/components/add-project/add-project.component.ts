@@ -61,8 +61,7 @@ export class AddProjectComponent implements OnInit {
       projectFile: [null, [Validators.required]],
       projectCourse: ['', [Validators.required]],
       projectEmail: ['', [Validators.required]],
-      userEmail: ['', [Validators.required]],
-      userPass: ['', [Validators.required]]
+      userEmail: ['', [Validators.required]]
     })
   }
   

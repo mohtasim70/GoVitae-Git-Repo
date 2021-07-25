@@ -79,19 +79,22 @@
                       <h6><span style="font-weight: 500;">Grade:</span> {{course.courseGrade}}</h6>
                     </div>
                     <div class="col-2">
-                      <h6 data-placement="top" title="Tap to View Block!"><fa-icon style="cursor: pointer;" (click)="getTheBlock()" [icon]="faLink"></fa-icon></h6>
+                      <h6 data-placement="top" title="Tap to View Block!"><fa-icon style="cursor: pointer;" (click)="getTheBlock(course.courseHash)" [icon]="faLink"></fa-icon></h6>
                     </div>
                   </div>
                 </div>
                 <div *ngIf="CV.Project.length > 0">
                   <h4 class="fullHead">Projects</h4>
                   <div *ngFor="let project of CV.Project; let j = index;" class="row">
-                    <div class="col-7">
+                    <div class="col-6">
                       <h6>{{project.projectName}}</h6>
                       <h6 class="projectDesc">{{project.projectDetails}}</h6>
                     </div>
-                    <div class="col-4 offset-1">
+                    <div class="col-4">
                       <h6><span style="font-weight: 500;">Course:</span> {{project.projectCourse}}</h6>
+                    </div>
+                    <div class="col-2">
+                      <h6 data-placement="top" title="Tap to View Block!"><fa-icon style="cursor: pointer;" (click)="getTheBlock(project.projectHash)" [icon]="faLink"></fa-icon></h6>
                     </div>
                   </div>
                 </div>

@@ -169,49 +169,76 @@ label #sidebar_btn:hover{
   opacity: 0.8;
 }
 
-form {
-  margin: 20px auto 40px;
-  border-radius: 5px;
-  padding: 30px 40px 40px 40px;
-  font-size: 1.1em;
-  background-color: rgb(255, 255, 255);
-  box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.1);
+.carder {
+    padding: 30px;
+    border-radius: 25px;
+    box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.1);
 }
 
-input {
-  width: 100%;
-  text-align: center;
-  outline: none;
-  font-size: 17px;
-  padding: 15px;
-  border: 1px solid lightgrey;
-  border-radius: 25px;
-  transition: all 0.3s ease;
-  margin-bottom: 15px;
+.card-title {
+    font-size: 26px;
+    text-align: center;
+    color: #1aa592;
 }
 
-input:focus {
-  border-color: #00BFA6;
+.card-body {
+    font-size: 18px;
+    text-align: center;
+    color: #1aa592;
 }
 
-label {
-  color: #00BFA6;
-  font-weight: bold;
+h5 {
+    margin-top: 40px;
+    color: #00BFA6;
+	text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+    border: 1px dotted #057062;
+    border-radius: 35px;
+    padding: 20px;
 }
 
-.buttonAdd {
-  margin-top: 60px;
-  margin-bottom: 100px;
-  background-color: #00BFA6;
-  border-radius: 30px;
-  width: 50%;
-  color: white;
-  padding-top: 15px;
-  padding-bottom: 15px;
+h6 {
+    margin-top: 10px;
+    color: #00BFA6;
+	text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    border: 1px dotted #057062;
+    border-radius: 35px;
+    padding: 20px;
 }
 
-.buttonAdd:hover {
-  background-color: #09a08c;
+h2 {
+    margin-top: 10px;
+    font-size: 15px;
+    color: #00BFA6;
+	text-align: center;
+}
+
+.hashes {
+    font-size: 18px;
+    text-align: left;
+    font-weight: bold;
+    color: #00b199;
+}
+
+.courses {
+    color: #00BFA6;
+	text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    width: 50%;
+    margin: 0 auto;
+    border: 1px dotted #057062;
+    border-radius: 35px;
+    padding: 20px;
+}
+
+.endBlock {
+    font-size: 18px;
+    border: 1px solid #00ad96;
+    padding: 20px;
 }
 
 h1 {
@@ -225,74 +252,21 @@ h3 {
   color: #00BFA6;
 }
 
-
-h2 {
-    margin-top: 40px;
-  color: #00BFA6;
-	text-align: center;
-}
-
-.fullHead {
-  padding: 20px;
-  border-bottom: 1px solid #0f9c89;
-  width: 30%;
-  font-weight: 600;
-  margin-top: 30px;
-  color: #22242A;
-  margin-bottom: 15px;
-  font-size: 24px;
-}
-
-h6 {
-  font-weight: 400;
-  font-size: 18px;
-  margin-top: 15px;
-  color: #22242A;
-}
-
-h5 {
-    margin-top: 40px;
-    color: #00BFA6;
-	  text-align: center;
-    font-size: 30px;
-    font-weight: bold;
-    border: 1px dotted #057062;
-    border-radius: 35px;
-    padding: 20px;
-}
-
-.fullName {
-  margin-top: 5px;
-  font-size: 30px;
-  font-weight: 600;
-}
-
-.fullEmail {
-  font-size: 24px;
-  text-align: center;
-  font-weight: 400;
-  margin-top: 5px;
-}
-
-.carder {
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.1);
-  padding-bottom: 50px;
-}
-
-.projectDesc {
-  margin-top: 0px;
-  font-size: 14px;
-  color: #646464;
-  font-weight: 300;
+.chainer {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+    margin-top: -122px;
 }
 
 .noBlocks {
-  font-size: 40px;
-  text-align: center;
-  margin-top: 130px;
+    font-size: 40px;
+    text-align: center;
+    margin-top: 130px;
 }
+
+
   
 .mobLogo {
   display: none;

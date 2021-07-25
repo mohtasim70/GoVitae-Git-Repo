@@ -2,7 +2,7 @@
 <header>
     <nav class="navbar navbar-expand-md">
         <div class="container">
-            <a class="navbar-brand" href="/"><img src="../../../assets/img/logo.jpg" height="100" width="200" style="border-radius: 50%;"></a>
+            <a class="navbar-brand" href="/"><img src="../../../assets/img/logo.jpg" height="70" width="140" style="border-radius: 50%;"></a>
       <button class="navbar-toggler navbar-light" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
         <span class="navbar-toggler-icon"></span>
       </button>      
@@ -20,17 +20,12 @@
     </nav>
 </header>
 
-<!-- Add your site or app content here -->
-  <div class="hero-full-container background-image-container white-text-container" style="margin-top: -150px;">
     <div class="container">
       <div class="row">
-        <div class="col-xs-12">
+        <div class="col-6" style="margin-top: 110px;">
           <h1>GoVitae</h1>
-
           <p>A Blockchain based CV verification System</p>
-          <br>
-
-        <div id="showName" class="ng-autocomplete">
+          <div id="showName" class="ng-autocomplete">
             <ng-autocomplete [data]="Courses" [searchKeyword]="keyword" (selected)='selectEvent($event)' placeholder="Find Verified Candidates"
                 (inputChanged)='onChangeSearch($event)' (inputFocused)='onFocused($event)' [itemTemplate]="itemTemplate"
                 [notFoundTemplate]="notFoundTemplate">
@@ -43,21 +38,20 @@
             <ng-template #notFoundTemplate let-notFound>
                 <div [innerHTML]="notFound"></div>
             </ng-template>
-        </div>  
-        <select id="showGrade" class="grader" name="grader" (change)="gradeType($event.target.value)">
-            <option value="A+">A+</option>
+          </div>
+          <select id="showGrade" class="grader" name="grader" (change)="gradeType($event.target.value)">
+            <option value="">Choose Grade</option>
             <option *ngFor="let grade of grades" value="{{grade}}">{{grade}}
             </option>
-        </select>
-        <select id="typer" class="typer" name="typer" (change)="changeType($event.target.value)">
-            <option value="cName">By Course Name</option>
-            <option value="cGrade">By Course Grade</option>
-        </select>
-        <button class="btn finder" (click)="searchCV()">Find</button>
+          </select>
+          <br>
+          <button class="btn finder" (click)="searchCV()">Find</button>  
+        </div>
+        <div class="col-6">
+          <img src="../../../assets/img/home.svg" width="600" height="600" style="margin-top: -30px;">
         </div>
       </div>
     </div>
-  </div>
 
   <div class="section-container">
     <div class="container">
@@ -65,7 +59,7 @@
         <div class="col-xs-12 col-md-8 col-md-offset-2">
           <div class="text-center">
             <h2>The Product</h2>
-            <p style = "text-align: justify;">
+            <p style = "text-align: justify; margin-top: 50px; line-height: 30px;">
             Our application is created to facilitate verification of CV for companies,
             Our project’s phenomena is that user cv content will be inserted in the node of a blockchain
             . The approved stakeholders will be
@@ -187,27 +181,13 @@
   </div>
 
 
-<footer class="footer-container white-text-container">
+<footer style="background-color: #00BFA6; margin-top: 50px; padding: 50px;">
   <div class="container">
     <div class="row">
-
-
       <div class="text-center">
         <h3>GoVitae</h3>
-
-        <div class="text-center">
-          <div class="text-center">
-            <p><small>  <a href="https://github.com/mueed98/GoVitae-Git-Repo" title=""></a> </small></p>
-            <p><small>  <a href="http://nu.edu.pk/" title="">FAST NUCES, Islamabad</a> </small></p>
-            <p>
-              <a href="http://nu.edu.pk/"  title="">
-        <img   class="text-center" src="../../../assets/img/nu.JPG" style="border-radius:50%; width:10%; height:10%;" alt="First slide">
-            </a>
-            </p>
-          </div>
-      </div>
-
-
+        <p><a href="http://nu.edu.pk/" title="">FAST NUCES, Islamabad</a></p>
+        <img  class="text-center" src="../../../assets/img/nu.JPG" style="border-radius:50%; width:10%; height: 50%" alt="First slide"> 
       </div>
     </div>
   </div>

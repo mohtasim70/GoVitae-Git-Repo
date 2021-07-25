@@ -10,9 +10,11 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -46,6 +48,7 @@ type Course struct {
 	Name        string `json:"courseName"`
 	CreditHours int    `json:"courseCHrs"`
 	Grade       string `json:"courseGrade"`
+	Hash        string `json:"courseHash"`
 }
 
 // CourseWeb for detailed course content
@@ -65,6 +68,7 @@ type Project struct {
 	Details    string `json:"projectDetails"`
 	FileName   string `json:"projectFile"`
 	CourseName string `json:"projectCourse"`
+	Hash       string `json:"projectHash"`
 }
 
 // CourseWeb for detailed project content
@@ -124,6 +128,20 @@ type ListTheBlock struct {
 	Status      []string
 	Email       []string
 	Username    []string
+}
+
+//VerifiedBlock displaying verified blocks
+type VerifiedBlock struct {
+	Course      []Course  `json:"courses"`
+	Project     []Project `json:"projects"`
+	PrevPointer []*Block  `json:"prevPointer"`
+	PrevHash    []string  `json:"prevHash"`
+	CurrentHash []string  `json:"currHash"`
+	BlockNo     []int     `json:"blockNo"`
+	Status      []string  `json:"status"`
+	Email       []string  `json:"email"`
+	Username    string    `json:"username"`
+	UserEmail   string    `json:"userEmail"`
 }
 
 //UnverifyBlock displaying unverified blocks
@@ -369,6 +387,7 @@ func InsertProject(myBlock Block) *Block {
 func InsertCourseUnverified(myBlock Block) *Block {
 
 	myBlock.CurrentHash = CalculateHash(&myBlock)
+	myBlock.Course.Hash = myBlock.CurrentHash
 	fmt.Println("Course Hash, ", CalculateHash(&myBlock))
 	if unverifiedChain == nil {
 		myBlock.BlockNo = count
@@ -392,6 +411,7 @@ func InsertCourseUnverified(myBlock Block) *Block {
 func InsertProjectUnverified(myBlock Block) *Block {
 
 	myBlock.CurrentHash = CalculateHash(&myBlock)
+	myBlock.Project.Hash = myBlock.CurrentHash
 	fmt.Println("Course Hash, ", CalculateHash(&myBlock))
 	if unverifiedChain == nil {
 		myBlock.BlockNo = count
@@ -1209,8 +1229,16 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
+		rand.Seed(time.Now().UnixNano())
+		min := 5000
+		max := 7000
+		port := rand.Intn(max-min+1) + min
+		s1 := strconv.FormatInt(int64(port), 10)
+		s2 := strconv.Itoa(port)
+		fmt.Println(s1)
+		fmt.Println(s2)
 		satoshiAddress := "2500"
-		myListeningAddress := "6002"
+		myListeningAddress := s2
 
 		conn, err := net.Dial("tcp", ":"+satoshiAddress)
 		if err != nil {
@@ -1879,13 +1907,37 @@ func SearchRequiredUsers(w http.ResponseWriter, r *http.Request) {
 		var users []Result
 		for decoder.More() {
 			decoder.Decode(&block)
-			if block.Course.Name == search.CourseName || block.Course.Grade == search.CourseName {
-				if block.Username != "" {
-					resul := Result{
-						Username: block.Username,
-						Course:   block.Course,
+			if search.CourseName != "" && search.CourseGrade == "" {
+				if block.Course.Name == search.CourseName {
+					if block.Username != "" {
+						resul := Result{
+							Username: block.Username,
+							Course:   block.Course,
+						}
+						users = append(users, resul)
 					}
-					users = append(users, resul)
+				}
+			}
+			if search.CourseName == "" && search.CourseGrade != "" {
+				if block.Course.Grade == search.CourseGrade {
+					if block.Username != "" {
+						resul := Result{
+							Username: block.Username,
+							Course:   block.Course,
+						}
+						users = append(users, resul)
+					}
+				}
+			}
+			if search.CourseName != "" && search.CourseGrade != "" {
+				if block.Course.Name == search.CourseName && block.Course.Grade == search.CourseGrade {
+					if block.Username != "" {
+						resul := Result{
+							Username: block.Username,
+							Course:   block.Course,
+						}
+						users = append(users, resul)
+					}
 				}
 			}
 		}
@@ -1925,6 +1977,137 @@ func SearchRequiredUsers(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// // res.Error = err.Error()
 		// json.NewEncoder(w).Encode(res)
+		return
+	}
+
+}
+
+//--- GetBlock Web Handler to return The Specific Block ---//
+func GetBlock(w http.ResponseWriter, r *http.Request) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Don't forget to validate the alg is what you expect:
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			fmt.Println(" ---- Access Denied ----")
+			return nil, fmt.Errorf("Unexpected signing method")
+		}
+		return []byte("secret"), nil
+	})
+	if token == nil {
+		fmt.Println(" ---- Access Denied ----")
+		http.Redirect(w, r, urlLogin+"/login", http.StatusSeeOther)
+		return
+	}
+	var result model.User
+	var res model.ResponseResult
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		result.Username = claims["username"].(string)
+		result.FirstName = claims["firstname"].(string)
+		result.LastName = claims["lastname"].(string)
+		result.Email = claims["email"].(string)
+		currUser = model.User{
+			Username:  result.Username,
+			FirstName: result.FirstName,
+			LastName:  result.LastName,
+			Email:     result.Email,
+			Password:  "",
+		}
+		tempHead := chainHead
+		viewTheBlock := new(VerifiedBlock)
+		tempProject := []Project{}
+		tempCourse := []Course{}
+		tempBlockNo := []int{}
+		tempCurrHash := []string{}
+		tempPrevHash := []string{}
+		tempEmail := []string{}
+		tempStatus := []string{}
+
+		extCourse := new(Course)
+		extProject := new(Project)
+
+		params := mux.Vars(r)
+		blockHash := params["hash"]
+
+		fmt.Println("Blockchain", tempHead)
+		for tempHead != nil {
+			if tempHead.Username == result.Username {
+				if tempHead.CurrentHash == blockHash {
+					if tempHead.Course.Name == "" {
+						fmt.Println("4th If Course")
+
+						tempStatus = append(tempStatus, tempHead.Status)
+						tempProject = append(tempProject, tempHead.Project)
+						tempCourse = append(tempCourse, *extCourse)
+						tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
+						tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
+						tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
+						tempEmail = append(tempEmail, tempHead.Email)
+						viewTheBlock = &VerifiedBlock{
+							Course:      tempCourse,
+							Project:     tempProject,
+							BlockNo:     tempBlockNo,
+							CurrentHash: tempCurrHash,
+							PrevHash:    tempPrevHash,
+							Email:       tempEmail,
+							Status:      tempStatus,
+							Username:    result.Username,
+							UserEmail:   result.Email,
+						}
+						fmt.Println(viewTheBlock.Project)
+						fmt.Println(viewTheBlock.BlockNo)
+						fmt.Println(viewTheBlock.CurrentHash)
+						fmt.Println(viewTheBlock.PrevHash)
+						fmt.Println(viewTheBlock.Email)
+						fmt.Println(viewTheBlock.Status)
+					}
+					if tempHead.Project.Name == "" {
+						fmt.Println("4th If Project")
+						tempStatus = append(tempStatus, tempHead.Status)
+						tempProject = append(tempProject, *extProject)
+						tempCourse = append(tempCourse, tempHead.Course)
+						tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
+						tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
+						tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
+						tempEmail = append(tempEmail, tempHead.Email)
+						viewTheBlock = &VerifiedBlock{
+							Course:      tempCourse,
+							Project:     tempProject,
+							BlockNo:     tempBlockNo,
+							CurrentHash: tempCurrHash,
+							PrevHash:    tempPrevHash,
+							Email:       tempEmail,
+							Status:      tempStatus,
+							Username:    result.Username,
+							UserEmail:   result.Email,
+						}
+						fmt.Println(viewTheBlock.Course)
+						fmt.Println(viewTheBlock.BlockNo)
+						fmt.Println(viewTheBlock.CurrentHash)
+						fmt.Println(viewTheBlock.PrevHash)
+						fmt.Println(viewTheBlock.Email)
+						fmt.Println(viewTheBlock.Status)
+					}
+					fmt.Println(viewTheBlock)
+
+					break
+				}
+			}
+			tempHead = tempHead.PrevPointer
+		}
+
+		json, err := json.Marshal(struct {
+			Result VerifiedBlock `json:"verifiedBlock"`
+		}{
+			*viewTheBlock,
+		})
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		w.Write(json)
+	} else {
+		res.Error = err.Error()
+		json.NewEncoder(w).Encode(res)
 		return
 	}
 
@@ -2139,11 +2322,12 @@ func RunWebServer() {
 	r.HandleFunc("/getVerifyContent", SearchVerifyContent)
 	r.HandleFunc("/getVerifiedCVs", SearchRequiredUsers)
 	r.HandleFunc("/mineBlockMiner/{hash}", Mineblock)
+	r.HandleFunc("/getSpecificBlock/{hash}", GetBlock)
 	r.HandleFunc("/runServerSatoshi", RunSatoshiServer)
 
 	r.NotFoundHandler = r.NewRoute().HandlerFunc(serverHandler).GetHandler()
 	webPort := os.Getenv("PORT")
 	fmt.Println(webPort)
 	http.Handle("/", r)
-	http.ListenAndServe(":"+webPort, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))
+	http.ListenAndServe(":"+"4000", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(r))
 }

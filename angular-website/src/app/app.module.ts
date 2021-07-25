@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 
 import {AutocompleteLibModule} from 'angular-ng-autocomplete';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -18,6 +19,7 @@ import { HomeComponent } from './components/home/home.component';
 import { SearchCVComponent } from './components/search-cv/search-cv.component';
 import { VerifyContentComponent } from './components/verify-content/verify-content.component';
 import { RunServerComponent } from './components/run-server/run-server.component';
+import { GetBlockComponent } from './components/get-block/get-block.component';
 
 @NgModule({
   declarations: [
@@ -32,7 +34,8 @@ import { RunServerComponent } from './components/run-server/run-server.component
     HomeComponent,
     SearchCVComponent,
     VerifyContentComponent,
-    RunServerComponent
+    RunServerComponent,
+    GetBlockComponent
   ],
   imports: [
     BrowserModule,
@@ -40,7 +43,8 @@ import { RunServerComponent } from './components/run-server/run-server.component
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
-    AutocompleteLibModule
+    AutocompleteLibModule,
+    FontAwesomeModule
   ],
   providers: [],
   bootstrap: [AppComponent]

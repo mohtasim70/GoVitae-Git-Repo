@@ -14,7 +14,7 @@ export class HomeComponent implements OnInit {
   searchType = "";
   Courses: any;
   keyword = "courseName";
-  grades = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'D'];
+  grades = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'D'];
   
 
   constructor(
@@ -29,27 +29,8 @@ export class HomeComponent implements OnInit {
     this.getCourses();
   }
 
-  changeType(type) {
-    console.log(type)
-    if (type == "cName")
-    {
-      this.keyword = "courseName"
-      document.getElementById("showGrade").style.display = "none";
-      document.getElementById("showName").style.display = "block";
-      document.getElementById("typer").style.marginLeft = "-340px";
-    }
-    if (type == "cGrade")
-    {
-      this.keyword = "courseGrade"
-      document.getElementById("showGrade").style.display = "block";
-      document.getElementById("showName").style.display = "none";
-      document.getElementById("typer").style.marginLeft = "-150px";
-      this.searchCourse = 'A+';
-    }
-  }
-
   gradeType(type) {
-    this.searchCourse = type;
+    this.searchType = type;
   }
 
   selectEvent(item) {
@@ -81,7 +62,8 @@ export class HomeComponent implements OnInit {
   }
 
   searchCV() {
-    sessionStorage.setItem("Searcher", this.searchCourse);
+    sessionStorage.setItem("SearcherCourse", this.searchCourse);
+    sessionStorage.setItem("SearcherGrade", this.searchType);
     this.ngZone.run(() => this.router.navigateByUrl('/searchCV'))
   }
 

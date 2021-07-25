@@ -52,31 +52,34 @@
     </div>
     <!--sidebar end-->
 
-    <div id="pdf" class="content">
+    <div class="content" id="pdf">
       <div class="container">
 
         <div class="row">
           <div class="col-md-6 offset-md-3">
               <h5 class="text-center" style="margin-bottom: 60px;">Verified CV</h5>
           </div>
-      </div>
+        </div>
         <div class="row">
           <div class="col-md-10 offset-md-1">
             <div *ngIf="CV != null">
               <div *ngIf="CV.Course.length <= 0 && CV.Project.length <= 0">
                 <h1 class="noBlocks">No verified content exists!</h1>
               </div>
-              <div *ngIf="CV.Course.length > 0 || CV.Project.length > 0" class="card carder">
+              <div *ngIf="CV.Course.length > 0 || CV.Project.length > 0" class="card carder" id="carder">
                 <h2 class="fullName">{{CV.Firstname}} {{CV.Lastname}}</h2>
                 <h3 class="fullEmail">{{CV.Email}}</h3>
                 <div *ngIf="CV.Course.length > 0">
                   <h4 class="fullHead">Courses</h4>
                   <div *ngFor="let course of CV.Course; let j = index;" class="row">
-                    <div class="col-8">
+                    <div class="col-6">
                       <h6>{{course.courseCode}} · {{course.courseName}} · {{course.courseCHrs}} CHrs</h6>
                     </div>
                     <div class="col-4">
                       <h6><span style="font-weight: 500;">Grade:</span> {{course.courseGrade}}</h6>
+                    </div>
+                    <div class="col-2">
+                      <h6 data-placement="top" title="Tap to View Block!"><fa-icon style="cursor: pointer;" (click)="getTheBlock()" [icon]="faLink"></fa-icon></h6>
                     </div>
                   </div>
                 </div>
@@ -95,9 +98,9 @@
               </div>
             </div>
           </div>
-        </div>
-        <div class="form-group">
-          <button (click)="downloadAsPDF()" class="btn btn-lg buttonAdd">Generate PDF</button>
+          <div class="col-md-8 offset-4">
+            <button (click)="downloadAsPDF()" class="btn btn-lg buttonAdd" id="buttonAdd">Generate PDF</button>
+          </div>
         </div>
       </div>
     </div>

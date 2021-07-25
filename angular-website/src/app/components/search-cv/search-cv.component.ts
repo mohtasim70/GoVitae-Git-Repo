@@ -30,6 +30,7 @@ export class SearchCVComponent implements OnInit {
   mainForm() {
     this.searchForm = this.fb.group({
       courseName: [''],
+      courseGrade: ['']
     })
   }
 
@@ -38,8 +39,8 @@ export class SearchCVComponent implements OnInit {
   }
 
   findCV() {
-    console.log(sessionStorage.getItem("Searcher"))
-    this.searchForm.controls.courseName.setValue(sessionStorage.getItem("Searcher"))
+    this.searchForm.controls.courseName.setValue(sessionStorage.getItem("SearcherCourse"))
+    this.searchForm.controls.courseGrade.setValue(sessionStorage.getItem("SearcherGrade"))
     this.blockService.getVerifiedCVs(this.searchForm.value).subscribe(
       (res) => {
         if (res['status'] == 200)

@@ -75,6 +75,15 @@ export class BlockService {
     const req = new HttpRequest('GET', url);
     return this.http.request(req);
   }
+
+  // Get Specific Block Function //
+
+  getSpecificBlock(hash): Observable<any> {
+    let url = `${this.mainURL}/getSpecificBlock/${hash}`;
+
+    const req = new HttpRequest('GET', url);
+    return this.http.request(req);
+  }
   
   // Get User Function //
 

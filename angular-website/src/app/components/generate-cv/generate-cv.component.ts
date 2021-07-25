@@ -3,6 +3,7 @@ import { BlockService } from './../../service/block.service';
 import { Component, OnInit, NgZone } from '@angular/core';
 import { FormGroup, FormBuilder, Validators } from "@angular/forms";
 import { ViewChild, ElementRef } from '@angular/core';
+import { faLink } from '@fortawesome/free-solid-svg-icons';
 import {jsPDF} from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as $ from 'jquery';
@@ -18,6 +19,7 @@ export class GenerateCVComponent implements OnInit {
   User: any;
   submitted = false;
   playerForm: FormGroup;
+  faLink = faLink;
   @ViewChild('pdf', {static: false}) pdf: ElementRef;
 
   constructor(
@@ -34,6 +36,15 @@ export class GenerateCVComponent implements OnInit {
     $(document).ready(function(){
       $('.nav_btn').click(function(){
         $('.mobile_nav_items').toggleClass('active');
+      });
+    });
+    $(document).ready(function(){
+      $('[data-toggle=tooltip]').hover(function(){
+          // on mouseenter
+          $(this).tooltip('show');
+      }, function(){
+          // on mouseleave
+          $(this).tooltip('hide');
       });
     });
   }
@@ -74,20 +85,41 @@ export class GenerateCVComponent implements OnInit {
     }
   }
 
+  getTheBlock() {
+    let hash = "b1207229ded8860a3bd4c4bdfdf42b1e92cd3fb5286dea5bad2d6f376b5d7d10"
+    localStorage.setItem("blockHash", hash)
+    this.ngZone.run(() => this.router.navigateByUrl('/getBlock'))
+  }
+ 
   logout() {
     this.blockService.logout();
     this.ngZone.run(() => this.router.navigateByUrl('/login'))
   }
 
-  public downloadAsPDF() {
-    let data = document.getElementById('pdf');
-            html2canvas(data).then(canvas => {
-              
-            // let pdf = new jspdf('l', 'cm', 'a4'); //Generates PDF in landscape mode
-            let pdf = new jsPDF('p', 'cm', 'a4');// Generates PDF in portrait mode
-            // pdf.addImage(contentDataURL, 'PNG', 0, 0, 29.7, 21.0);
-            pdf.save('CV.pdf');
-          });
- }
+  downloadAsPDF() {
+    
+    document.getElementById('carder').style.boxShadow = 'none';
+
+    document.getElementById('buttonAdd').style.display = 'none';
+
+    let DATA = document.getElementById('pdf');
+      
+    html2canvas(DATA).then(canvas => {
+        
+        let fileWidth = 208;
+        let fileHeight = canvas.height * fileWidth / canvas.width;
+        
+        const FILEURI = canvas.toDataURL('image/png')
+        let PDF = new jsPDF('p', 'mm', 'a4');
+        let position = 0;
+        PDF.addImage(FILEURI, 'PNG', 0, position, fileWidth, fileHeight)
+        
+        PDF.save('CV.pdf');
+    });     
+
+    document.getElementById('carder').style.boxShadow = '0px 0px 30px rgba(0, 0, 0, 0.1)';
+
+    document.getElementById('buttonAdd').style.display = 'block';
+  }
 
 }

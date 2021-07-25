@@ -213,6 +213,7 @@ func ReadBlockchainFile() {
 //WriteBlockchainFile Writing into file
 func WriteBlockchainFile(chainHead []Block) {
 	arr := removeDuplicateValues(chainHead)
+	fmt.Println("---- Verified Chain ----", chainHead)
 	file, _ := json.MarshalIndent(arr, "", " ")
 	_ = ioutil.WriteFile("blockchainFile.json", file, 0644)
 	fmt.Println("file")
@@ -234,12 +235,11 @@ func SaveUVFile() {
 		decoder.Decode(&block)
 		//	chainHead = InsertCourse(block)
 		if block.Project.CourseName != "" {
-			chainHead = InsertProjectUnverified(block)
+			unverifiedChain = InsertProjectUnverified(block)
 		}
 		if block.Course.Name != "" {
-			chainHead = InsertCourseUnverified(block)
+			unverifiedChain = InsertCourseUnverified(block)
 		}
-
 	}
 	stuff.ChainHead = chainHead
 	ListBlocks(chainHead)
@@ -247,12 +247,12 @@ func SaveUVFile() {
 
 //WriteUVFile Writing into file
 func WriteUVFile(chainHead []Block) {
-
+	fmt.Println("--- Unverified Block ---", chainHead)
 	file, _ := json.MarshalIndent(chainHead, "", " ")
 	_ = ioutil.WriteFile("unverified.json", file, 0644)
-	fmt.Println("file")
-
+	fmt.Println("Unverified Block inserted into unverified.json file!")
 }
+
 func ReadHash(hash string) Block {
 
 	file, err := os.Open("unverified.json")
@@ -297,11 +297,10 @@ func GetBlockhainArray(chainHead *Block) []Block {
 		data = append(data, block)
 		chainHead = chainHead.PrevPointer
 		i++
-
 	}
 	return data
-
 }
+
 func removeDuplicateValues(intSlice []Block) []Block {
 	keys := make(map[Block]bool)
 	list := []Block{}
@@ -931,6 +930,7 @@ func StartListening(ListeningAddress string, node string) {
 		block := Block{}
 		chainHead = InsertCourse(block) //Genesis Block
 		ReadBlockchainFile()
+		SaveUVFile()
 		stuff.ChainHead = chainHead
 		for {
 			conn, err := ln.Accept()
@@ -1603,65 +1603,6 @@ func GenerateCVHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/*var GmailService *gmail.Service
-
-func OAuthGmailService() {
-	config := oauth2.Config{
-		ClientID:     "275469437806-nqp90b6739i86oiupk45236jinc1h2eh.apps.googleusercontent.com",
-		ClientSecret: "GEULiFVDqfZkdQswdLlERnR3",
-		Endpoint:     google.Endpoint,
-		RedirectURL:  "http://localhost",
-	}
-
-	token := oauth2.Token{
-		AccessToken:  "your_access_token",
-		RefreshToken: "your_refresh_token",
-		TokenType:    "Bearer",
-		Expiry:       time.Now(),
-	}
-
-	var tokenSource = config.TokenSource(context.Background(), &token)
-
-	srv, err := gmail.NewService(context.Background(), option.WithTokenSource(tokenSource))
-	if err != nil {
-		log.Printf("Unable to retrieve Gmail client: %v", err)
-	}
-
-	GmailService = srv
-	if GmailService != nil {
-		fmt.Println("Email service is initialized ")
-	}
-}
-
-func SendEmailOAUTH2(to string, data Block) (bool, error) {
-
-	// emailBody, err := parseTemplate(template, data)
-	// if err != nil {
-	// 	return false, errors.New("unable to parse email template")
-	// }
-
-	var message gmail.Message
-
-	emailTo := "To: " + to + "\r\n"
-
-	subject := "Subject: " + "Test Email form Gmail API using OAuth" + "\n"
-
-	mime := "MIME-version: 1.0;\nContent-Type: text/plain; charset=\"UTF-8\";\n\n"
-
-	msg := []byte(emailTo + subject + mime + "\n" + data.Project.CourseName)
-
-	message.Raw = base64.URLEncoding.EncodeToString(msg)
-
-	// Send the message
-	_, err := GmailService.Users.Messages.Send("me", &message).Do()
-	if err != nil {
-		return false, err
-	}
-	fmt.Println("In handler7")
-
-	return true, nil
-}*/
-
 //AddProjectHandler Web Handler to add projects into the blockchain ///
 func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
@@ -1675,12 +1616,6 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 		newProject.Details = tempProject.Details
 		newProject.FileName = tempProject.FileName
 		newProject.CourseName = tempProject.CourseName
-
-		// Use pFile for sending files to mailer //
-
-		//fmt.Println(pFile, pErr)
-
-		/////////////////////////////////
 
 		MyBlock := Block{
 			Project:  newProject,
@@ -1703,61 +1638,14 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 		uv := GetBlockhainArray(unverifiedChain)
 		WriteUVFile(uv)
-		//	fmt.Println("FFFFFFFFFF", len(nodesSlice))
-		//	for i := 0; i < len(nodesSlice); i++ {
-		//	fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
-		//		if nodesSlice[i].Mail == MyBlock.Email {
-		// conn, err := net.Dial("tcp", "localhost:"+nodesSlice[i].ListeningAddress)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		// MinerConn = conn
-		// gobEncoder := gob.NewEncoder(conn)
-		// fmt.Println("blok:ahsh: ", CalculateHash(&MyBlock))
-		// err2 := gobEncoder.Encode(MyBlock)
-		// if err2 != nil {
-		// 	log.Println("In Write Chain: ", err2)
-		// }
-		//	SendEmailOAUTH2(MyBlock.Email, MyBlock)
 
-		//SMTPPPPPPPPPPPPPPPPPPPPPPPP
-		// from := tempProject.SEmail
-		// password := tempProject.SPass
-		//
-		// // Receiver email address.
-		// to := []string{
-		// 	MyBlock.Email,
-		// }
-		//
-		// // smtp server configuration.
-		// smtpHost := "smtp.gmail.com"
-		// smtpPort := "587"
-		//
-		// // Message.
-		// message := []byte("Project Name: " + MyBlock.Project.Name + "  Project Details: " + MyBlock.Project.Details + "  Course Grade: " + MyBlock.Course.Grade + "\n" + "Click here to verify this content: " + "localhost:" + "4000" + "/mineBlock/" + CalculateHash(&MyBlock))
-		//
-		// // Authentication.
-		// auth := smtp.PlainAuth("", from, password, smtpHost)
-		//
-		// // Sending email.
-		// err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
-		//
-		// if err != nil {
-		// 	fmt.Println(err)
-		// 	return
-		// }
-		// fmt.Println("Email Sent Successfully!")
-		//SMTPPPPPPPPPPPPPPPPPPPPPPPP
-		var yourDomain string = "sandbox50253020dec14a4facc7efbd22f3032e.mailgun.org" // e.g. mg.yourcompany.com
-
-		// You can find the Private API Key in your Account Menu, under "Settings":
-		// (https://app.mailgun.com/app/account/security)
+		var yourDomain string = "sandbox50253020dec14a4facc7efbd22f3032e.mailgun.org"
 		var privateAPIKey string = "a4c5860a66a26bb2daca1b64d24283cc-71b35d7e-fe033fce"
 		mg := mailgun.NewMailgun(yourDomain, privateAPIKey)
 
 		sender := tempProject.SEmail
 		subject := "You got new content to verify!"
-		body := "Project Name: " + MyBlock.Project.Name + "Project Details: " + MyBlock.Project.Details + "Project Course Name: " + MyBlock.Project.CourseName + "\n" + "Click here to verify this content: " + "https://fierce-thicket-76988.herokuapp.com" + "/mineBlock/" + CalculateHash(&MyBlock)
+		body := "Project Name: " + MyBlock.Project.Name + " Project Details: " + MyBlock.Project.Details + " Project Course Name: " + MyBlock.Project.CourseName + "\n" + "Click here to verify this content: " + "http://localhost:4000" + "/mineBlock/" + CalculateHash(&MyBlock)
 		recipient := MyBlock.Email
 
 		// The message object allows you to add attachments and Bcc recipients
@@ -1774,41 +1662,8 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fmt.Printf("ID: %s Resp: %s\n", id, resp)
-		/*m := gomail.NewMessage()
 
-		// Set E-Mail sender
-		m.SetHeader("From", tempProject.SEmail)
-
-		// Set E-Mail receivers
-		m.SetHeader("To", MyBlock.Email)
-
-		// Set E-Mail subject
-		m.SetHeader("Subject", "Verification Content")
-
-		// Set E-Mail body. You can set plain text or html with text/html
-
-		///////////// Add files to send to the mailer /////////////////
-		m.SetBody("text/plain", "Project Name: "+MyBlock.Project.Name+"  Project Details: "+MyBlock.Project.Details+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"4000"+"/mineBlock/"+CalculateHash(&MyBlock))
-
-		// Settings for SMTP server
-		d := gomail.NewDialer("smtp.gmail.com", 587, tempProject.SEmail, tempProject.SPass)
-
-		// This is only needed when SSL/TLS certificate is not valid on server.
-		// In production this should be set to false.
-		d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-
-		// Now send E-Mail
-		if err := d.DialAndSend(m); err != nil {
-			fmt.Println(err, "mailerr")
-			panic(err)
-		}*/
 		Mined = true
-		//	fmt.Println("Email Sent", Mined, nodesSlice[i].ListeningAddress)
-
-		//break
-		//		}
-		//		}
-		//http.Redirect(w, r, urlLogin+"/dashboard", http.StatusSeeOther)
 	}
 
 }
@@ -2094,6 +1949,8 @@ func GetBlock(w http.ResponseWriter, r *http.Request) {
 			tempHead = tempHead.PrevPointer
 		}
 
+		fmt.Println("$$$$$$$$$$$$$$", viewTheBlock)
+
 		json, err := json.Marshal(struct {
 			Result VerifiedBlock `json:"verifiedBlock"`
 		}{
@@ -2154,33 +2011,14 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 		uv := GetBlockhainArray(unverifiedChain)
 		WriteUVFile(uv)
 
-		//	fmt.Println("FFFFFFFFFF", len(nodesSlice))
-		//		for i := 0; i < len(nodesSlice); i++ {
-		//	fmt.Println("dddddddddddddddddddddddddddddddddddddddddddddddddddddddd")
-		//		if nodesSlice[i].Mail == MyBlock.Email {
-		// conn, err := net.Dial("tcp", "localhost:"+nodesSlice[i].ListeningAddress)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		// MinerConn = conn
-		// gobEncoder := gob.NewEncoder(conn)
-		// fmt.Println("blok:ahsh: ", CalculateHash(&MyBlock))
-		// err2 := gobEncoder.Encode(MyBlock)
-		// if err2 != nil {
-		// 	log.Println("In Write Chain: ", err2)
-		// }
-		//SMPTPP
 		// Create an instance of the Mailgun Client
-		var yourDomain string = "sandbox50253020dec14a4facc7efbd22f3032e.mailgun.org" // e.g. mg.yourcompany.com
-
-		// You can find the Private API Key in your Account Menu, under "Settings":
-		// (https://app.mailgun.com/app/account/security)
+		var yourDomain string = "sandbox50253020dec14a4facc7efbd22f3032e.mailgun.org"
 		var privateAPIKey string = "a4c5860a66a26bb2daca1b64d24283cc-71b35d7e-fe033fce"
 		mg := mailgun.NewMailgun(yourDomain, privateAPIKey)
 
 		sender := tempCourse.SEmail
 		subject := "You got new content to verify!"
-		body := "Course Name: " + MyBlock.Course.Name + "  Course Code: " + MyBlock.Course.Code + "  Course Grade: " + MyBlock.Course.Grade + "\n" + "Click here to verify this content: " + "https://fierce-thicket-76988.herokuapp.com" + "/mineBlock/" + CalculateHash(&MyBlock)
+		body := "Course Name: " + MyBlock.Course.Name + "  Course Code: " + MyBlock.Course.Code + "  Course Grade: " + MyBlock.Course.Grade + "\n" + "Click here to verify this content: " + "http://localhost:4000" + "/mineBlock/" + CalculateHash(&MyBlock)
 		recipient := MyBlock.Email
 
 		// The message object allows you to add attachments and Bcc recipients
@@ -2197,70 +2035,8 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		fmt.Printf("ID: %s Resp: %s\n", id, resp)
-		//SendMail("127.0.0.1:587", (&mail.Address{"from name", tempCourse.SEmail}).String(), "Email Subject", "message body", []string{(&mail.Address{"to name", MyBlock.Email}).String()})
-		/*from := tempCourse.SEmail
-		password := tempCourse.SPass
-		//
-		// Receiver email address.
-		to := []string{
-			MyBlock.Email,
-		}
-		//
-		// // smtp server configuration.
-		smtpHost := "smtp.outlook.com"
-		smtpPort := "587"
-		//
-		// // Message.
-		message := []byte("Course Name: " + MyBlock.Course.Name + "  Course Code: " + MyBlock.Course.Code + "  Course Grade: " + MyBlock.Course.Grade + "\n" + "Click here to verify this content: " + "localhost:" + "4000" + "/mineBlock/" + CalculateHash(&MyBlock))
-		//
-		// // Authentication.
-		auth := smtp.PlainAuth("", from, password, smtpHost)
-		//
-		// // Sending email.
-		err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
-		//
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Println("Email Sent Successfully!")
-		//SMPTPP*/
 
-		//m := gomail.NewMessage()
-
-		// Set E-Mail sender
-		//m.SetHeader("From", tempCourse.SEmail)
-
-		// Set E-Mail receivers
-		//m.SetHeader("To", MyBlock.Email)
-
-		// Set E-Mail subject
-		//m.SetHeader("Subject", "Verification Content")
-
-		// Set E-Mail body. You can set plain text or html with text/html
-		//m.SetBody("text/plain", "Course Name: "+MyBlock.Course.Name+"  Course Code: "+MyBlock.Course.Code+"  Course Grade: "+MyBlock.Course.Grade+"\n"+"Click here to verify this content: "+"localhost:"+"4000"+"/mineBlock/"+CalculateHash(&MyBlock))
-
-		// Settings for SMTP server
-		//d := gomail.NewDialer("smtp.gmail.com", 587, tempCourse.SEmail, tempCourse.SPass)
-
-		// This is only needed when SSL/TLS certificate is not valid on server.
-		// In production this should be set to false.
-		//d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
-
-		// Now send E-Mail
-		//if err := d.DialAndSend(m); err != nil {
-		//	fmt.Println(err, "mailerr")
-		//	panic(err)
-		//}
-		Mined = true
-		//	fmt.Println("Email Sent", Mined, nodesSlice[i].ListeningAddress)
-
-		//		break
-		//		}
-		//		}
-		//http.Redirect(w, r, urlLogin+"/dashboard", http.StatusSeeOther)
 	}
-
 }
 
 //LogoutHandler   Web Handler to logout the user ///

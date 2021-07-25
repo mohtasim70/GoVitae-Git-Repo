@@ -85,8 +85,7 @@ export class GenerateCVComponent implements OnInit {
     }
   }
 
-  getTheBlock() {
-    let hash = "b1207229ded8860a3bd4c4bdfdf42b1e92cd3fb5286dea5bad2d6f376b5d7d10"
+  getTheBlock(hash: any) {
     localStorage.setItem("blockHash", hash)
     this.ngZone.run(() => this.router.navigateByUrl('/getBlock'))
   }

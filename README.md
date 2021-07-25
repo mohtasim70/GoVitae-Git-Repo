@@ -45,13 +45,14 @@ February’21	: 	Web app development and Basic search operations
 April’21	: 	Advanced search completion and deployment using docker images
 
 Tools and Technology:
+•	Angular
 •	Golang 
 •	Atom		
 •	Git
  
 References:
-https://appii.io/ 
-https://www.authbridge.com/blog/resume-verification-must-your-hiring-process
-https://www.criteriacorp.com/resources/glossary/resume-spamming
-https://medium.com/swlh/a-simple-guide-to-blockchain-technology-4589971e6d03
-https://www.glassdoor.com/blog/lying-on-your-resume
+• https://appii.io/ 
+• https://www.authbridge.com/blog/resume-verification-must-your-hiring-process
+• https://www.criteriacorp.com/resources/glossary/resume-spamming
+• https://medium.com/swlh/a-simple-guide-to-blockchain-technology-4589971e6d03
+• https://www.glassdoor.com/blog/lying-on-your-resume

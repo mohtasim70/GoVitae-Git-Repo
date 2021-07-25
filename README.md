@@ -1,9 +1,9 @@
 # GoVitae-Git-Repo
 BlockChain CV FYP Repository
 
-Project ID: F20-13-D
-Type of Project: Development
-FYP Supervisor: Dr. Ehtesham Zahoor
+- Project ID: F20-13-D
+- Type of Project: Development
+- FYP Supervisor: Dr. Ehtesham Zahoor
 
 ## Team : 
 - Member 1: Mueed i170132@nu.edu.pk
@@ -38,10 +38,10 @@ A time saving, transparent, unchangeable system will help the university, studen
 verification and record keeping of individuals.
  
 ### Timeline:
-September’20	: 	Background study, designing chain structure
-October’20	: 	Blockchain implementation and Web app integration
-February’21	: 	Web app development and Basic search operations
-April’21	: 	Advanced search completion and deployment using docker images
+- September’20	: 	Background study, designing chain structure
+- October’20	: 	Blockchain implementation and Web app integration
+- February’21	: 	Web app development and Basic search operations
+- April’21	: 	Advanced search completion and deployment using docker images
 
 ### Tools and Technology:
 -	Angular

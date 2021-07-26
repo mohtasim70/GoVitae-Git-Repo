@@ -1037,44 +1037,92 @@ var Mined bool
 
 /// Web Handler to show all blocks of blockchain in satoshi server ///
 func showBlocksHandler(w http.ResponseWriter, r *http.Request) {
+
 	tempHead := chainHead
-	viewTheBlock := new(ListTheBlock)
+	viewTheBlock := new(VerifiedBlock)
+	tempProject := []Project{}
 	tempCourse := []Course{}
 	tempBlockNo := []int{}
 	tempCurrHash := []string{}
 	tempPrevHash := []string{}
+	tempEmail := []string{}
 	tempStatus := []string{}
-	for tempHead != nil {
-		tempCourse = append(tempCourse, tempHead.Course)
-		tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
-		tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
-		tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
-		tempStatus = append(tempStatus, tempHead.Status)
 
-		viewTheBlock = &ListTheBlock{
-			Course:      tempCourse,
-			BlockNo:     tempBlockNo,
-			CurrentHash: tempCurrHash,
-			PrevHash:    tempPrevHash,
-			Status:      tempStatus,
+	extCourse := new(Course)
+	extProject := new(Project)
+
+	ListBlocks(tempHead)
+
+	for tempHead != nil {
+		fmt.Println("1st If")
+		if tempHead.Status == "Verified" && tempHead.Username != "" {
+			if tempHead.Course.Name == "" {
+				fmt.Println("4th If Course")
+
+				tempStatus = append(tempStatus, tempHead.Status)
+				tempProject = append(tempProject, tempHead.Project)
+				tempCourse = append(tempCourse, *extCourse)
+				tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
+				tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
+				tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
+				tempEmail = append(tempEmail, tempHead.Email)
+				viewTheBlock = &VerifiedBlock{
+					Course:      tempCourse,
+					Project:     tempProject,
+					BlockNo:     tempBlockNo,
+					CurrentHash: tempCurrHash,
+					PrevHash:    tempPrevHash,
+					Email:       tempEmail,
+					Status:      tempStatus,
+				}
+				fmt.Println(viewTheBlock.Project)
+				fmt.Println(viewTheBlock.BlockNo)
+				fmt.Println(viewTheBlock.CurrentHash)
+				fmt.Println(viewTheBlock.PrevHash)
+				fmt.Println(viewTheBlock.Email)
+				fmt.Println(viewTheBlock.Status)
+			}
+			if tempHead.Project.Name == "" {
+				fmt.Println("4th If Project")
+				tempStatus = append(tempStatus, tempHead.Status)
+				tempProject = append(tempProject, *extProject)
+				tempCourse = append(tempCourse, tempHead.Course)
+				tempBlockNo = append(tempBlockNo, tempHead.BlockNo)
+				tempCurrHash = append(tempCurrHash, tempHead.CurrentHash)
+				tempPrevHash = append(tempPrevHash, tempHead.PrevHash)
+				tempEmail = append(tempEmail, tempHead.Email)
+				viewTheBlock = &VerifiedBlock{
+					Course:      tempCourse,
+					Project:     tempProject,
+					BlockNo:     tempBlockNo,
+					CurrentHash: tempCurrHash,
+					PrevHash:    tempPrevHash,
+					Email:       tempEmail,
+					Status:      tempStatus,
+				}
+				fmt.Println(viewTheBlock.Course)
+				fmt.Println(viewTheBlock.BlockNo)
+				fmt.Println(viewTheBlock.CurrentHash)
+				fmt.Println(viewTheBlock.PrevHash)
+				fmt.Println(viewTheBlock.Email)
+				fmt.Println(viewTheBlock.Status)
+			}
+			fmt.Println(viewTheBlock)
 		}
 		tempHead = tempHead.PrevPointer
-		fmt.Println(viewTheBlock.Course)
-		fmt.Println(viewTheBlock.BlockNo)
-		fmt.Println(viewTheBlock.CurrentHash)
-		fmt.Println(viewTheBlock.PrevHash)
-		fmt.Println(viewTheBlock.Status)
-	}
-	// generate page by passing page variables into template
-	t, err := template.ParseFiles("../Website/viewBlocks.html") //parse the html file homepage.html
-	if err != nil {                                             // if there is an error
-		log.Print("template parsing error: ", err) // log it
 	}
 
-	err = t.Execute(w, viewTheBlock) //execute the template and pass it the HomePageVars struct to fill in the gaps
-	if err != nil {                  // if there is an error
-		log.Print("template executing error: ", err) //log it
+	json, err := json.Marshal(struct {
+		Result VerifiedBlock `json:"verifiedBlock"`
+	}{
+		*viewTheBlock,
+	})
+
+	if err != nil {
+		fmt.Println(err)
 	}
+
+	w.Write(json)
 }
 
 var check = make(chan string)
@@ -1645,7 +1693,7 @@ func AddProjectHandler(w http.ResponseWriter, r *http.Request) {
 
 		sender := tempProject.SEmail
 		subject := "You got new content to verify!"
-		body := "Project Name: " + MyBlock.Project.Name + " Project Details: " + MyBlock.Project.Details + " Project Course Name: " + MyBlock.Project.CourseName + "\n" + "Click here to verify this content: " + "http://localhost:4000" + "/mineBlock/" + CalculateHash(&MyBlock)
+		body := "Project Name: " + MyBlock.Project.Name + "\n" + "Project Details: " + MyBlock.Project.Details + "\n" + "Project Course Name: " + MyBlock.Project.CourseName + "\n\n" + "Click here to verify this content: " + "https://govitae.herokuapp.com" + "/mineBlock/" + CalculateHash(&MyBlock)
 		recipient := MyBlock.Email
 
 		// The message object allows you to add attachments and Bcc recipients
@@ -1882,12 +1930,12 @@ func GetBlock(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 		blockHash := params["hash"]
 
-		fmt.Println("Blockchain", tempHead)
+		fmt.Println("Blockchain ----------------------------", tempHead)
 		for tempHead != nil {
 			if tempHead.Username == result.Username {
 				if tempHead.CurrentHash == blockHash {
 					if tempHead.Course.Name == "" {
-						fmt.Println("4th If Course")
+						fmt.Println("4th If Course --------------")
 
 						tempStatus = append(tempStatus, tempHead.Status)
 						tempProject = append(tempProject, tempHead.Project)
@@ -1915,7 +1963,7 @@ func GetBlock(w http.ResponseWriter, r *http.Request) {
 						fmt.Println(viewTheBlock.Status)
 					}
 					if tempHead.Project.Name == "" {
-						fmt.Println("4th If Project")
+						fmt.Println("4th If Project ------------------")
 						tempStatus = append(tempStatus, tempHead.Status)
 						tempProject = append(tempProject, *extProject)
 						tempCourse = append(tempCourse, tempHead.Course)
@@ -2018,7 +2066,7 @@ func AddCourseHandler(w http.ResponseWriter, r *http.Request) {
 
 		sender := tempCourse.SEmail
 		subject := "You got new content to verify!"
-		body := "Course Name: " + MyBlock.Course.Name + "  Course Code: " + MyBlock.Course.Code + "  Course Grade: " + MyBlock.Course.Grade + "\n" + "Click here to verify this content: " + "http://localhost:4000" + "/mineBlock/" + CalculateHash(&MyBlock)
+		body := "Course Name: " + MyBlock.Course.Name + "\n" + "Course Code: " + MyBlock.Course.Code + "\n" + "Course Grade: " + MyBlock.Course.Grade + "\n\n" + "Click here to verify this content: " + "https://govitae.herokuapp.com" + "/mineBlock/" + CalculateHash(&MyBlock)
 		recipient := MyBlock.Email
 
 		// The message object allows you to add attachments and Bcc recipients
@@ -2100,6 +2148,7 @@ func RunWebServer() {
 	r.HandleFunc("/mineBlockMiner/{hash}", Mineblock)
 	r.HandleFunc("/getSpecificBlock/{hash}", GetBlock)
 	r.HandleFunc("/runServerSatoshi", RunSatoshiServer)
+	r.HandleFunc("/showBlocks", showBlocksHandler)
 
 	r.NotFoundHandler = r.NewRoute().HandlerFunc(serverHandler).GetHandler()
 	webPort := os.Getenv("PORT")

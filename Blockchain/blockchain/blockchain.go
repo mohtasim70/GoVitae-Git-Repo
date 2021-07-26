@@ -2148,7 +2148,7 @@ func RunWebServer() {
 	r.HandleFunc("/mineBlockMiner/{hash}", Mineblock)
 	r.HandleFunc("/getSpecificBlock/{hash}", GetBlock)
 	r.HandleFunc("/runServerSatoshi", RunSatoshiServer)
-	r.HandleFunc("/showBlocks", showBlocksHandler)
+	r.HandleFunc("/showBlockchain", showBlocksHandler)
 
 	r.NotFoundHandler = r.NewRoute().HandlerFunc(serverHandler).GetHandler()
 	webPort := os.Getenv("PORT")

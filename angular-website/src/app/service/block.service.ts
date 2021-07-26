@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
 })
 export class BlockService {
 
-  mainURL:string = "http://localhost:4000";
+  mainURL:string = "";
 
   constructor(private http: HttpClient, public router: Router) { }
 
@@ -79,7 +79,7 @@ export class BlockService {
   // Show All Blocks Function //
 
   showBlocks(): Observable<any> {
-    let url = `${this.mainURL}/showBlocks`;
+    let url = `${this.mainURL}/showBlockchain`;
 
     const req = new HttpRequest('GET', url);
     return this.http.request(req);

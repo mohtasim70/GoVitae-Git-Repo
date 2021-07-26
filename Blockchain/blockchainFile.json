@@ -1,0 +1,48 @@
+[
+ {
+  "Course": {
+   "courseCode": "CS-202",
+   "courseName": "Database Systems",
+   "courseCHrs": 3,
+   "courseGrade": "A+",
+   "courseHash": "7bae45edad02b786b8358a782a6870978fad1589c6ad2b447a57c0c3035b6d78"
+  },
+  "Project": {
+   "projectName": "",
+   "projectDetails": "",
+   "projectFile": "",
+   "projectCourse": "",
+   "projectHash": ""
+  },
+  "PrevPointer": null,
+  "PrevHash": "",
+  "CurrentHash": "",
+  "BlockNo": 0,
+  "Status": "Verified",
+  "Email": "temptemp5522@gmail.com",
+  "Username": "Adnan"
+ },
+ {
+  "Course": {
+   "courseCode": "CS-202",
+   "courseName": "Database Systems",
+   "courseCHrs": 3,
+   "courseGrade": "A+",
+   "courseHash": "7bae45edad02b786b8358a782a6870978fad1589c6ad2b447a57c0c3035b6d78"
+  },
+  "Project": {
+   "projectName": "",
+   "projectDetails": "",
+   "projectFile": "",
+   "projectCourse": "",
+   "projectHash": ""
+  },
+  "PrevPointer": null,
+  "PrevHash": "",
+  "CurrentHash": "",
+  "BlockNo": 0,
+  "Status": "Verified",
+  "Email": "",
+  "Username": ""
+ }
+]

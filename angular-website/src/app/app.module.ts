@@ -20,6 +20,7 @@ import { SearchCVComponent } from './components/search-cv/search-cv.component';
 import { VerifyContentComponent } from './components/verify-content/verify-content.component';
 import { RunServerComponent } from './components/run-server/run-server.component';
 import { GetBlockComponent } from './components/get-block/get-block.component';
+import { ShowBlocksComponent } from './components/show-blocks/show-blocks.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import { GetBlockComponent } from './components/get-block/get-block.component';
     SearchCVComponent,
     VerifyContentComponent,
     RunServerComponent,
-    GetBlockComponent
+    GetBlockComponent,
+    ShowBlocksComponent
   ],
   imports: [
     BrowserModule,

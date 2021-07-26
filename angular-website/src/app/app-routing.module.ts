@@ -12,6 +12,7 @@ import { SearchCVComponent } from './components/search-cv/search-cv.component';
 import { VerifyContentComponent } from './components/verify-content/verify-content.component';
 import { RunServerComponent } from './components/run-server/run-server.component';
 import { GetBlockComponent } from './components/get-block/get-block.component';
+import { ShowBlocksComponent } from './components/show-blocks/show-blocks.component';
  
 const routes: Routes = [
   {path: 'addCourse', component: AddCourseComponent},
@@ -26,6 +27,7 @@ const routes: Routes = [
   {path: 'searchCV', component: SearchCVComponent},
   {path: 'dashboard', component: DashboardComponent},
   {path: 'getBlock', component: GetBlockComponent},
+  {path: 'showBlocks', component: ShowBlocksComponent},
 ];
 
 @NgModule({

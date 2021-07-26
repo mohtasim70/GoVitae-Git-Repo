@@ -1,0 +1,75 @@
+<body>
+    <header>
+        <nav class="navbar navbar-expand-md">
+            <div class="container">
+                <a class="navbar-brand" href="/"><img src="../../../assets/img/logo.jpg"  height="70" width="140" style="border-radius: 50%;"></a>
+          <button class="navbar-toggler navbar-light" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+          </button>      
+          <div class="collapse navbar-collapse" id="collapsibleNavbar">
+            <ul class="navbar-nav navbar-right">
+              <li class="nav-item">
+                <a class="nav-link" href="/login">Log in</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/register">Sign up</a>
+              </li>
+            </ul>
+        </div>
+        </div>
+        </nav>
+    </header>
+    
+      <div class="section-container">
+        <div class="container">
+            <div class="row" *ngIf="Blocks != null">
+                <div class="col-md-8 offset-md-2">
+                    <h2 style="margin-bottom: 40px; font-size: 45px;">Verified Blockchain</h2>
+                    <div *ngIf="Blocks.blockNo == null">
+                      <h1 class="noBlocks">Blockchain Empty!</h1>
+                    </div>
+                    <div *ngFor="let block of Blocks.blockNo; let i = index;">
+                      <div class="card carder">
+                        <div class="card-title">
+                          <h6>Block No: {{Blocks.blockNo[i]}}</h6>
+                          <span class="hashes">Current Hash:</span><h2>{{Blocks.currHash[i]}}</h2>
+                          <span class="hashes">Previous Hash:</span><h2>{{Blocks.prevHash[i]}}</h2>
+                        </div>
+                        <div class="card-body" *ngIf="Blocks.courses[i].courseName != ''">
+                            <h6 style="margin-bottom: 25px;" class="courses">Course</h6>
+                            <span style="font-weight: 600; color: #00b199;">Code:</span>&nbsp;&nbsp;{{Blocks.courses[i].courseCode}}<br>
+                            <span style="font-weight: 600; color: #00b199;">Name:</span>&nbsp;&nbsp;{{Blocks.courses[i].courseName}}<br>
+                            <span style="font-weight: 600; color: #00b199;">Credit Hours:</span>&nbsp;&nbsp;{{Blocks.courses[i].courseCHrs}}<br>
+                            <span style="font-weight: 600; color: #00b199;">Grade:</span>&nbsp;&nbsp;{{Blocks.courses[i].courseGrade}}
+                        </div>
+                        <div class="card-body" *ngIf="Blocks.projects[i].projectName != ''">
+                          <h6 style="margin-bottom: 25px;" class="courses">Project</h6>
+                          <span style="font-weight: 600; color: #00b199;">Name:</span>&nbsp;&nbsp;{{Blocks.projects[i].projectName}}<br>
+                          <span style="font-weight: 600; color: #00b199;">Details:</span>&nbsp;&nbsp;{{Blocks.projects[i].projectDetails}}<br>
+                          <span style="font-weight: 600; color: #00b199;">Filename:</span>&nbsp;&nbsp;{{Blocks.projects[i].projectFile}}<br>
+                          <span style="font-weight: 600; color: #00b199;">Course:</span>&nbsp;&nbsp;{{Blocks.projects[i].projectCourse}}
+                      </div>
+                        <h2 class="endBlock"><span style="font-weight: 700;">Verifier:&nbsp;</span> {{Blocks.email[i]}}&nbsp;&nbsp; · &nbsp;&nbsp;<span style="font-weight: 700;">Status:&nbsp;</span> {{Blocks.status[i]}}</h2>
+                      </div>
+                      <img *ngIf="i < Blocks.blockNo.length - 1" src="../../../assets/img/chain.png" class="chainer" height="280">
+                      <div *ngIf="i == Blocks.blockNo.length - 1" style="margin-top: 70px;"></div>
+                  </div>
+                </div>
+              </div>
+        </div>
+      </div>
+    
+    
+      <footer style="background-color: #00BFA6; margin-top: 100px; padding: 50px;">
+        <div class="container">
+          <div class="row">
+            <div class="text-center">
+              <h3>GoVitae</h3>
+              <p><a href="http://nu.edu.pk/" title="">FAST NUCES, Islamabad</a></p>
+              <img  class="text-center" src="../../../assets/img/nu.JPG" style="border-radius:50%; width:10%; height: 50%" alt="First slide"> 
+            </div>
+          </div>
+        </div>
+      </footer>
+    </body>
+    

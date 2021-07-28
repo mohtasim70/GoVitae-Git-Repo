@@ -23,6 +23,7 @@ export class RunServerComponent implements OnInit {
     this.runServer();
   }
   
+  // Function to run Satoshi Server //
   runServer() {
     this.blockService.runServer().subscribe(
     (res) => {

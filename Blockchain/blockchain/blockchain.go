@@ -1730,6 +1730,7 @@ type Result struct {
 	Course   Course `json:"Course"`
 }
 
+// SearchVerifyContent Web Handler to display the verified content from the blockchain //
 func SearchVerifyContent(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		// currUsername := currUser.Username
@@ -1791,6 +1792,7 @@ func SearchVerifyContent(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// SearchRequiredUsers Web Handler to search for the required users from the blockchain //
 func SearchRequiredUsers(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		var search Search

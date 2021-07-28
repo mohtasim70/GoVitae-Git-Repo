@@ -28,6 +28,7 @@ export class VerifyContentComponent implements OnInit {
     this.verifyHash(hash);
   }
   
+  // Function to verify the block hash //
   verifyHash(hash) {
     this.blockService.mineBlock(hash).subscribe(
     (res) => {

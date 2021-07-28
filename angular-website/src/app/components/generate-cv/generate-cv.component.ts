@@ -49,6 +49,7 @@ export class GenerateCVComponent implements OnInit {
     });
   }
 
+  // Function to generate CV //
   getCV() {
     this.blockService.generateCV().subscribe(
     (res) => {
@@ -85,6 +86,7 @@ export class GenerateCVComponent implements OnInit {
     }
   }
 
+  // Function to link to the specific block //
   getTheBlock(hash: any) {
     localStorage.setItem("blockHash", hash)
     this.ngZone.run(() => this.router.navigateByUrl('/getBlock'))
@@ -95,6 +97,7 @@ export class GenerateCVComponent implements OnInit {
     this.ngZone.run(() => this.router.navigateByUrl('/login'))
   }
 
+  // Function to generate PDF of CV //
   downloadAsPDF() {
     
     document.getElementById('carder').style.boxShadow = 'none';

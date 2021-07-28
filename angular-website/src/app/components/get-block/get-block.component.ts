@@ -56,6 +56,7 @@ export class GetBlockComponent implements OnInit {
     }
   }
 
+  // Function to get the specific block after linking from the CV //
   getTheBlock() {
     this.blockService.getSpecificBlock(localStorage.getItem("blockHash")).subscribe(
       (res) => {

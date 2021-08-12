@@ -6,9 +6,10 @@ BlockChain CV FYP Repository
 - FYP Supervisor: Dr. Ehtesham Zahoor
 
 ## Team
+- Team Lead: Mohtasim i170057@nu.edu.pk
 - Member 1: Mueed i170132@nu.edu.pk
 - Member 2: Hamza i170181@nu.edu.pk
-- Member 3: Mohtasim i170057@nu.edu.pk
+
 
 ## Project Overview
 Our application is created to facilitate verification of CV for companies, especially in an open house environment. Our project’s phenomena is that after completion of each course the course work done by each student will be inserted in the node of a blockchain which will happen each semester till the completion of degree. The approved stakeholders will be able to search all the work done by students during their degree tenure. Our project is using the public and a custom built Blockchain framework to achieve the mentioned goal. Blockchain technology will provide us a decentralized and secure P-2-P system. The reason for using this technology is to provide authenticity, transparency to the work done by the student at the end of his degree. Major plus point is the time saving and transparent record keeping for both the university and the employers.
